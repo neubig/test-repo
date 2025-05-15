@@ -1,4 +1,8 @@
 ---
+name: git_helper
+type: task
+version: 1.0.0
+agent: CodeActAgent
 triggers:
 - git
 - github
