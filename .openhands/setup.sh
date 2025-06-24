@@ -236,17 +236,24 @@ install_maven() {
         MAVEN_VERSION="3.9.9"
         MAVEN_DIR="/opt/maven"
         
-        if [ ! -d "$MAVEN_DIR" ]; then
-            mkdir -p $MAVEN_DIR
-            cd /tmp
-            wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
-            tar -xzf apache-maven-$MAVEN_VERSION-bin.tar.gz -C /opt
-            mv /opt/apache-maven-$MAVEN_VERSION $MAVEN_DIR
-            rm apache-maven-$MAVEN_VERSION-bin.tar.gz
+        # Remove any existing Maven dir to avoid nested structure
+        if [ -d "$MAVEN_DIR" ]; then
+            rm -rf "$MAVEN_DIR"
         fi
+        cd /tmp
+        wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+        tar -xzf apache-maven-$MAVEN_VERSION-bin.tar.gz -C /tmp
+        mv /tmp/apache-maven-$MAVEN_VERSION $MAVEN_DIR
+        rm apache-maven-$MAVEN_VERSION-bin.tar.gz
         
-        echo 'export PATH="/opt/maven/bin:$PATH"' >> ~/.bashrc
         export PATH="/opt/maven/bin:$PATH"
+        echo 'export PATH="/opt/maven/bin:$PATH"' >> ~/.bashrc
+        print_status "PATH after Maven install: $PATH"
+        print_status "Contents of /opt/maven/bin: $(ls -l /opt/maven/bin)"
+        if [ ! -f /opt/maven/bin/mvn ]; then
+            print_error "mvn binary not found in /opt/maven/bin!"
+            exit 1
+        fi
         print_success "Maven 3.9.9 installed successfully"
     else
         print_status "Maven 3.9.9 already installed"
@@ -317,6 +324,12 @@ verify_setup() {
     java -version
     
     echo "=== Maven Version ==="
+    echo "PATH before mvn -version: $PATH"
+    ls -l /opt/maven/bin || true
+    if ! command_exists mvn; then
+        print_error "mvn not found in PATH!"
+        exit 1
+    fi
     mvn -version
     
     echo "=== Vault Version ==="
