@@ -26,15 +26,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'  # SDK requires Python 3.12+
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install OpenHands SDK from git repository
+          # Install OpenHands SDK from git repository with all dependencies
           pip install git+https://github.com/All-Hands-AI/agent-sdk.git@openhands/automated-todo-management-example
-          # Install additional dependencies
-          pip install requests litellm pydantic rich tenacity
+          # Install additional dependencies that might be missing
+          pip install python-json-logger fastmcp python-frontmatter tomli
 
       - name: Download automation script
         run: |
