@@ -23,7 +23,8 @@
   },
   "commit_message_template": "Implement TODO: {todo_summary}\n\n{implementation_description}\n\nResolves TODO in {file_path}:{line_number}",
   "llm_config": {
-    "model": "gpt-4o-mini",
+    "model": "openai/gpt-4o-mini",
+    "base_url": null,
     "temperature": 0.1,
     "max_tokens": 2000
   }

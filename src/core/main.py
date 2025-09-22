@@ -45,8 +45,8 @@ class MainApplication(object):
         
     def run(self):
         """Main execution method."""
-        # TODO(openhands): Add proper logging instead of print statements
-        print "Starting application..."
+        # TODO(openhands-completed): Add proper logging instead of print statements
+        self.logger.info("Starting application...")
         
         try:
             # Get URLs to scrape from config
