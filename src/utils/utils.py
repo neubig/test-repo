@@ -299,6 +299,7 @@ class ThreadPool:
         self.threads = []
         self.shutdown = False
         self.logger = Logger("threadpool")
+        # TODO(openhands): Add proper error handling for thread creation failures
 
         # Start worker threads
         for i in xrange(num_threads):

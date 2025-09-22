@@ -45,6 +45,7 @@ class MainApplication(object):
         
     def run(self):
         """Main execution method."""
+        # TODO(openhands): Add proper logging instead of print statements
         print "Starting application..."
         
         try:
@@ -73,6 +74,7 @@ class MainApplication(object):
                                 print "Saved article: %s" % article.title
                             else:
                                 print "Invalid article data, skipping..."
+                                # TODO(openhands): Add detailed validation error reporting
                                 
                 except Exception as e:
                     self.logger.error("Error processing URL %s: %s" % (url, str(e)))
