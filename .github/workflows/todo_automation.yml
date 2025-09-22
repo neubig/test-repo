@@ -1,0 +1,61 @@
+name: Automated TODO Management
+
+on:
+  schedule:
+    # Run every 5 minutes for testing (faster than the original weekly schedule)
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      max_todos:
+        description: 'Maximum number of TODOs to process'
+        required: false
+        default: '3'
+        type: string
+
+jobs:
+  process-todos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests litellm
+
+      - name: Download automation script
+        run: |
+          # Download the automation script from the agent-sdk repository
+          curl -o todo_automation.py https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/openhands/automated-todo-management-example/examples/20_automated_todo_management/20_automated_todo_management.py
+
+      - name: Run TODO automation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+        run: |
+          python todo_automation.py \
+            --repo-path . \
+            --repo-owner neubig \
+            --repo-name test-repo \
+            --max-todos ${{ github.event.inputs.max_todos || '3' }} \
+            --dry-run false
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: todo-automation-logs
+          path: |
+            *.log
+            todo_automation_*.json
+          retention-days: 7

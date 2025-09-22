@@ -1,0 +1,30 @@
+{
+  "scan_patterns": ["**/*.py", "**/*.js", "**/*.ts", "**/*.java", "**/*.cpp", "**/*.c", "**/*.h"],
+  "exclude_patterns": [
+    "**/node_modules/**",
+    "**/venv/**",
+    "**/env/**",
+    "**/.git/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/coverage/**",
+    "**/test_results/**"
+  ],
+  "todo_pattern": "TODO\\(openhands\\):",
+  "context_lines": 3,
+  "max_todos_per_run": 3,
+  "branch_prefix": "openhands/todo-",
+  "pr_template": {
+    "title": "Implement TODO: {todo_summary}",
+    "body": "## Automated TODO Implementation\n\n**Original TODO:** {todo_text}\n\n**File:** `{file_path}:{line_number}`\n\n**Context:**\n```{file_extension}\n{context}\n```\n\n**Implementation:**\n{implementation_description}\n\n---\n*This PR was automatically created by the OpenHands TODO automation system.*",
+    "labels": ["automated", "todo", "enhancement"]
+  },
+  "commit_message_template": "Implement TODO: {todo_summary}\n\n{implementation_description}\n\nResolves TODO in {file_path}:{line_number}",
+  "llm_config": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.1,
+    "max_tokens": 2000
+  }
+}
