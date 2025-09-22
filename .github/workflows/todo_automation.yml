@@ -31,10 +31,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install OpenHands SDK from git repository with all dependencies
+          # Install all required dependencies first
+          pip install "fastmcp>=2.11.3" "litellm>=1.75.9" "pydantic>=2.11.7" "python-frontmatter>=1.1.0" "python-json-logger>=3.3.0" "tenacity>=9.1.2" "tomli>=1.2.0"
+          # Then install OpenHands SDK from git repository
           pip install git+https://github.com/All-Hands-AI/agent-sdk.git@openhands/automated-todo-management-example
-          # Install additional dependencies that might be missing
-          pip install python-json-logger fastmcp python-frontmatter tomli
 
       - name: Download automation script
         run: |
