@@ -73,8 +73,8 @@ class MainApplication(object):
                                 self.db_manager.save_article(article)
                                 print "Saved article: %s" % article.title
                             else:
-                                print "Invalid article data, skipping..."
-                                # TODO(openhands): Add detailed validation error reporting
+                                print "Invalid article data: %s" % DataValidator.get_validation_errors(article)
+                                # TODO(openhands-completed): Add detailed validation error reporting
                                 
                 except Exception as e:
                     self.logger.error("Error processing URL %s: %s" % (url, str(e)))
