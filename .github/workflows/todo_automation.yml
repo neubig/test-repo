@@ -47,8 +47,7 @@ jobs:
             --repo-path . \
             --repo-owner neubig \
             --repo-name test-repo \
-            --max-todos ${{ github.event.inputs.max_todos || '3' }} \
-            --dry-run false
+            --config todo_config.json
 
       - name: Upload logs
         if: always()
