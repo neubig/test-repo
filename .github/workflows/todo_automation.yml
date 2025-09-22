@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install OpenHands SDK from PyPI
-          pip install openhands-sdk
+          # Install OpenHands SDK from git repository
+          pip install git+https://github.com/All-Hands-AI/agent-sdk.git@openhands/automated-todo-management-example
           # Install additional dependencies
           pip install requests litellm pydantic rich tenacity
 
