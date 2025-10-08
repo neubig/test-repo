@@ -1773,6 +1773,47 @@ def command_watch(args):
         return 1
 
 
+def command_dashboard(args):
+    """Generate interactive progress dashboard."""
+    print_header("Progress Dashboard Generator")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from progress_dashboard import ProgressDashboard
+        
+        print_info("Generating interactive progress dashboard...\n")
+        
+        dashboard = ProgressDashboard(args.project_path)
+        output_file = dashboard.generate_dashboard(args.output)
+        
+        print_success(f"Dashboard generated: {output_file}")
+        print_info(f"Open in browser: file://{output_file}\n")
+        
+        print(f"{Colors.BOLD}Dashboard Features:{Colors.ENDC}")
+        print(f"  📉 Burndown chart - Issues over time")
+        print(f"  📈 Progress chart - Migration completion")
+        print(f"  📊 Issue distribution - By type and severity")
+        print(f"  ⚡ Velocity tracking - Progress rate analysis")
+        print(f"  🎯 ETA prediction - Estimated completion date\n")
+        
+        print(f"{Colors.BOLD}Update Dashboard:{Colors.ENDC}")
+        print(f"  1. Run fixes: {Colors.OKCYAN}py2to3 fix <path>{Colors.ENDC}")
+        print(f"  2. Collect stats: {Colors.OKCYAN}py2to3 stats collect --save{Colors.ENDC}")
+        print(f"  3. Refresh dashboard: {Colors.OKCYAN}py2to3 dashboard{Colors.ENDC}")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import dashboard generator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating dashboard: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_docs(args):
     """Generate migration documentation in Markdown format."""
     print_header("Migration Documentation Generator")
@@ -2214,6 +2255,19 @@ def main():
     parser_docs.add_argument('-b', '--backup-dir',
                             help='Backup directory path to include in changelog')
     
+    # Dashboard command
+    parser_dashboard = subparsers.add_parser(
+        'dashboard',
+        help='Generate interactive progress dashboard',
+        description='Generate an interactive HTML dashboard with charts, trends, velocity, and ETA'
+    )
+    parser_dashboard.add_argument('-o', '--output', 
+                                 default='migration_dashboard.html',
+                                 help='Output HTML file (default: migration_dashboard.html)')
+    parser_dashboard.add_argument('--project-path', 
+                                 default='.',
+                                 help='Project path (default: current directory)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2277,6 +2331,8 @@ def main():
         return command_bench(args)
     elif args.command == 'docs':
         return command_docs(args)
+    elif args.command == 'dashboard':
+        return command_dashboard(args)
     else:
         parser.print_help()
         return 1
