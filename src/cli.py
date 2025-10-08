@@ -2851,6 +2851,91 @@ def command_modernize(args):
         return 1
 
 
+def command_convert(args):
+    """Convert Python 2 code snippets to Python 3."""
+    print_header("Code Snippet Converter")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from snippet_converter import SnippetConverter, format_diff, format_side_by_side
+        
+        # Get input code
+        if args.code:
+            code = args.code
+            source_desc = "inline code"
+        elif args.input == '-' or not args.input:
+            print_info("Reading from stdin (press Ctrl+D when done)...")
+            code = sys.stdin.read()
+            source_desc = "stdin"
+        else:
+            validate_path(args.input)
+            with open(args.input, 'r') as f:
+                code = f.read()
+            source_desc = args.input
+        
+        print_info(f"Converting {source_desc}...")
+        print()
+        
+        # Convert
+        converter = SnippetConverter()
+        converted, changes = converter.convert(code)
+        
+        # Display results
+        if args.quiet:
+            print(converted)
+        else:
+            if args.side_by_side:
+                print(format_side_by_side(code, converted))
+            elif args.diff:
+                diff = format_diff(code, converted)
+                print(diff if diff else "No changes needed")
+            else:
+                print(f"{Colors.BOLD}=== Python 2 (Original) ==={Colors.ENDC}")
+                print(code)
+                print(f"\n{Colors.BOLD}=== Python 3 (Converted) ==={Colors.ENDC}")
+                print(converted)
+            
+            if changes and not args.no_explanation:
+                print(f"\n{Colors.BOLD}=== Changes Made ==={Colors.ENDC}\n")
+                for i, change in enumerate(changes, 1):
+                    print(f"{Colors.OKCYAN}{i}. {change['type']}{Colors.ENDC}")
+                    if change['line'] > 0:
+                        print(f"   Line {change['line']}")
+                    print(f"   {Colors.FAIL}- {change['old']}{Colors.ENDC}")
+                    print(f"   {Colors.OKGREEN}+ {change['new']}{Colors.ENDC}")
+                    print(f"   {Colors.WARNING}ℹ {change['explanation']}{Colors.ENDC}")
+                    print()
+            
+            if not changes:
+                print()
+                print_success("No changes needed - code is already Python 3 compatible!")
+            else:
+                print()
+                print_success(f"Made {len(changes)} change(s) to convert code to Python 3")
+        
+        # Save output if requested
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(converted)
+            print()
+            print_success(f"Converted code saved to: {args.output}")
+        
+        return 0
+    
+    except ImportError as e:
+        print_error(f"Failed to import snippet converter: {e}")
+        return 1
+    except FileNotFoundError as e:
+        print_error(f"File not found: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error converting code: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -2887,6 +2972,20 @@ def main():
     )
     parser_check.add_argument('path', help='File or directory to check')
     parser_check.add_argument('-r', '--report', help='Save report to file')
+    
+    # Convert command
+    parser_convert = subparsers.add_parser(
+        'convert',
+        help='Convert Python 2 code snippets to Python 3',
+        description='Quick converter for Python 2 code snippets - perfect for learning and testing'
+    )
+    parser_convert.add_argument('input', nargs='?', help='Input file (use - or omit for stdin)')
+    parser_convert.add_argument('-c', '--code', help='Code string to convert (alternative to file input)')
+    parser_convert.add_argument('-o', '--output', help='Output file (default: stdout)')
+    parser_convert.add_argument('--side-by-side', action='store_true', help='Show side-by-side comparison')
+    parser_convert.add_argument('--diff', action='store_true', help='Show unified diff')
+    parser_convert.add_argument('--no-explanation', action='store_true', help='Skip change explanations')
+    parser_convert.add_argument('--quiet', action='store_true', help='Only output converted code (no formatting)')
     
     # Preflight command
     parser_preflight = subparsers.add_parser(
@@ -3561,6 +3660,8 @@ def main():
     # Route to appropriate command handler
     if args.command == 'check':
         return command_check(args)
+    elif args.command == 'convert':
+        return command_convert(args)
     elif args.command == 'preflight':
         return command_preflight(args)
     elif args.command == 'fix':

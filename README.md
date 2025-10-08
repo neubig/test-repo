@@ -57,17 +57,27 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
-2. **Fixer Tool (`src/fixer.py`)**:
+2. **Code Snippet Converter** ✨ **[NEW]**:
+   - Lightning-fast interactive tool for converting Python 2 snippets to Python 3
+   - Perfect for learning, quick testing, and educational purposes
+   - Multiple output formats: side-by-side comparison, unified diff, or plain text
+   - Detailed explanations of every change made
+   - Works with files, inline code, or stdin
+   - Great for tutorials, documentation, and teaching Python 3
+   - Run `./py2to3 convert --help` to explore!
+   - **See [SNIPPET_CONVERTER_GUIDE.md](SNIPPET_CONVERTER_GUIDE.md) for complete guide!**
+
+3. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-3. **Verifier Tool (`src/verifier.py`)**:
+4. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-4. **Report Generator (`src/report_generator.py`)** 🆕:
+5. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -76,7 +86,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-5. **Configuration Management** ✨ **[NEW]**:
+6. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -84,7 +94,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-6. **Backup Management** 🔄 **[NEW]**:
+7. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
@@ -94,7 +104,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-7. **Comprehensive Test Suite** ✅ **[NEW]**:
+8. **Comprehensive Test Suite** ✅ **[NEW]**:
    - Full pytest-based test suite for all migration tools
    - Unit tests for fixer, verifier, backup manager, and config manager
    - Integration tests for complete workflows
@@ -102,7 +112,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-8. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+9. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -112,7 +122,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-9. **Git Integration** 🔧 **[NEW]**:
+10. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -123,7 +133,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-10. **CI/CD Integration** 🚀 **[NEW]**:
+11. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts
@@ -134,7 +144,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Zero configuration needed - works out of the box!
    - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
 
-11. **Dependency Analyzer** 📦 **[NEW]**:
+12. **Dependency Analyzer** 📦 **[NEW]**:
    - Comprehensive dependency analysis for Python 3 compatibility
    - Scans requirements.txt, setup.py, and import statements
    - Identifies standard library module renames (urllib2 → urllib.request, etc.)
@@ -146,14 +156,14 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 deps --help` to analyze your dependencies!
    - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
 
-12. **Migration Comparison Tool** 🔍:
+13. **Migration Comparison Tool** 🔍:
    - Compare migration progress between different contexts
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time
    - Compare different file system paths or projects
    - Get detailed metrics: progress percentage, issue counts, severity
 
-13. **Automated Test Generator** 🧪 **[NEW]**:
+14. **Automated Test Generator** 🧪 **[NEW]**:
    - Automatically generate unit tests for migrated code
    - Helps verify that migration preserves functionality
    - Creates pytest-style test scaffolds with smart placeholders
@@ -164,7 +174,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 test-gen src/` to generate tests for your code!
    - **See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete test generation guide!**
 
-14. **Interactive Fix Mode** 🎯 **[NEW]**:
+15. **Interactive Fix Mode** 🎯 **[NEW]**:
    - Review and approve each fix before it's applied
    - Gives you complete control over the migration process
    - Shows context around each change for informed decisions
