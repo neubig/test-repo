@@ -151,13 +151,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time
    - Compare different file system paths or projects
-   - Get detailed metrics: progress percentage, issue counts, severity distribution
-   - Identify which approach performs better with automatic winner determination
-   - Generate comparison reports in text or JSON format
-   - Perfect for team collaboration and evaluating migration strategies!
-   - Run `./py2to3 compare --help` to explore comparison features!
+   - Get detailed metrics: progress percentage, issue counts, severity
 
-13. **Risk Analyzer** ⚠️ **[LATEST]**:
+13. **Automated Test Generator** 🧪 **[NEW]**:
+   - Automatically generate unit tests for migrated code
+   - Helps verify that migration preserves functionality
+   - Creates pytest-style test scaffolds with smart placeholders
+   - Analyzes code structure using AST to identify testable components
+   - Generates tests for functions and classes with customizable templates
+   - Bridges the gap between "code compiles" and "code works correctly"
+   - Perfect safety net to catch runtime issues after migration
+   - Run `./py2to3 test-gen src/` to generate tests for your code!
+   - **See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete test generation guide!**
+
+14. **Risk Analyzer** ⚠️:
    - Intelligent risk assessment of migration changes
    - Identifies high-risk changes requiring careful manual review
    - Analyzes critical areas: error handling, I/O, database, encoding, etc.
@@ -242,11 +249,34 @@ Or use individual commands for more control:
 # Analyze migration risks (NEW!)
 ./py2to3 risk src/ -o risk_assessment.txt
 
+# Generate unit tests to verify migration correctness (NEW!)
+./py2to3 test-gen src/ -o migration_tests
+
 # Generate report
 ./py2to3 report --scan-path src/ --output report.html
 ```
 
-**NEW: Use Configuration for Convenience**
+**Generate Tests to Verify Migration** 🧪 **[NEW]**
+
+Ensure your migration preserves functionality by generating unit tests:
+
+```bash
+# Generate tests for migrated code
+./py2to3 test-gen src/ -o migration_tests
+
+# Review and customize generated tests
+# Edit files in migration_tests/ to add specific assertions
+
+# Run tests to verify functionality
+pytest migration_tests/
+
+# Run tests with coverage
+pytest migration_tests/ --cov=src --cov-report=html
+```
+
+See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete guide on test generation.
+
+**Use Configuration for Convenience**
 
 Save your preferences to avoid repeating flags:
 

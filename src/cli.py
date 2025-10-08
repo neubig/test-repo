@@ -1327,6 +1327,70 @@ def command_deps(args):
         return 1
 
 
+def command_test_gen(args):
+    """Generate unit tests for migrated code."""
+    print_header("Automated Test Generation")
+    
+    validate_path(args.path)
+    
+    print_info(f"Generating tests for: {args.path}")
+    print_info(f"Output directory: {args.output}\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from test_generator import TestGenerator
+        
+        generator = TestGenerator(args.path, args.output)
+        summary = generator.generate_tests(overwrite=args.overwrite)
+        
+        # Display summary
+        print(f"{Colors.BOLD}Test Generation Summary{Colors.ENDC}")
+        print("=" * 60)
+        print(f"Files processed:      {summary['files_processed']}")
+        print(f"Test files created:   {len(summary['test_files_created'])}")
+        print(f"Tests generated:      {summary['tests_generated']}")
+        print(f"  - Functions tested: {summary['functions_tested']}")
+        print(f"  - Classes tested:   {summary['classes_tested']}")
+        print(f"Skipped files:        {len(summary['skipped_files'])}")
+        print()
+        
+        if summary['test_files_created']:
+            print(f"{Colors.OKGREEN}Generated test files:{Colors.ENDC}")
+            for test_file in summary['test_files_created']:
+                print(f"  ✓ {test_file}")
+            print()
+        
+        if args.verbose and summary['skipped_files']:
+            print(f"{Colors.WARNING}Skipped files:{Colors.ENDC}")
+            for skipped in summary['skipped_files']:
+                print(f"  - {skipped}")
+            print()
+        
+        if summary['test_files_created']:
+            print_success(f"Successfully generated tests in {args.output}/")
+            print()
+            print(f"{Colors.BOLD}Next steps:{Colors.ENDC}")
+            print("  1. Review generated tests and add specific assertions")
+            print("  2. Provide appropriate test inputs and expected outputs")
+            print("  3. Add edge cases and error handling tests")
+            print(f"  4. Run tests: pytest {args.output}")
+        else:
+            print_warning("No tests were generated")
+            print_info("Make sure the target path contains Python files with testable functions/classes")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import test generator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating tests: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_risk(args):
     """Analyze migration risks for code review prioritization."""
     print_header("Migration Risk Analysis")
@@ -1682,6 +1746,18 @@ def main():
     parser_risk.add_argument('--json', action='store_true', help='Output in JSON format')
     parser_risk.add_argument('-d', '--detailed', action='store_true', help='Include detailed per-file analysis')
     
+    # Test-gen command
+    parser_test_gen = subparsers.add_parser(
+        'test-gen',
+        help='Generate unit tests for migrated code',
+        description='Automatically generate unit tests to verify migration correctness'
+    )
+    parser_test_gen.add_argument('path', help='File or directory to generate tests for')
+    parser_test_gen.add_argument('-o', '--output', default='generated_tests', 
+                                 help='Output directory for generated tests (default: generated_tests)')
+    parser_test_gen.add_argument('--overwrite', action='store_true', 
+                                 help='Overwrite existing test files')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1731,6 +1807,8 @@ def main():
         return command_compare(args)
     elif args.command == 'risk':
         return command_risk(args)
+    elif args.command == 'test-gen':
+        return command_test_gen(args)
     else:
         parser.print_help()
         return 1
