@@ -3059,6 +3059,60 @@ def command_typehints(args):
         return 1
 
 
+def command_estimate(args):
+    """Estimate effort required for Python 2 to 3 migration."""
+    print_header("Migration Effort Estimator")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing codebase: {args.path}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from effort_estimator import EffortEstimator
+        
+        estimator = EffortEstimator()
+        
+        print_info("Scanning files and detecting issues...")
+        estimator.analyze_codebase(args.path)
+        
+        print_success(f"Found {estimator.file_count} Python files with {len(estimator.issues)} issues")
+        print_info("Calculating estimates...")
+        print()
+        
+        # Calculate estimates
+        estimate = estimator.estimate_effort()
+        team_recommendation = estimator.recommend_team_size(estimate)
+        timeline = estimator.generate_timeline(estimate, team_recommendation)
+        
+        # Generate report
+        report = estimator.format_report(estimate, team_recommendation, timeline, args.format)
+        
+        # Output
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        print()
+        print_success("Estimation complete!")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import effort estimator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error estimating effort: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3555,6 +3609,19 @@ def main():
     parser_typehints.add_argument('--json',
                                  help='Save JSON report to file')
     
+    # Estimate command
+    parser_estimate = subparsers.add_parser(
+        'estimate',
+        help='Estimate effort required for migration',
+        description='Analyze codebase and provide detailed estimates for time, cost, and resources needed for Python 2 to 3 migration'
+    )
+    parser_estimate.add_argument('path', help='File or directory to analyze')
+    parser_estimate.add_argument('--format', choices=['text', 'json', 'csv'], 
+                                default='text',
+                                help='Output format (default: text)')
+    parser_estimate.add_argument('-o', '--output',
+                                help='Save report to file (default: print to console)')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -3860,6 +3927,8 @@ def main():
         return command_modernize(args)
     elif args.command == 'typehints':
         return command_typehints(args)
+    elif args.command == 'estimate':
+        return command_estimate(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'lint':

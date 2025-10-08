@@ -469,6 +469,22 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 typehints src/ --report report.txt` for detailed report!
    - **See [TYPE_HINTS_GUIDE.md](TYPE_HINTS_GUIDE.md) for complete type hints guide!**
 
+35. **Migration Effort Estimator** 📊💼 **[NEW]**:
+   - Analyze codebase and estimate time/resources required for migration
+   - Provides detailed breakdown of fix, testing, review, and documentation time
+   - Recommends optimal team size and composition
+   - Generates project timeline with milestones and phases
+   - Risk assessment based on issue severity and complexity
+   - Calculates contingency buffer (10-30%) based on risk factors
+   - Multiple output formats: text, JSON, and CSV
+   - Perfect for project planning and getting stakeholder buy-in
+   - Helps with budget estimation and resource allocation
+   - Tracks complexity factors like issue density and project size
+   - Run `./py2to3 estimate src/` to get effort estimates!
+   - Run `./py2to3 estimate src/ --format json -o estimate.json` for JSON export!
+   - Run `./py2to3 estimate src/ -o report.txt` to save detailed report!
+   - **See [EFFORT_ESTIMATOR_GUIDE.md](EFFORT_ESTIMATOR_GUIDE.md) for complete effort estimation guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
