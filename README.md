@@ -239,6 +239,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 quality src/` to analyze your code!
    - **See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete code quality guide!**
 
+20. **Migration Documentation Generator** 📚 **[NEW]**:
+   - Automatically generates comprehensive Markdown documentation for your migration
+   - Creates version-control-friendly documentation that renders beautifully on GitHub
+   - Four key documents: Summary, Guide, Changelog, and Best Practices
+   - Migration summary with status, statistics, and progress metrics
+   - Developer guide covering Python 3 changes, patterns, and workflows
+   - Detailed changelog documenting all modifications by category
+   - Best practices document for maintaining Python 3 code quality
+   - Perfect for team communication, onboarding, and historical reference
+   - Documentation stored in `.migration_docs/` directory
+   - Easy to commit, share, and update as migration progresses
+   - Complements HTML reports with team-friendly Markdown format
+   - Run `./py2to3 docs` to generate migration documentation!
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
@@ -352,6 +366,43 @@ vim src/core/processor.py  # Save changes and watch terminal
 Watch mode is perfect for active development - it automatically checks files as you save them, providing immediate feedback on any Python 3 compatibility issues. Like webpack watch or jest --watch, but for Python migration!
 
 See [WATCH_MODE.md](WATCH_MODE.md) for complete guide on watch mode.
+
+**Generate Migration Documentation** 📚 **[NEW]**
+
+Create comprehensive Markdown documentation for your migration project:
+
+```bash
+# Generate documentation for your project
+./py2to3 docs
+
+# Generate docs for a specific directory
+./py2to3 docs src/
+
+# Specify custom output directory
+./py2to3 docs src/ --output-dir docs/migration
+
+# Include backup directory information
+./py2to3 docs src/ --backup-dir backup
+```
+
+The documentation generator creates:
+- **Migration Summary** - Overview, statistics, and progress
+- **Migration Guide** - How to work with Python 3 code
+- **Migration Changelog** - Detailed list of all changes
+- **Best Practices** - Python 3 coding standards
+
+All documentation is in Markdown format, perfect for:
+- Committing to version control
+- Rendering on GitHub/GitLab
+- Team communication and onboarding
+- Historical reference and audit trails
+
+```bash
+# Generate docs and commit to repository
+./py2to3 docs
+git add .migration_docs
+git commit -m "Add migration documentation"
+```
 
 **Use Configuration for Convenience**
 

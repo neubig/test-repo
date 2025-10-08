@@ -1681,6 +1681,66 @@ def command_watch(args):
         return 1
 
 
+def command_docs(args):
+    """Generate migration documentation in Markdown format."""
+    print_header("Migration Documentation Generator")
+    
+    if hasattr(args, 'path') and args.path:
+        validate_path(args.path)
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from doc_generator import MigrationDocGenerator
+        
+        print_info(f"Generating documentation for: {args.path or 'current directory'}")
+        
+        generator = MigrationDocGenerator(args.path or '.')
+        
+        # Set custom output directory if provided
+        if args.output_dir:
+            generator.docs_dir = Path(args.output_dir)
+            generator.docs_dir.mkdir(exist_ok=True)
+        
+        print_info(f"Output directory: {generator.docs_dir}\n")
+        
+        # Generate documentation
+        saved_paths = generator.generate_full_documentation(
+            backup_dir=args.backup_dir
+        )
+        
+        # Display success message
+        print_success("Documentation generated successfully!\n")
+        
+        print(f"{Colors.BOLD}Generated Documents:{Colors.ENDC}")
+        for doc_type, path in saved_paths.items():
+            emoji = {
+                'summary': '📊',
+                'guide': '📘',
+                'changelog': '📝',
+                'best_practices': '✨',
+                'index': '📖'
+            }.get(doc_type, '📄')
+            print(f"  {emoji} {doc_type.title()}: {Colors.OKCYAN}{path}{Colors.ENDC}")
+        
+        print(f"\n{Colors.BOLD}Next Steps:{Colors.ENDC}")
+        print(f"  1. Review the generated documentation")
+        print(f"  2. Commit to version control: {Colors.OKCYAN}git add {generator.docs_dir}{Colors.ENDC}")
+        print(f"  3. Share with your team")
+        print(f"  4. Update as migration progresses")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import documentation generator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating documentation: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -2029,6 +2089,19 @@ def main():
     parser_quality.add_argument('-d', '--detailed', action='store_true',
                                help='Include detailed per-file metrics in report')
     
+    # Docs command
+    parser_docs = subparsers.add_parser(
+        'docs',
+        help='Generate migration documentation',
+        description='Generate comprehensive Markdown documentation for the migration project'
+    )
+    parser_docs.add_argument('path', nargs='?', default='.',
+                            help='Project path to document (default: current directory)')
+    parser_docs.add_argument('-o', '--output-dir',
+                            help='Output directory for documentation (default: .migration_docs)')
+    parser_docs.add_argument('-b', '--backup-dir',
+                            help='Backup directory path to include in changelog')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2088,6 +2161,8 @@ def main():
         return command_watch(args)
     elif args.command == 'quality':
         return command_quality(args)
+    elif args.command == 'docs':
+        return command_docs(args)
     else:
         parser.print_help()
         return 1

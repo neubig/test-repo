@@ -46,6 +46,9 @@ migration_report.json
 *_report.json
 !demo_report.html
 
+# Generated documentation
+.migration_docs/
+
 # Statistics tracking
 .py2to3-stats/
 migration-stats.json
