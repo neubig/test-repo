@@ -396,6 +396,21 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 venv test my-env` to run tests in the environment!
    - **See [VENV_GUIDE.md](VENV_GUIDE.md) for complete virtual environment guide!**
 
+30. **Import Optimizer** 🎯✨ **[NEW]**:
+   - Automatically clean up and organize Python imports after migration
+   - Removes unused imports left behind from migration
+   - Eliminates duplicate imports added during fixes
+   - Sorts imports according to PEP 8 (stdlib → third-party → local)
+   - Detects and reports wildcard imports
+   - Groups related imports for better readability
+   - Creates backups before applying changes
+   - Generates detailed reports with file-by-file breakdown
+   - Perfect final polish after migration
+   - CI/CD integration with non-zero exit on issues
+   - Run `./py2to3 imports src/` to analyze imports!
+   - Run `./py2to3 imports src/ --fix` to optimize imports!
+   - **See [IMPORT_OPTIMIZER_GUIDE.md](IMPORT_OPTIMIZER_GUIDE.md) for complete import optimization guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

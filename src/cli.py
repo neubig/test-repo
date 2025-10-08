@@ -2662,6 +2662,93 @@ def command_venv(args):
         return 1
 
 
+def command_imports(args):
+    """Optimize Python imports after migration."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from import_optimizer import ImportOptimizer
+        
+        print_header("Import Optimizer")
+        
+        path = args.path
+        
+        if not os.path.exists(path):
+            print_error(f"Path does not exist: {path}")
+            return 1
+        
+        optimizer = ImportOptimizer()
+        
+        if args.fix:
+            print_info(f"{'Analyzing and optimizing' if args.fix else 'Analyzing'} imports in: {path}\n")
+            
+            if os.path.isfile(path):
+                success = optimizer.optimize_file(path, backup=not args.no_backup)
+                if success:
+                    print_success(f"Optimized: {path}")
+                    analysis = optimizer.analyze_file(path)
+                    print_info(f"Applied {len(analysis['issues'])} optimization(s)")
+                else:
+                    print_info(f"No optimization needed: {path}")
+            else:
+                # Analyze first to show what will be done
+                results = optimizer.analyze_directory(path, recursive=args.recursive)
+                
+                if not results:
+                    print_success("No import issues found!")
+                    return 0
+                
+                print_info(f"Found issues in {len(results)} file(s)\n")
+                
+                # Optimize files
+                for result in results:
+                    if 'error' not in result:
+                        success = optimizer.optimize_file(
+                            result['filepath'],
+                            backup=not args.no_backup
+                        )
+                        if success:
+                            print_success(f"Optimized: {result['filepath']}")
+                
+                print()
+                print_info(f"Unused imports removed: {optimizer.stats['unused_imports']}")
+                print_info(f"Duplicate imports removed: {optimizer.stats['duplicate_imports']}")
+                print_info(f"Imports sorted: {optimizer.stats['unsorted_imports']}")
+                print_success(f"Total optimizations applied: {optimizer.stats['total_optimizations']}")
+            
+            return 0
+        
+        else:
+            # Analysis mode only
+            print_info(f"Analyzing imports in: {path}\n")
+            
+            if os.path.isfile(path):
+                results = [optimizer.analyze_file(path)]
+            else:
+                results = optimizer.analyze_directory(path, recursive=args.recursive)
+            
+            # Generate report
+            optimizer.generate_report(results, args.output)
+            
+            if optimizer.stats['total_optimizations'] > 0:
+                print()
+                print_warning(f"Found {optimizer.stats['total_optimizations']} optimization opportunity/opportunities")
+                print_info("Run with --fix to apply optimizations")
+                return 1  # Non-zero for CI/CD
+            else:
+                print_success("All imports are well-organized!")
+                return 0
+    
+    except ImportError as e:
+        print_error(f"Failed to import optimizer: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error optimizing imports: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3077,6 +3164,23 @@ def main():
     parser_search.add_argument('--json', action='store_true',
                               help='Output in JSON format')
     
+    # Imports command
+    parser_imports = subparsers.add_parser(
+        'imports',
+        help='Optimize and clean up Python imports',
+        description='Analyze and optimize Python imports: remove unused imports, sort by PEP 8, remove duplicates'
+    )
+    parser_imports.add_argument('path', nargs='?', default='.',
+                               help='File or directory to analyze (default: current directory)')
+    parser_imports.add_argument('--fix', action='store_true',
+                               help='Apply import optimizations to files')
+    parser_imports.add_argument('--no-backup', action='store_true',
+                               help='Do not create backup files when fixing')
+    parser_imports.add_argument('--recursive', action='store_true', default=True,
+                               help='Recursively process directories (default: True)')
+    parser_imports.add_argument('-o', '--output',
+                               help='Save report to file')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -3305,6 +3409,18 @@ def main():
     parser_journal_delete.add_argument('entry_id', help='Entry ID to delete')
     parser_journal_delete.add_argument('--confirm', action='store_true', help='Skip confirmation prompt')
     
+    # Import Optimizer command
+    parser_imports = subparsers.add_parser(
+        'imports',
+        help='Analyze and optimize Python imports',
+        description='Clean up unused imports, remove duplicates, and sort imports according to PEP 8'
+    )
+    parser_imports.add_argument('path', help='Path to Python file or directory to analyze')
+    parser_imports.add_argument('--fix', action='store_true', help='Apply import optimizations')
+    parser_imports.add_argument('--no-backup', action='store_true', help='Skip backup before applying fixes')
+    parser_imports.add_argument('--recursive', '-r', action='store_true', help='Analyze directories recursively')
+    parser_imports.add_argument('--output', '-o', help='Save report to file')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -3372,6 +3488,8 @@ def main():
         return command_status(args)
     elif args.command == 'search':
         return command_search(args)
+    elif args.command == 'imports':
+        return command_imports(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'lint':
@@ -3382,6 +3500,8 @@ def main():
         return command_state(args)
     elif args.command == 'journal':
         return command_journal(args)
+    elif args.command == 'imports':
+        return command_imports(args)
     elif args.command == 'venv':
         return command_venv(args)
     else:
