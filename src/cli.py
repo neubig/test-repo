@@ -85,10 +85,15 @@ def command_check(args):
     try:
         # Import verifier dynamically to avoid import errors if not available
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from verifier import Python3Verifier
+        from verifier import Python3CompatibilityVerifier
         
-        verifier = Python3Verifier()
-        issues = verifier.verify_directory(args.path) if os.path.isdir(args.path) else verifier.verify_file(args.path)
+        verifier = Python3CompatibilityVerifier()
+        if os.path.isdir(args.path):
+            verifier.verify_directory(args.path)
+        else:
+            verifier.verify_file(args.path)
+        
+        issues = verifier.issues_found
         
         # Print summary
         if issues:
@@ -202,6 +207,105 @@ def command_fix(args):
         return 1
     except Exception as e:
         print_error(f"Error during fixing: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+def command_stats(args):
+    """Track and display migration statistics."""
+    print_header("Migration Statistics")
+    
+    if hasattr(args, 'path') and args.path:
+        validate_path(args.path)
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from stats_tracker import MigrationStatsTracker
+        
+        tracker = MigrationStatsTracker()
+        
+        if args.stats_action == 'collect':
+            # Collect and display current stats
+            print_info(f"Collecting statistics for: {args.path or 'current directory'}\n")
+            
+            stats = tracker.collect_stats(args.path)
+            
+            # Get previous snapshot for comparison if it exists
+            previous = tracker.get_latest_snapshot()
+            comparison = None
+            
+            if previous and not args.no_compare:
+                comparison = tracker.compare_snapshots(previous, stats)
+            
+            # Save snapshot if requested
+            if args.save:
+                snapshot_path = tracker.save_snapshot(stats)
+                print_success(f"Snapshot saved to: {snapshot_path}\n")
+            
+            # Display stats
+            print(tracker.format_stats(stats, comparison))
+            
+            # Show recommendation
+            if stats['summary']['progress_percentage'] < 100:
+                remaining = stats['summary']['files_with_issues']
+                print_info(f"Recommendation: Focus on fixing the {remaining} files with issues")
+                print_info("Run 'py2to3 fix <path>' to automatically fix common patterns")
+        
+        elif args.stats_action == 'show':
+            # Show latest snapshot
+            latest = tracker.get_latest_snapshot()
+            
+            if not latest:
+                print_warning("No statistics snapshots found")
+                print_info("Run 'py2to3 stats collect --save' to create a snapshot")
+                return 0
+            
+            print(tracker.format_stats(latest))
+        
+        elif args.stats_action == 'trend':
+            # Show trend analysis
+            trend = tracker.generate_trend_report()
+            
+            if not trend:
+                print_warning("Not enough snapshots for trend analysis (minimum 2 required)")
+                print_info("Run 'py2to3 stats collect --save' multiple times over your migration")
+                return 0
+            
+            print_info(f"Trend Analysis ({trend['snapshots_count']} snapshots)\n")
+            print(f"First Scan: {trend['first_scan']}")
+            print(f"Latest Scan: {trend['latest_scan']}")
+            print(f"Total Progress: {trend['total_progress']:+.2f}%")
+            print(f"Issues Resolved: {trend['issues_resolved']}")
+            print("\nProgress Timeline:")
+            
+            for i, point in enumerate(trend['timeline'], 1):
+                print(f"  {i}. {point['timestamp']}")
+                print(f"     Progress: {point['progress_percentage']:.2f}% | Issues: {point['total_issues']}")
+        
+        elif args.stats_action == 'clear':
+            # Clear all snapshots
+            if not args.yes:
+                response = input(f"{Colors.WARNING}Clear all statistics snapshots? [y/N]: {Colors.ENDC}")
+                if response.lower() not in ['y', 'yes']:
+                    print_info("Operation cancelled")
+                    return 0
+            
+            import shutil
+            if tracker.stats_dir.exists():
+                shutil.rmtree(tracker.stats_dir)
+                print_success("All statistics snapshots cleared")
+            else:
+                print_info("No statistics snapshots to clear")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import stats tracker: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error tracking statistics: {e}")
         if args.verbose:
             import traceback
             traceback.print_exc()
@@ -508,6 +612,30 @@ def main():
     parser_report.add_argument('--include-fixes', action='store_true', default=True, help='Include fixes in report')
     parser_report.add_argument('--include-issues', action='store_true', default=True, help='Include issues in report')
     
+    # Stats command
+    parser_stats = subparsers.add_parser(
+        'stats',
+        help='Track migration progress statistics',
+        description='Collect and analyze migration statistics over time'
+    )
+    stats_subparsers = parser_stats.add_subparsers(dest='stats_action', help='Statistics actions')
+    
+    # Stats collect
+    parser_stats_collect = stats_subparsers.add_parser('collect', help='Collect current statistics')
+    parser_stats_collect.add_argument('path', nargs='?', help='Path to analyze (defaults to current directory)')
+    parser_stats_collect.add_argument('-s', '--save', action='store_true', help='Save statistics snapshot')
+    parser_stats_collect.add_argument('--no-compare', action='store_true', help='Do not compare with previous snapshot')
+    
+    # Stats show
+    parser_stats_show = stats_subparsers.add_parser('show', help='Show latest statistics snapshot')
+    
+    # Stats trend
+    parser_stats_trend = stats_subparsers.add_parser('trend', help='Show progress trends over time')
+    
+    # Stats clear
+    parser_stats_clear = stats_subparsers.add_parser('clear', help='Clear all statistics snapshots')
+    parser_stats_clear.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    
     # Migrate command (complete workflow)
     parser_migrate = subparsers.add_parser(
         'migrate',
@@ -581,6 +709,8 @@ def main():
         return command_fix(args)
     elif args.command == 'report':
         return command_report(args)
+    elif args.command == 'stats':
+        return command_stats(args)
     elif args.command == 'migrate':
         return command_migrate(args)
     elif args.command == 'config':
