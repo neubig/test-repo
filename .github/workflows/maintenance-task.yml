@@ -94,7 +94,7 @@ jobs:
               run: |
                   echo "With prompt from: $PROMPT_LOCATION"
                   echo "Working directory: $(pwd)"
-                  python /tmp/run_maintenance.py "$PROMPT_LOCATION"
+                  uv run --no-project python /tmp/run_maintenance.py "$PROMPT_LOCATION"
 
             - name: Upload logs as artifact
               uses: actions/upload-artifact@v4
