@@ -203,15 +203,33 @@ class Python2to3Fixer:
             ]
         )
 
-    def fix_file(self, filepath):
-        """Fix a single Python file."""
-        print("Fixing file: %s" % filepath)
+    def fix_file(self, filepath, dry_run=False):
+        """Fix a single Python file.
+        
+        Args:
+            filepath: Path to the file to fix
+            dry_run: If True, only analyze without modifying files
+            
+        Returns:
+            Dictionary with 'fixes', 'errors', and 'success' keys
+        """
+        if dry_run:
+            print("Analyzing file (dry run): %s" % filepath)
+        else:
+            print("Fixing file: %s" % filepath)
 
-        # Create backup
-        backup_path = self._create_backup(filepath)
-        if not backup_path:
-            self.errors.append("Failed to create backup for %s" % filepath)
-            return False
+        backup_path = None
+        # Create backup only if not in dry-run mode
+        if not dry_run:
+            backup_path = self._create_backup(filepath)
+            if not backup_path:
+                error_msg = "Failed to create backup for %s" % filepath
+                self.errors.append(error_msg)
+                return {
+                    'fixes': self.fixes_applied,
+                    'errors': self.errors,
+                    'success': False
+                }
 
         try:
             # Read file content
@@ -219,42 +237,65 @@ class Python2to3Fixer:
                 content = f.read()
 
             original_content = content
+            file_fixes = []
 
             # Apply fixes
             for fix_name, fix_info in self.fix_patterns.items():
                 content, count = self._apply_fix(content, fix_info)
                 if count > 0:
-                    self.fixes_applied.append(
-                        {
-                            "file": filepath,
-                            "fix": fix_name,
-                            "description": fix_info["description"],
-                            "count": count,
-                        }
-                    )
+                    fix_entry = {
+                        "file": filepath,
+                        "fix": fix_name,
+                        "type": fix_name,
+                        "description": fix_info["description"],
+                        "count": count,
+                    }
+                    self.fixes_applied.append(fix_entry)
+                    file_fixes.append(fix_entry)
 
             # Add Python 3 compatibility imports at the top if needed
             content = self._add_compatibility_imports(content)
 
-            # Write fixed content back to file
+            # Write fixed content back to file (only if not dry run)
             if content != original_content:
-                with open(filepath, "w") as f:
-                    f.write(content)
-                print(
-                    "  Applied %d types of fixes"
-                    % len([f for f in self.fixes_applied if f["file"] == filepath])
-                )
+                if dry_run:
+                    print(
+                        "  Would apply %d types of fixes (DRY RUN)"
+                        % len(file_fixes)
+                    )
+                    # In dry run, show what changes would be made
+                    for fix in file_fixes:
+                        print(f"    - {fix['description']} ({fix['count']} occurrence(s))")
+                else:
+                    with open(filepath, "w") as f:
+                        f.write(content)
+                    print(
+                        "  Applied %d types of fixes"
+                        % len(file_fixes)
+                    )
             else:
-                print("  No fixes needed")
+                if dry_run:
+                    print("  No fixes needed")
+                else:
+                    print("  No fixes needed")
 
-            return True
+            return {
+                'fixes': self.fixes_applied,
+                'errors': self.errors,
+                'success': True
+            }
 
         except Exception as e:
-            self.errors.append(f"Error fixing {filepath}: {str(e)}")
-            # Restore from backup
-            if backup_path and os.path.exists(backup_path):
+            error_msg = f"Error fixing {filepath}: {str(e)}"
+            self.errors.append(error_msg)
+            # Restore from backup (only if we created one)
+            if not dry_run and backup_path and os.path.exists(backup_path):
                 shutil.copy2(backup_path, filepath)
-            return False
+            return {
+                'fixes': self.fixes_applied,
+                'errors': self.errors,
+                'success': False
+            }
 
     def _create_backup(self, filepath):
         """Create a backup of the file."""
@@ -320,9 +361,21 @@ class Python2to3Fixer:
 
         return content
 
-    def fix_directory(self, directory, recursive=True):
-        """Fix all Python files in a directory."""
-        print("Fixing directory: %s" % directory)
+    def fix_directory(self, directory, recursive=True, dry_run=False):
+        """Fix all Python files in a directory.
+        
+        Args:
+            directory: Path to the directory to fix
+            recursive: If True, process subdirectories recursively
+            dry_run: If True, only analyze without modifying files
+            
+        Returns:
+            Dictionary with 'fixes' and 'errors' lists
+        """
+        if dry_run:
+            print("Analyzing directory (dry run): %s" % directory)
+        else:
+            print("Fixing directory: %s" % directory)
 
         python_files = []
 
@@ -336,15 +389,25 @@ class Python2to3Fixer:
                 if file.endswith(".py"):
                     python_files.append(os.path.join(directory, file))
 
-        print("Found %d Python files to fix" % len(python_files))
+        print("Found %d Python files to %s" % (len(python_files), "analyze" if dry_run else "fix"))
 
         success_count = 0
         for filepath in python_files:
-            if self.fix_file(filepath):
+            result = self.fix_file(filepath, dry_run=dry_run)
+            if result.get('success', False):
                 success_count += 1
 
-        print("Successfully fixed %d out of %d files" % (success_count, len(python_files)))
-        return success_count == len(python_files)
+        if dry_run:
+            print("Successfully analyzed %d out of %d files" % (success_count, len(python_files)))
+        else:
+            print("Successfully fixed %d out of %d files" % (success_count, len(python_files)))
+        
+        # Return results in expected format for CLI
+        return {
+            'fixes': self.fixes_applied,
+            'errors': self.errors,
+            'success': success_count == len(python_files)
+        }
 
     def validate_syntax(self, filepath):
         """Validate Python syntax of a file."""

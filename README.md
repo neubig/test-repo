@@ -438,6 +438,9 @@ Or use individual commands for more control:
 # Quick status check (NEW!)
 ./py2to3 status
 
+# Preview changes with dry-run mode (NEW! - fully functional) ✨
+./py2to3 fix src/ --dry-run
+
 # Apply fixes (with confirmation)
 ./py2to3 fix src/
 
@@ -480,6 +483,48 @@ The status command shows:
 Perfect for quick daily checks, team standups, and pre-commit validation!
 
 See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete documentation.
+
+**Dry-Run Mode for Safe Preview** 🔍 **[NEW - FULLY FUNCTIONAL]** ✨
+
+Preview exactly what changes will be made before committing to them:
+
+```bash
+# Preview changes to a single file without modifying it
+./py2to3 fix src/myfile.py --dry-run
+
+# Preview changes to an entire directory
+./py2to3 fix src/ --dry-run
+
+# See detailed changes with report output
+./py2to3 fix src/ --dry-run --report preview_report.txt
+```
+
+The dry-run mode provides:
+- **Zero Risk** - No files are modified, no backups created
+- **Detailed Preview** - See exactly what fixes would be applied
+- **Fix Counting** - Know how many changes will be made per file
+- **Type Breakdown** - Understand which patterns will be fixed
+- **Same Analysis** - Uses identical logic as actual fixing
+- **Quick Validation** - Perfect for checking before committing changes
+- **Team Sharing** - Generate reports to share preview with team members
+
+**Example Output:**
+```
+⚠ DRY RUN MODE: No files will be modified
+Analyzing file (dry run): src/myfile.py
+  Would apply 3 types of fixes (DRY RUN)
+    - Convert print statements to print() functions (5 occurrence(s))
+    - Fix urllib2 imports (1 occurrence(s))
+    - Replace iteritems() with items() (2 occurrence(s))
+```
+
+Perfect for:
+- Testing configuration changes safely
+- Understanding migration scope before starting
+- Generating previews for code review
+- Validating migration strategies
+- Training team members on expected changes
+- CI/CD pre-checks without side effects
 
 **Search for Specific Patterns** 🔍 **[NEW]**
 

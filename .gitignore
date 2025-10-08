@@ -37,6 +37,8 @@ venv.bak/
 # Backup files
 backup/
 backups/
+*_backups/
+my_backups/
 *.bak
 
 # Generated reports (except demo)

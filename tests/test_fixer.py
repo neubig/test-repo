@@ -152,8 +152,62 @@ class TestFixerFileMethods:
         
         result = fixer.fix_file(str(temp_dir / "nonexistent.py"))
         
-        # Should handle error (may return False or add to errors)
-        assert result is False or len(fixer.errors) > 0
+        # Should handle error (returns dict with success=False and errors populated)
+        assert isinstance(result, dict)
+        assert result['success'] is False or len(fixer.errors) > 0
+    
+    def test_dry_run_mode_file(self, temp_dir):
+        """Test that dry-run mode doesn't modify files."""
+        backup_dir = temp_dir / "backup"
+        fixer = Python2to3Fixer(backup_dir=str(backup_dir))
+        
+        test_file = temp_dir / "test_dry.py"
+        original_content = 'print "Hello"\nimport urllib2\n'
+        test_file.write_text(original_content)
+        
+        # Run in dry-run mode
+        result = fixer.fix_file(str(test_file), dry_run=True)
+        
+        # File should not be modified
+        assert test_file.read_text() == original_content
+        
+        # No backup should be created
+        assert not backup_dir.exists() or len(list(backup_dir.glob("**/*.*"))) == 0
+        
+        # Result should indicate success
+        assert isinstance(result, dict)
+        assert result['success'] is True
+        
+        # Fixes should still be tracked
+        assert len(result['fixes']) > 0
+    
+    def test_dry_run_vs_normal_mode(self, temp_dir):
+        """Test that dry-run reports same fixes as normal mode would apply."""
+        backup_dir = temp_dir / "backup"
+        
+        # Create two identical test files
+        test_content = 'print "Test"\nimport urllib2\nfor i in xrange(5): print i\n'
+        test_file_dry = temp_dir / "test_dry.py"
+        test_file_normal = temp_dir / "test_normal.py"
+        test_file_dry.write_text(test_content)
+        test_file_normal.write_text(test_content)
+        
+        # Run dry-run on first file
+        fixer_dry = Python2to3Fixer(backup_dir=str(backup_dir / "dry"))
+        result_dry = fixer_dry.fix_file(str(test_file_dry), dry_run=True)
+        
+        # Run normal mode on second file
+        fixer_normal = Python2to3Fixer(backup_dir=str(backup_dir / "normal"))
+        result_normal = fixer_normal.fix_file(str(test_file_normal), dry_run=False)
+        
+        # Both should report same number of fix types
+        assert len(result_dry['fixes']) == len(result_normal['fixes'])
+        
+        # Dry-run file should be unchanged
+        assert test_file_dry.read_text() == test_content
+        
+        # Normal file should be changed
+        assert test_file_normal.read_text() != test_content
 
 
 @pytest.mark.unit
@@ -204,6 +258,38 @@ class TestFixerDirectoryMethods:
         # Should have processed multiple files
         # At least some fixes should have been applied
         assert len(fixer.fixes_applied) > 0 or result is True
+    
+    def test_dry_run_mode_directory(self, temp_dir):
+        """Test that dry-run mode doesn't modify directory files."""
+        backup_dir = temp_dir / "backup"
+        test_dir = temp_dir / "test_dir"
+        test_dir.mkdir()
+        
+        # Create test files with Python 2 code
+        file1 = test_dir / "file1.py"
+        file2 = test_dir / "file2.py"
+        content1 = 'print "File 1"\n'
+        content2 = 'import urllib2\nfor i in xrange(5): print i\n'
+        file1.write_text(content1)
+        file2.write_text(content2)
+        
+        # Run dry-run on directory
+        fixer = Python2to3Fixer(backup_dir=str(backup_dir))
+        result = fixer.fix_directory(str(test_dir), dry_run=True)
+        
+        # Files should not be modified
+        assert file1.read_text() == content1
+        assert file2.read_text() == content2
+        
+        # No backups should be created
+        assert not backup_dir.exists() or len(list(backup_dir.glob("**/*.*"))) == 0
+        
+        # Result should be a dictionary with success=True
+        assert isinstance(result, dict)
+        assert result['success'] is True
+        
+        # Should have detected fixes
+        assert len(result['fixes']) > 0
 
 
 @pytest.mark.integration
