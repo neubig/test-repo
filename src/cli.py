@@ -3949,6 +3949,54 @@ def command_encoding(args):
         return 1
 
 
+def command_report_card(args):
+    """Generate a comprehensive migration quality report card."""
+    print_header("Migration Report Card")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing project: {args.path}")
+    print_info(f"Output format: {args.format}")
+    if args.output:
+        print_info(f"Output file: {args.output}\n")
+    else:
+        print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from report_card import MigrationReportCard
+        
+        # Generate report card
+        card = MigrationReportCard(args.path)
+        
+        if args.output:
+            # Save to file
+            card.save_report(args.output, args.format)
+            print_success(f"Report card saved to: {args.output}")
+            
+            # If HTML, provide helpful info about opening it
+            if args.format == 'html':
+                print_info("Open the HTML file in your browser to view the report card")
+            
+            return 0
+        else:
+            # Print to stdout
+            report = card.generate_report_card(args.format)
+            print(report)
+            return 0
+            
+    except ImportError as e:
+        print_error(f"Failed to import report card generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating report card: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -4875,6 +4923,19 @@ def main():
     parser_import.add_argument('--overwrite', action='store_false', dest='merge', help='Overwrite existing data')
     parser_import.add_argument('-n', '--dry-run', action='store_true', help='Preview import without making changes')
     
+    # Report Card command
+    parser_report_card = subparsers.add_parser(
+        'report-card',
+        help='Generate migration quality assessment',
+        description='Generate a comprehensive quality report card with grades and recommendations'
+    )
+    parser_report_card.add_argument('path', nargs='?', default='.', help='Project path to assess (default: current directory)')
+    parser_report_card.add_argument('-o', '--output', help='Output file path (default: print to stdout)')
+    parser_report_card.add_argument('-f', '--format', 
+                                    choices=['text', 'html', 'json', 'markdown'],
+                                    default='text',
+                                    help='Output format (default: text)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -4982,6 +5043,8 @@ def main():
         return command_export(args)
     elif args.command == 'import':
         return command_import(args)
+    elif args.command == 'report-card':
+        return command_report_card(args)
     else:
         parser.print_help()
         return 1

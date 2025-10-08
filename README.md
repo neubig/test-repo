@@ -576,6 +576,29 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 encoding src/ -r --convert-to-utf8` to standardize encodings!
    - **See [ENCODING_GUIDE.md](ENCODING_GUIDE.md) for complete encoding guide!**
 
+39. **Migration Report Card** 🎓✨ **[NEW]**:
+   - Comprehensive quality assessment for Python 2→3 migrations
+   - Letter grades (A-F) for overall migration and individual categories
+   - Evaluates 6 key quality dimensions with weighted scoring
+   - **Compatibility** (30%): Python 3 compatibility issues
+   - **Modernization** (20%): Use of modern Python 3 features
+   - **Code Quality** (20%): Docstrings, structure, naming
+   - **Test Coverage** (15%): Ratio of tests to source files
+   - **Documentation** (10%): Essential docs and guides
+   - **Best Practices** (5%): Project structure and configuration
+   - Actionable recommendations prioritized by severity
+   - Multiple output formats: text, HTML, JSON, and Markdown
+   - Perfect for stakeholder presentations and quality gates
+   - HTML format provides beautiful, executive-friendly reports
+   - JSON format enables CI/CD quality gate integration
+   - Track quality trends over time by saving periodic reports
+   - Identifies weak areas requiring focused attention
+   - Measures *how well* migration was done, not just *what* changed
+   - Run `./py2to3 report-card src/` for quality assessment!
+   - Run `./py2to3 report-card -f html -o quality.html` for stakeholders!
+   - Run `./py2to3 report-card -f json -o quality.json` for CI/CD!
+   - **See [REPORT_CARD_GUIDE.md](REPORT_CARD_GUIDE.md) for complete report card guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
