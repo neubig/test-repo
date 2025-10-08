@@ -1305,6 +1305,75 @@ def command_deps(args):
         return 1
 
 
+def command_risk(args):
+    """Analyze migration risks for code review prioritization."""
+    print_header("Migration Risk Analysis")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing path: {args.path}")
+    print_info(f"Backup directory: {args.backup_dir}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from risk_analyzer import MigrationRiskAnalyzer
+        
+        analyzer = MigrationRiskAnalyzer(
+            backup_dir=args.backup_dir,
+            source_dir=args.path
+        )
+        
+        print_info("Scanning for changes and analyzing risk patterns...")
+        summary = analyzer.analyze_project(args.path)
+        
+        # Check for errors
+        if 'error' in summary:
+            print_error(summary['error'])
+            return 1
+        
+        # Format output based on requested format
+        if args.json:
+            output = json.dumps(summary, indent=2)
+        else:
+            output = analyzer.format_report(summary, detailed=args.detailed)
+        
+        # Save or print
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(output)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(output)
+        
+        # Show summary status
+        high_risk_count = len(summary.get('high_risk_files', []))
+        total_files = summary.get('total_files_analyzed', 0)
+        
+        if total_files == 0:
+            print_warning("\n⚠️  No changes detected. Make sure backup directory contains file backups.")
+            print_info("Run 'py2to3 fix' first to create backups before analyzing risks.")
+            return 0
+        
+        if high_risk_count > 0:
+            print_warning(f"\n⚠️  {high_risk_count} high-risk files require priority review")
+            return 1
+        else:
+            print_success(f"\n✓ Risk analysis complete for {total_files} files")
+            print_info("No high-risk changes detected - standard review process sufficient")
+            return 0
+            
+    except ImportError as e:
+        print_error(f"Could not import risk analyzer: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Risk analysis failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1577,6 +1646,18 @@ def main():
     parser_compare_commits.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
     parser_compare_commits.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompts')
     
+    # Risk command
+    parser_risk = subparsers.add_parser(
+        'risk',
+        help='Analyze migration risks for code review',
+        description='Identify high-risk changes that require careful manual review after migration'
+    )
+    parser_risk.add_argument('path', nargs='?', default='src', help='Path to analyze (default: src)')
+    parser_risk.add_argument('-b', '--backup-dir', default='backup', help='Backup directory path (default: backup)')
+    parser_risk.add_argument('-o', '--output', help='Save report to file')
+    parser_risk.add_argument('--json', action='store_true', help='Output in JSON format')
+    parser_risk.add_argument('-d', '--detailed', action='store_true', help='Include detailed per-file analysis')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1624,6 +1705,8 @@ def main():
         return command_git(args)
     elif args.command == 'compare':
         return command_compare(args)
+    elif args.command == 'risk':
+        return command_risk(args)
     else:
         parser.print_help()
         return 1

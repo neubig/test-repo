@@ -146,7 +146,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 deps --help` to analyze your dependencies!
    - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
 
-12. **Migration Comparison Tool** 🔍 **[LATEST]**:
+12. **Migration Comparison Tool** 🔍:
    - Compare migration progress between different contexts
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time
@@ -156,6 +156,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Generate comparison reports in text or JSON format
    - Perfect for team collaboration and evaluating migration strategies!
    - Run `./py2to3 compare --help` to explore comparison features!
+
+13. **Risk Analyzer** ⚠️ **[LATEST]**:
+   - Intelligent risk assessment of migration changes
+   - Identifies high-risk changes requiring careful manual review
+   - Analyzes critical areas: error handling, I/O, database, encoding, etc.
+   - Scores files by risk level: CRITICAL, HIGH, MEDIUM, LOW, MINIMAL
+   - Prioritizes code review efforts where they matter most
+   - Provides specific recommendations for each risk category
+   - Helps teams focus on the most important changes first
+   - Generates detailed reports in text or JSON format
+   - Perfect for ensuring thorough review of critical changes!
+   - Run `./py2to3 risk --help` to analyze migration risks!
+   - **See [RISK_GUIDE.md](RISK_GUIDE.md) for complete risk analysis guide!**
 
 ### Modern Web Application
 
@@ -198,6 +211,9 @@ Or use individual commands for more control:
 
 # Apply fixes (with confirmation)
 ./py2to3 fix src/
+
+# Analyze migration risks (NEW!)
+./py2to3 risk src/ -o risk_assessment.txt
 
 # Generate report
 ./py2to3 report --scan-path src/ --output report.html
@@ -379,11 +395,15 @@ You can also run each tool separately:
    ```bash
    python fixer.py . --backup-dir backups --report fixes_applied.txt
    ```
-4. **Verify results**: Check what issues remain after fixing
+4. **Analyze risks**: Identify high-risk changes for priority review
+   ```bash
+   python risk_analyzer.py . --backup-dir backups --output risk_assessment.txt
+   ```
+5. **Verify results**: Check what issues remain after fixing
    ```bash
    python verifier.py . --report post_fix_verification.txt
    ```
-5. **Generate HTML report**: Create a beautiful, comprehensive migration report
+6. **Generate HTML report**: Create a beautiful, comprehensive migration report
    ```bash
    python report_generator.py -o migration_report.html
    ```
