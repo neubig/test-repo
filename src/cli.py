@@ -1274,6 +1274,166 @@ def command_state(args):
     return 0
 
 
+def command_journal(args):
+    """Manage migration journal entries."""
+    print_header("Migration Journal")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from migration_journal import MigrationJournal, format_entry_for_display
+        
+        journal_path = args.journal_path if hasattr(args, 'journal_path') and args.journal_path else '.migration_journal.json'
+        journal = MigrationJournal(journal_path)
+        
+        if not hasattr(args, 'journal_action') or not args.journal_action:
+            print_error("Please specify a journal action (add, list, show, stats, export, import, delete)")
+            print_info("Use 'py2to3 journal --help' for more information")
+            return 1
+        
+        if args.journal_action == 'add':
+            # Add a new entry
+            entry = journal.add_entry(
+                content=args.content,
+                tags=args.tags if hasattr(args, 'tags') and args.tags else None,
+                category=args.category if hasattr(args, 'category') else 'general',
+                related_files=args.files if hasattr(args, 'files') and args.files else None,
+                author=args.author if hasattr(args, 'author') and args.author else None
+            )
+            print_success(f"Added journal entry: {entry.id}")
+            if entry.tags:
+                print_info(f"Tags: {', '.join(entry.tags)}")
+            if entry.related_files:
+                print_info(f"Related files: {', '.join(entry.related_files)}")
+            return 0
+        
+        elif args.journal_action == 'list':
+            # List entries with optional filtering
+            entries = journal.get_entries(
+                search_term=args.search if hasattr(args, 'search') and args.search else None,
+                tags=args.tags if hasattr(args, 'tags') and args.tags else None,
+                category=args.category if hasattr(args, 'category') and args.category else None,
+                author=args.author if hasattr(args, 'author') and args.author else None,
+                files=args.files if hasattr(args, 'files') and args.files else None,
+                limit=args.limit if hasattr(args, 'limit') and args.limit else None
+            )
+            
+            if not entries:
+                print_warning("No entries found matching your criteria")
+                return 0
+            
+            print_info(f"Found {len(entries)} entries:\n")
+            for entry in entries:
+                print(format_entry_for_display(entry, color=not args.no_color))
+                print("-" * 80)
+            
+            return 0
+        
+        elif args.journal_action == 'show':
+            # Show a specific entry
+            entry = journal.get_entry_by_id(args.entry_id)
+            if not entry:
+                print_error(f"Entry not found: {args.entry_id}")
+                return 1
+            
+            print(format_entry_for_display(entry, color=not args.no_color))
+            return 0
+        
+        elif args.journal_action == 'stats':
+            # Show statistics
+            stats = journal.get_statistics()
+            
+            print_info(f"Total Entries: {stats['total_entries']}")
+            
+            if stats['by_category']:
+                print("\nEntries by Category:")
+                for category, count in sorted(stats['by_category'].items()):
+                    print(f"  {category:12} {count:3} entries")
+            
+            if stats['by_author']:
+                print("\nEntries by Author:")
+                for author, count in sorted(stats['by_author'].items()):
+                    print(f"  {author:20} {count:3} entries")
+            
+            if stats['unique_tags']:
+                print(f"\nUnique Tags: {len(stats['unique_tags'])}")
+                tag_cloud = journal.get_tag_cloud()
+                top_tags = list(tag_cloud.items())[:15]
+                if top_tags:
+                    print("  Top tags:")
+                    for tag, count in top_tags:
+                        print(f"    {tag:20} {count:3} times")
+            
+            if stats['related_files']:
+                print(f"\nRelated Files: {len(stats['related_files'])}")
+            
+            if stats['date_range']:
+                print(f"\nDate Range:")
+                print(f"  First: {stats['date_range']['first']}")
+                print(f"  Last:  {stats['date_range']['last']}")
+            
+            return 0
+        
+        elif args.journal_action == 'export':
+            # Export entries
+            filters = {}
+            if hasattr(args, 'category') and args.category:
+                filters['category'] = args.category
+            if hasattr(args, 'tags') and args.tags:
+                filters['tags'] = args.tags
+            
+            if args.format == 'markdown':
+                journal.export_markdown(args.output, filters)
+            else:
+                journal.export_json(args.output, filters)
+            
+            print_success(f"Exported journal to: {args.output}")
+            return 0
+        
+        elif args.journal_action == 'import':
+            # Import entries
+            count = journal.import_entries(args.input)
+            print_success(f"Imported {count} entries from: {args.input}")
+            return 0
+        
+        elif args.journal_action == 'delete':
+            # Delete an entry
+            entry = journal.get_entry_by_id(args.entry_id)
+            if not entry:
+                print_error(f"Entry not found: {args.entry_id}")
+                return 1
+            
+            # Show entry before deletion
+            print_info("Entry to delete:")
+            print(format_entry_for_display(entry, color=not args.no_color))
+            
+            # Confirm deletion
+            if not (hasattr(args, 'confirm') and args.confirm):
+                response = input("\nAre you sure you want to delete this entry? (yes/no): ")
+                if response.lower() not in ['yes', 'y']:
+                    print_info("Deletion cancelled")
+                    return 0
+            
+            if journal.delete_entry(args.entry_id):
+                print_success(f"Deleted entry: {args.entry_id}")
+                return 0
+            else:
+                print_error(f"Failed to delete entry: {args.entry_id}")
+                return 1
+        
+        else:
+            print_error(f"Unknown journal action: {args.journal_action}")
+            return 1
+    
+    except Exception as e:
+        print_error(f"Journal operation failed: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+    
+    return 0
+
+
 def command_config(args):
     """Manage configuration for py2to3 toolkit."""
     print_header("Configuration Management")
@@ -2926,6 +3086,60 @@ def main():
     parser_state_import.add_argument('file', help='File to import from')
     parser_state_import.add_argument('--merge', action='store_true', help='Merge with existing state instead of replacing')
     
+    # Journal command
+    parser_journal = subparsers.add_parser(
+        'journal',
+        help='Track notes and decisions during migration',
+        description='Document migration decisions, track issues, and create a knowledge base for your team'
+    )
+    parser_journal.add_argument('--journal-path', default='.migration_journal.json',
+                               help='Path to journal file (default: .migration_journal.json)')
+    
+    journal_subparsers = parser_journal.add_subparsers(dest='journal_action', help='Journal actions')
+    
+    # Journal add
+    parser_journal_add = journal_subparsers.add_parser('add', help='Add a new journal entry')
+    parser_journal_add.add_argument('content', help='Entry content')
+    parser_journal_add.add_argument('--tags', nargs='+', help='Tags for the entry')
+    parser_journal_add.add_argument('--category', 
+                                   choices=['decision', 'issue', 'solution', 'insight', 'todo', 'question', 'general'],
+                                   default='general', help='Entry category')
+    parser_journal_add.add_argument('--files', nargs='+', help='Related files')
+    parser_journal_add.add_argument('--author', help='Entry author')
+    
+    # Journal list
+    parser_journal_list = journal_subparsers.add_parser('list', help='List journal entries')
+    parser_journal_list.add_argument('--search', help='Search term')
+    parser_journal_list.add_argument('--tags', nargs='+', help='Filter by tags')
+    parser_journal_list.add_argument('--category', help='Filter by category')
+    parser_journal_list.add_argument('--author', help='Filter by author')
+    parser_journal_list.add_argument('--files', nargs='+', help='Filter by related files')
+    parser_journal_list.add_argument('--limit', type=int, help='Limit number of results')
+    
+    # Journal show
+    parser_journal_show = journal_subparsers.add_parser('show', help='Show a specific entry')
+    parser_journal_show.add_argument('entry_id', help='Entry ID')
+    
+    # Journal stats
+    parser_journal_stats = journal_subparsers.add_parser('stats', help='Show journal statistics')
+    
+    # Journal export
+    parser_journal_export = journal_subparsers.add_parser('export', help='Export journal entries')
+    parser_journal_export.add_argument('output', help='Output file path')
+    parser_journal_export.add_argument('--format', choices=['markdown', 'json'], default='markdown',
+                                      help='Export format')
+    parser_journal_export.add_argument('--category', help='Filter by category')
+    parser_journal_export.add_argument('--tags', nargs='+', help='Filter by tags')
+    
+    # Journal import
+    parser_journal_import = journal_subparsers.add_parser('import', help='Import journal entries')
+    parser_journal_import.add_argument('input', help='Input JSON file path')
+    
+    # Journal delete
+    parser_journal_delete = journal_subparsers.add_parser('delete', help='Delete a journal entry')
+    parser_journal_delete.add_argument('entry_id', help='Entry ID to delete')
+    parser_journal_delete.add_argument('--confirm', action='store_true', help='Skip confirmation prompt')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -3001,6 +3215,8 @@ def main():
         return command_recipe(args)
     elif args.command == 'state':
         return command_state(args)
+    elif args.command == 'journal':
+        return command_journal(args)
     else:
         parser.print_help()
         return 1

@@ -59,3 +59,6 @@ Thumbs.db
 
 # Node modules
 node_modules/
+
+# Migration journal data files
+.migration_journal.json

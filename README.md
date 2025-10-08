@@ -360,6 +360,25 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 search --list-patterns` to see available patterns!
    - **See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for complete pattern search guide!**
 
+28. **Migration Journal** 📝✨ **[NEW]**:
+   - Comprehensive note-taking and decision-tracking system for your migration
+   - Document decisions, issues, solutions, and insights as you work
+   - Organize entries by category: decision, issue, solution, insight, todo, question, general
+   - Tag entries for easy filtering and discovery
+   - Link entries to specific files for context
+   - Track team contributions with author attribution
+   - Search through entries to find past decisions quickly
+   - Export journal as Markdown documentation for stakeholders
+   - Import/export for team collaboration and knowledge sharing
+   - Build a searchable knowledge base of migration decisions
+   - Perfect audit trail for compliance and future reference
+   - Statistics and tag cloud for migration retrospectives
+   - JSON-based storage in `.migration_journal.json`
+   - Run `./py2to3 journal add "Your note here"` to add entries!
+   - Run `./py2to3 journal list` to view your migration history!
+   - Run `./py2to3 journal export migration_diary.md` for documentation!
+   - **See [JOURNAL_GUIDE.md](JOURNAL_GUIDE.md) for complete journal guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
