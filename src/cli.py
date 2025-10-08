@@ -213,6 +213,113 @@ def command_fix(args):
         return 1
 
 
+def command_preflight(args):
+    """Run pre-migration safety checks."""
+    print_header("Pre-Migration Safety Check")
+    
+    validate_path(args.path)
+    
+    print_info(f"Checking project: {args.path}")
+    print_info(f"Backup directory: {args.backup_dir}\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from preflight_checker import PreflightChecker, PreflightCheck
+        
+        checker = PreflightChecker(args.path)
+        checks = checker.run_all_checks(backup_dir=args.backup_dir)
+        
+        # Display results
+        if args.json:
+            import json
+            summary = checker.get_summary()
+            checks_data = [
+                {
+                    'name': c.name,
+                    'status': c.status,
+                    'message': c.message,
+                    'details': c.details,
+                    'fix_suggestion': c.fix_suggestion
+                }
+                for c in checks
+            ]
+            result = {
+                'summary': summary,
+                'checks': checks_data
+            }
+            print(json.dumps(result, indent=2))
+        else:
+            # Print individual checks with colors
+            status_colors = {
+                PreflightCheck.PASS: Colors.OKGREEN,
+                PreflightCheck.WARN: Colors.WARNING,
+                PreflightCheck.FAIL: Colors.FAIL,
+                PreflightCheck.INFO: Colors.OKCYAN
+            }
+            
+            status_symbols = {
+                PreflightCheck.PASS: '✓',
+                PreflightCheck.WARN: '⚠',
+                PreflightCheck.FAIL: '✗',
+                PreflightCheck.INFO: 'ℹ'
+            }
+            
+            # Group by status
+            status_order = [PreflightCheck.FAIL, PreflightCheck.WARN, PreflightCheck.PASS, PreflightCheck.INFO]
+            
+            for status in status_order:
+                status_checks = [c for c in checks if c.status == status]
+                if not status_checks:
+                    continue
+                
+                print(f"\n{Colors.BOLD}{status}:{Colors.ENDC}")
+                
+                for check in status_checks:
+                    color = status_colors.get(status, '')
+                    symbol = status_symbols.get(status, '•')
+                    print(f"{color}{symbol} {check.name}: {check.message}{Colors.ENDC}")
+                    
+                    if args.verbose and check.details:
+                        for detail in check.details[:5]:
+                            print(f"  {color}→ {detail}{Colors.ENDC}")
+                    
+                    if check.fix_suggestion:
+                        print(f"  {Colors.OKCYAN}💡 {check.fix_suggestion}{Colors.ENDC}")
+            
+            # Print summary
+            summary = checker.get_summary()
+            if summary:
+                print(f"\n{Colors.BOLD}{'=' * 70}{Colors.ENDC}")
+                print(f"{Colors.BOLD}SUMMARY{Colors.ENDC}")
+                print(f"{Colors.BOLD}{'=' * 70}{Colors.ENDC}")
+                
+                overall_color = Colors.OKGREEN if summary['overall_status'] == 'READY' else Colors.WARNING if summary['overall_status'] == 'WARNING' else Colors.FAIL
+                print(f"Status: {overall_color}{Colors.BOLD}{summary['overall_status']}{Colors.ENDC}")
+                print(f"Message: {summary['message']}")
+                print(f"\nTotal Checks: {summary['total_checks']}")
+                print(f"  {Colors.OKGREEN}✓ Passed: {summary['passed']}{Colors.ENDC}")
+                print(f"  {Colors.WARNING}⚠ Warnings: {summary['warnings']}{Colors.ENDC}")
+                print(f"  {Colors.FAIL}✗ Failed: {summary['failures']}{Colors.ENDC}")
+                print(f"  {Colors.OKCYAN}ℹ Info: {summary['info']}{Colors.ENDC}")
+                print(f"{Colors.BOLD}{'=' * 70}{Colors.ENDC}")
+        
+        # Return appropriate exit code
+        summary = checker.get_summary()
+        if summary['overall_status'] == 'FAILED':
+            return 1
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import preflight checker: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during preflight check: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_backup(args):
     """Manage backups created during migration."""
     print_header("Backup Management")
@@ -834,6 +941,17 @@ def main():
     parser_check.add_argument('path', help='File or directory to check')
     parser_check.add_argument('-r', '--report', help='Save report to file')
     
+    # Preflight command
+    parser_preflight = subparsers.add_parser(
+        'preflight',
+        help='Run pre-migration safety checks',
+        description='Verify environment and project readiness before migration'
+    )
+    parser_preflight.add_argument('path', nargs='?', default='.', help='Project path to check (default: current directory)')
+    parser_preflight.add_argument('-b', '--backup-dir', default='backup', help='Backup directory to validate (default: backup)')
+    parser_preflight.add_argument('-v', '--verbose', action='store_true', help='Show detailed check information')
+    parser_preflight.add_argument('--json', action='store_true', help='Output results as JSON')
+    
     # Fix command
     parser_fix = subparsers.add_parser(
         'fix',
@@ -991,6 +1109,8 @@ def main():
     # Route to appropriate command handler
     if args.command == 'check':
         return command_check(args)
+    elif args.command == 'preflight':
+        return command_preflight(args)
     elif args.command == 'fix':
         return command_fix(args)
     elif args.command == 'report':

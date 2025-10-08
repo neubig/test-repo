@@ -54,7 +54,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
 1. **Unified CLI Tool (`py2to3`)** **[NEW]**:
    - Single command-line interface for the entire migration workflow
    - Beautiful colored output with progress indicators
-   - Five powerful commands: `check`, `fix`, `report`, `migrate`, `config`
+   - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
 2. **Fixer Tool (`src/fixer.py`)**:
@@ -102,6 +102,16 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
+8. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+   - Comprehensive environment validation before migration
+   - Checks git status, disk space, file permissions, and more
+   - Identifies potential issues early to prevent migration failures
+   - Provides actionable fix suggestions for detected issues
+   - Validates project structure and Python version compatibility
+   - Estimates migration complexity and scope
+   - JSON output support for CI/CD integration
+   - Run `./py2to3 preflight` before starting your migration!
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -119,13 +129,19 @@ The `my-vite-app/` directory contains a modern web application built with:
 The easiest way to get started is using the unified CLI tool:
 
 ```bash
-# Run the complete migration in one command
+# STEP 1: Run preflight checks before starting (recommended!)
+./py2to3 preflight src/
+
+# STEP 2: Run the complete migration in one command
 ./py2to3 migrate src/ --output my_migration_report.html
 ```
 
 Or use individual commands for more control:
 
 ```bash
+# Validate environment and project readiness
+./py2to3 preflight src/ -v
+
 # Check compatibility
 ./py2to3 check src/
 
