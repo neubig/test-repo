@@ -1,0 +1,10 @@
+#!/bin/bash
+# Convenience wrapper script for py2to3 CLI tool
+# This allows running the tool without installation
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Add src directory to PYTHONPATH and run the CLI
+export PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH}"
+exec python3 "${SCRIPT_DIR}/src/cli.py" "$@"

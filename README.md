@@ -51,17 +51,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
 
 ### Automated Tools
 
-1. **Fixer Tool (`src/fixer.py`)**:
+1. **Unified CLI Tool (`py2to3`)** **[NEW]**:
+   - Single command-line interface for the entire migration workflow
+   - Beautiful colored output with progress indicators
+   - Four powerful commands: `check`, `fix`, `report`, `migrate`
+   - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
+
+2. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-2. **Verifier Tool (`src/verifier.py`)**:
+3. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-3. **Report Generator (`src/report_generator.py`)** 🆕:
+4. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -81,6 +87,34 @@ The `my-vite-app/` directory contains a modern web application built with:
 ## Getting Started
 
 ### Python 2 to Python 3 Refactoring
+
+#### Quick Start (Recommended - Using the CLI Tool)
+
+The easiest way to get started is using the unified CLI tool:
+
+```bash
+# Run the complete migration in one command
+./py2to3 migrate src/ --output my_migration_report.html
+```
+
+Or use individual commands for more control:
+
+```bash
+# Check compatibility
+./py2to3 check src/
+
+# Apply fixes (with confirmation)
+./py2to3 fix src/
+
+# Generate report
+./py2to3 report --scan-path src/ --output report.html
+```
+
+See [CLI_GUIDE.md](CLI_GUIDE.md) for complete documentation.
+
+#### Manual Approach (Using Individual Tools)
+
+You can also run each tool separately:
 
 1. **Examine the Python 2 code**: Look at the various files in `src/` to understand the patterns
 2. **Run the verifier**: See what issues are detected in the original code
