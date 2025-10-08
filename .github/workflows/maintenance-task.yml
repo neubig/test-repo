@@ -104,11 +104,11 @@ jobs:
                       '/tmp/prompts/maintenance_prompt.txt' }}
                   PYTHONPATH: ''
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              working-directory: test-repo
               run: |
                   echo "Running agent script: $AGENT_SCRIPT"
                   echo "With prompt from: $PROMPT_LOCATION"
-                  echo "Working directory: $(pwd)/test-repo"
-                  cd test-repo
+                  echo "Working directory: $(pwd)"
                   uv run --directory ../agent-sdk python ../agent-sdk/"$AGENT_SCRIPT" "$PROMPT_LOCATION"
 
             - name: Upload logs as artifact
