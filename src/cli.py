@@ -1636,6 +1636,98 @@ def command_quality(args):
         return 1
 
 
+def command_bench(args):
+    """Run performance benchmarks comparing Python 2 and Python 3."""
+    print_header("Performance Benchmark")
+    
+    validate_path(args.path)
+    
+    print_info(f"Benchmarking: {args.path}")
+    print_info(f"Iterations: {args.iterations}")
+    print_info(f"Timeout: {args.timeout}s per file")
+    if args.output:
+        print_info(f"Output file: {args.output}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from performance_benchmark import PerformanceBenchmark
+        
+        # Create benchmark instance
+        benchmark = PerformanceBenchmark(
+            python2_cmd=args.python2,
+            python3_cmd=args.python3
+        )
+        
+        # Check environment
+        print_info("Checking environment...")
+        env_info = benchmark.check_environment()
+        
+        if env_info['python2_available']:
+            print_success(f"Python 2: {env_info['python2_version']}")
+        else:
+            print_warning(f"Python 2 not found (command: {args.python2})")
+        
+        if env_info['python3_available']:
+            print_success(f"Python 3: {env_info['python3_version']}")
+        else:
+            print_warning(f"Python 3 not found (command: {args.python3})")
+        
+        if not env_info['python2_available'] and not env_info['python3_available']:
+            print_error("Neither Python 2 nor Python 3 found")
+            print_info("Specify Python commands with --python2 and --python3 flags")
+            return 1
+        
+        print()
+        print_info("Running benchmarks... (this may take a while)")
+        print()
+        
+        # Run benchmark
+        if os.path.isfile(args.path):
+            results = [benchmark.benchmark_file(args.path, args.iterations, args.timeout)]
+        elif os.path.isdir(args.path):
+            results = benchmark.benchmark_directory(args.path, args.iterations, args.timeout)
+        else:
+            print_error(f"Invalid path: {args.path}")
+            return 1
+        
+        # Generate report
+        report = benchmark.generate_report(results, args.format)
+        
+        # Write or print output
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Benchmark report saved to {args.output}")
+        else:
+            print(report)
+        
+        # Show summary
+        summary = benchmark._generate_summary(results)
+        if summary['completed'] > 0 and summary['avg_speedup'] > 0:
+            if summary['avg_speedup'] > 1.05:
+                print_success(f"Python 3 is {summary['avg_speedup']:.2f}x faster on average!")
+            elif summary['avg_speedup'] < 0.95:
+                print_warning(f"Python 3 is {1/summary['avg_speedup']:.2f}x slower on average")
+            else:
+                print_info("Python 3 has similar performance (within 5%)")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Could not import performance benchmark tool: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+    except Exception as e:
+        print_error(f"Benchmark failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_watch(args):
     """Monitor files for changes and automatically check compatibility."""
     # Check if watchdog is available
@@ -2089,6 +2181,26 @@ def main():
     parser_quality.add_argument('-d', '--detailed', action='store_true',
                                help='Include detailed per-file metrics in report')
     
+    # Bench command
+    parser_bench = subparsers.add_parser(
+        'bench',
+        help='Benchmark Python 2 vs Python 3 performance',
+        description='Compare execution time and performance between Python 2 and Python 3 code'
+    )
+    parser_bench.add_argument('path', nargs='?', default='src',
+                             help='File or directory to benchmark (default: src)')
+    parser_bench.add_argument('-i', '--iterations', type=int, default=100,
+                             help='Number of iterations per benchmark (default: 100)')
+    parser_bench.add_argument('-t', '--timeout', type=int, default=30,
+                             help='Timeout per file in seconds (default: 30)')
+    parser_bench.add_argument('-o', '--output', help='Save report to file')
+    parser_bench.add_argument('-f', '--format', choices=['text', 'json'], default='text',
+                             help='Output format (default: text)')
+    parser_bench.add_argument('--python2', default='python2',
+                             help='Python 2 command (default: python2)')
+    parser_bench.add_argument('--python3', default='python3',
+                             help='Python 3 command (default: python3)')
+    
     # Docs command
     parser_docs = subparsers.add_parser(
         'docs',
@@ -2161,6 +2273,8 @@ def main():
         return command_watch(args)
     elif args.command == 'quality':
         return command_quality(args)
+    elif args.command == 'bench':
+        return command_bench(args)
     elif args.command == 'docs':
         return command_docs(args)
     else:

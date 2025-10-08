@@ -253,6 +253,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Complements HTML reports with team-friendly Markdown format
    - Run `./py2to3 docs` to generate migration documentation!
 
+21. **Performance Benchmark Tool** 🚀 **[NEW]**:
+   - Compare execution time and performance between Python 2 and Python 3 code
+   - Quantify performance improvements to demonstrate ROI of migration
+   - Measure execution time with configurable iterations for accuracy
+   - Identifies performance improvements (faster) and regressions (slower)
+   - Generates detailed reports with speedup metrics and change percentages
+   - Helps catch performance issues before they reach production
+   - Supports benchmarking individual files or entire directories
+   - JSON export for CI/CD integration and automated tracking
+   - Guides optimization efforts by highlighting high-impact wins
+   - Perfect for justifying migration efforts to stakeholders!
+   - Run `./py2to3 bench src/` to benchmark your code!
+   - **See [PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md) for complete performance benchmarking guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
