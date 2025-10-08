@@ -47,7 +47,8 @@ jobs:
 
             - name: Install agent-sdk from GitHub
               run: |
-                  uv pip install --system 'openhands[tools] @ git+https://github.com/All-Hands-AI/agent-sdk.git'
+                  uv pip install --system 'openhands-sdk @ git+https://github.com/All-Hands-AI/agent-sdk.git#subdirectory=openhands/sdk'
+                  uv pip install --system 'openhands-tools @ git+https://github.com/All-Hands-AI/agent-sdk.git#subdirectory=openhands/tools'
 
             - name: Download maintenance task runner script
               run: |
