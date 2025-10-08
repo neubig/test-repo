@@ -51,7 +51,7 @@ jobs:
 
             - name: Download maintenance task runner script
               run: |
-                  curl -o /tmp/run_maintenance.py https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/main/examples/28_maintenance_task_runner/run.py
+                  curl -o /tmp/run_maintenance.py https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/openhands/scheduled-maintenance-workflow/examples/28_maintenance_task_runner/run.py
                   chmod +x /tmp/run_maintenance.py
 
             - name: Check required environment variables
