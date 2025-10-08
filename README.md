@@ -84,6 +84,16 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
+6. **Backup Management** 🔄 **[NEW]**:
+   - Comprehensive backup management for migration safety
+   - List all backups with detailed information and statistics
+   - Restore files or entire directories from backups
+   - Clean up old backups to save disk space
+   - View differences between backups and current files
+   - Scan backup directory for inconsistencies
+   - Perfect safety net for your migration workflow!
+   - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -134,7 +144,31 @@ Save your preferences to avoid repeating flags:
 ./py2to3 fix src/  # Uses my_backups/ directory
 ```
 
-See [CLI_GUIDE.md](CLI_GUIDE.md) and [CONFIG.md](CONFIG.md) for complete documentation.
+**Manage Backups**
+
+The fixer creates backups before modifying files. You can manage these backups:
+
+```bash
+# List all available backups
+./py2to3 backup list
+
+# View detailed information about a backup
+./py2to3 backup info backup/path/to/file.py
+
+# Compare backup with current file
+./py2to3 backup diff backup/path/to/file.py
+
+# Restore a file from backup
+./py2to3 backup restore backup/path/to/file.py
+
+# Clean up old backups (older than 30 days)
+./py2to3 backup clean --older-than 30
+
+# Scan backup directory for issues
+./py2to3 backup scan
+```
+
+See [CLI_GUIDE.md](CLI_GUIDE.md), [CONFIG.md](CONFIG.md), and [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete documentation.
 
 #### Manual Approach (Using Individual Tools)
 

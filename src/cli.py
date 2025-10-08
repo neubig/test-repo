@@ -213,6 +213,251 @@ def command_fix(args):
         return 1
 
 
+def command_backup(args):
+    """Manage backups created during migration."""
+    print_header("Backup Management")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from backup_manager import BackupManager
+        
+        backup_dir = getattr(args, 'backup_dir', 'backup')
+        manager = BackupManager(backup_dir=backup_dir)
+        
+        if args.backup_action == 'list':
+            # List all backups
+            backups = manager.list_backups(pattern=getattr(args, 'pattern', None))
+            
+            if not backups:
+                print_info("No backups found")
+                return 0
+            
+            print_success(f"Found {len(backups)} backup(s):\n")
+            
+            for i, backup in enumerate(backups, 1):
+                timestamp = backup.get('timestamp', 'unknown')
+                original = backup.get('original_path', 'unknown')
+                backup_path = backup.get('backup_path', 'unknown')
+                size_kb = backup.get('size', 0) / 1024
+                
+                print(f"{Colors.BOLD}{i}. {os.path.basename(original)}{Colors.ENDC}")
+                print(f"   Original: {original}")
+                print(f"   Backup:   {backup_path}")
+                print(f"   Time:     {timestamp}")
+                print(f"   Size:     {size_kb:.2f} KB")
+                if backup.get('description'):
+                    print(f"   Note:     {backup['description']}")
+                print()
+            
+            # Show stats
+            stats = manager.get_backup_stats()
+            print(f"{Colors.OKCYAN}Summary:{Colors.ENDC}")
+            print(f"  Total backups: {stats['total_count']}")
+            print(f"  Total size:    {stats['total_size_mb']} MB")
+            if stats['oldest']:
+                print(f"  Oldest:        {stats['oldest']}")
+            if stats['newest']:
+                print(f"  Newest:        {stats['newest']}")
+            
+            return 0
+        
+        elif args.backup_action == 'restore':
+            # Restore from backup
+            if not args.backup_path:
+                print_error("Backup path is required for restore")
+                return 1
+            
+            print_info(f"Restoring from: {args.backup_path}")
+            
+            if not args.yes and not args.dry_run:
+                response = input(f"{Colors.WARNING}This will overwrite existing files. Continue? [y/N]: {Colors.ENDC}")
+                if response.lower() not in ['y', 'yes']:
+                    print_info("Operation cancelled")
+                    return 0
+            
+            if args.dry_run:
+                print_warning("DRY RUN MODE: No files will be modified\n")
+            
+            result = manager.restore_file(
+                args.backup_path,
+                original_path=getattr(args, 'target', None),
+                dry_run=args.dry_run
+            )
+            
+            if result['status'] == 'success':
+                print_success(f"Restored: {result['original_path']}")
+            elif result['status'] == 'dry_run':
+                print_info(f"Would restore to: {result['original_path']}")
+            
+            return 0
+        
+        elif args.backup_action == 'clean':
+            # Clean up old backups
+            print_info("Cleaning backups...")
+            
+            if args.all:
+                print_warning("This will remove ALL backups")
+            elif args.older_than:
+                print_info(f"Removing backups older than {args.older_than} days")
+            elif args.pattern:
+                print_info(f"Removing backups matching pattern: {args.pattern}")
+            
+            if not args.yes and not args.dry_run:
+                response = input(f"{Colors.WARNING}This will delete backup files. Continue? [y/N]: {Colors.ENDC}")
+                if response.lower() not in ['y', 'yes']:
+                    print_info("Operation cancelled")
+                    return 0
+            
+            if args.dry_run:
+                print_warning("DRY RUN MODE: No files will be deleted\n")
+            
+            result = manager.clean_backups(
+                older_than_days=getattr(args, 'older_than', None),
+                pattern=getattr(args, 'pattern', None),
+                all_backups=args.all,
+                dry_run=args.dry_run
+            )
+            
+            if result['total_removed'] > 0:
+                if args.dry_run:
+                    print_info(f"Would remove {result['total_removed']} backup(s)")
+                else:
+                    print_success(f"Removed {result['total_removed']} backup(s)")
+                
+                # Show first few removed items
+                for removed in result['removed'][:5]:
+                    status = removed['status']
+                    path = removed['backup_path']
+                    if args.dry_run:
+                        print(f"  Would remove: {path}")
+                    else:
+                        print(f"  Removed: {path}")
+                
+                if len(result['removed']) > 5:
+                    print(f"  ... and {len(result['removed']) - 5} more")
+            else:
+                print_info("No backups matched the criteria")
+            
+            if result['total_errors'] > 0:
+                print_error(f"Encountered {result['total_errors']} error(s)")
+            
+            return 0
+        
+        elif args.backup_action == 'diff':
+            # Show differences
+            if not args.backup_path:
+                print_error("Backup path is required for diff")
+                return 1
+            
+            print_info(f"Comparing backup with current file...\n")
+            
+            result = manager.diff_backup(
+                args.backup_path,
+                original_path=getattr(args, 'target', None),
+                context_lines=getattr(args, 'context', 3)
+            )
+            
+            if result['status'] == 'original_missing':
+                print_warning(result['message'])
+                return 0
+            
+            if not result['has_changes']:
+                print_success("No differences found - files are identical")
+                return 0
+            
+            print(f"{Colors.BOLD}Differences:{Colors.ENDC}\n")
+            print(result['diff'])
+            
+            stats = result['stats']
+            print(f"\n{Colors.OKCYAN}Summary:{Colors.ENDC}")
+            print(f"  Backup lines:  {stats['backup_lines']}")
+            print(f"  Current lines: {stats['current_lines']}")
+            print(f"  Lines added:   {Colors.OKGREEN}+{stats['lines_added']}{Colors.ENDC}")
+            print(f"  Lines removed: {Colors.FAIL}-{stats['lines_removed']}{Colors.ENDC}")
+            
+            return 0
+        
+        elif args.backup_action == 'info':
+            # Show backup information
+            if not args.backup_path:
+                print_error("Backup path is required for info")
+                return 1
+            
+            info = manager.get_backup_info(args.backup_path)
+            
+            print(f"{Colors.BOLD}Backup Information:{Colors.ENDC}\n")
+            print(f"  Original path:  {info.get('original_path', 'unknown')}")
+            print(f"  Backup path:    {info.get('backup_path', 'unknown')}")
+            print(f"  Timestamp:      {info.get('timestamp', 'unknown')}")
+            print(f"  Description:    {info.get('description', 'none')}")
+            print(f"  Size:           {info.get('current_size_kb', 0)} KB")
+            
+            if info.get('age_days') is not None:
+                print(f"  Age:            {info['age_days']} days ({info['age_hours']} hours)")
+            
+            print(f"\n{Colors.BOLD}Status:{Colors.ENDC}")
+            backup_exists = "✓ exists" if info.get('exists') else "✗ missing"
+            original_exists = "✓ exists" if info.get('original_exists') else "✗ missing"
+            print(f"  Backup file:    {backup_exists}")
+            print(f"  Original file:  {original_exists}")
+            
+            return 0
+        
+        elif args.backup_action == 'scan':
+            # Scan and sync backup directory
+            print_info("Scanning backup directory...\n")
+            
+            result = manager.scan_backup_directory()
+            
+            if result['status'] == 'no_backup_dir':
+                print_warning(result['message'])
+                return 0
+            
+            print_success(f"Backup directory scan complete")
+            print(f"\n{Colors.BOLD}Results:{Colors.ENDC}")
+            print(f"  Backups in filesystem: {result['total_fs_backups']}")
+            print(f"  Backups in metadata:   {result['total_meta_backups']}")
+            
+            if result['orphaned_count'] > 0:
+                print(f"\n{Colors.WARNING}Orphaned files (in filesystem, not in metadata):{Colors.ENDC}")
+                for orphaned in result['orphaned_files'][:10]:
+                    print(f"  • {orphaned}")
+                if result['orphaned_count'] > 10:
+                    print(f"  ... and {result['orphaned_count'] - 10} more")
+            
+            if result['missing_count'] > 0:
+                print(f"\n{Colors.FAIL}Missing files (in metadata, not in filesystem):{Colors.ENDC}")
+                for missing in result['missing_files'][:10]:
+                    print(f"  • {missing}")
+                if result['missing_count'] > 10:
+                    print(f"  ... and {result['missing_count'] - 10} more")
+            
+            if result['orphaned_count'] == 0 and result['missing_count'] == 0:
+                print_success("\n✓ All backups are properly tracked")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown backup action: {args.backup_action}")
+            return 1
+        
+    except FileNotFoundError as e:
+        print_error(str(e))
+        return 1
+    except ValueError as e:
+        print_error(str(e))
+        return 1
+    except ImportError as e:
+        print_error(f"Failed to import backup manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error managing backups: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_stats(args):
     """Track and display migration statistics."""
     print_header("Migration Statistics")
@@ -678,6 +923,47 @@ def main():
     parser_config_path = config_subparsers.add_parser('path', help='Show configuration file path')
     parser_config_path.add_argument('-u', '--user', action='store_true', help='Show user config path')
     
+    # Backup command
+    parser_backup = subparsers.add_parser(
+        'backup',
+        help='Manage migration backups',
+        description='Manage backups created during Python 2 to 3 migration'
+    )
+    parser_backup.add_argument('-b', '--backup-dir', default='backup', help='Backup directory (default: backup)')
+    backup_subparsers = parser_backup.add_subparsers(dest='backup_action', help='Backup actions')
+    
+    # Backup list
+    parser_backup_list = backup_subparsers.add_parser('list', help='List all available backups')
+    parser_backup_list.add_argument('-p', '--pattern', help='Filter backups by pattern')
+    
+    # Backup restore
+    parser_backup_restore = backup_subparsers.add_parser('restore', help='Restore files from backup')
+    parser_backup_restore.add_argument('backup_path', nargs='?', help='Path to backup file')
+    parser_backup_restore.add_argument('-t', '--target', help='Target path to restore to (defaults to original location)')
+    parser_backup_restore.add_argument('-n', '--dry-run', action='store_true', help='Show what would be restored without actually restoring')
+    parser_backup_restore.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    
+    # Backup clean
+    parser_backup_clean = backup_subparsers.add_parser('clean', help='Clean up old backups')
+    parser_backup_clean.add_argument('-o', '--older-than', type=int, help='Remove backups older than N days')
+    parser_backup_clean.add_argument('-p', '--pattern', help='Remove backups matching pattern')
+    parser_backup_clean.add_argument('-a', '--all', action='store_true', help='Remove all backups')
+    parser_backup_clean.add_argument('-n', '--dry-run', action='store_true', help='Show what would be removed without actually removing')
+    parser_backup_clean.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    
+    # Backup diff
+    parser_backup_diff = backup_subparsers.add_parser('diff', help='Show differences between backup and current file')
+    parser_backup_diff.add_argument('backup_path', nargs='?', help='Path to backup file')
+    parser_backup_diff.add_argument('-t', '--target', help='Target file to compare with (defaults to original location)')
+    parser_backup_diff.add_argument('-c', '--context', type=int, default=3, help='Number of context lines in diff (default: 3)')
+    
+    # Backup info
+    parser_backup_info = backup_subparsers.add_parser('info', help='Show detailed information about a backup')
+    parser_backup_info.add_argument('backup_path', nargs='?', help='Path to backup file')
+    
+    # Backup scan
+    parser_backup_scan = backup_subparsers.add_parser('scan', help='Scan backup directory and check for inconsistencies')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -715,6 +1001,8 @@ def main():
         return command_migrate(args)
     elif args.command == 'config':
         return command_config(args)
+    elif args.command == 'backup':
+        return command_backup(args)
     else:
         parser.print_help()
         return 1
