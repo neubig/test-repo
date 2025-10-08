@@ -164,7 +164,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 test-gen src/` to generate tests for your code!
    - **See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete test generation guide!**
 
-14. **Risk Analyzer** ⚠️:
+14. **Interactive Fix Mode** 🎯 **[NEW]**:
+   - Review and approve each fix before it's applied
+   - Gives you complete control over the migration process
+   - Shows context around each change for informed decisions
+   - Accept, reject, skip files, or apply all remaining fixes
+   - Automatic backup creation for safety
+   - Color-coded diff display for easy review
+   - Perfect for learning, critical code, or selective migration
+   - Comprehensive statistics tracking (accepted/rejected by type)
+   - Run `./py2to3 interactive src/` to start reviewing fixes!
+   - **See [INTERACTIVE_MODE.md](INTERACTIVE_MODE.md) for complete interactive mode guide!**
+
+15. **Risk Analyzer** ⚠️:
    - Intelligent risk assessment of migration changes
    - Identifies high-risk changes requiring careful manual review
    - Analyzes critical areas: error handling, I/O, database, encoding, etc.
@@ -174,7 +186,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Helps teams focus on the most important changes first
    - Generates detailed reports in text or JSON format
 
-15. **Migration Planner** 📋 **[NEW]**:
+16. **Migration Planner** 📋 **[NEW]**:
    - Strategic planning tool for large-scale migrations
    - Analyzes codebase structure and builds complete dependency graph
    - Creates optimized phased migration plan based on dependencies
@@ -187,7 +199,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 plan src/` to create your migration strategy!
    - **See [PLANNER_GUIDE.md](PLANNER_GUIDE.md) for complete migration planning guide!**
 
-16. **Watch Mode** 👁️ **[NEW]**:
+17. **Watch Mode** 👁️ **[NEW]**:
    - Real-time file monitoring with automatic compatibility checking
    - Get instant feedback as you edit Python files during migration
    - Monitor entire directories or specific files for changes
@@ -200,7 +212,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 watch src/` to start monitoring your code!
    - **See [WATCH_MODE.md](WATCH_MODE.md) for complete watch mode guide!**
 
-17. **Migration Statistics Dashboard** 📊 **[NEW]**:
+18. **Migration Statistics Dashboard** 📊 **[NEW]**:
    - Interactive web-based dashboard for visualizing migration progress
    - Beautiful charts and graphs showing issue distribution and trends
    - Real-time progress tracking with comparison to previous scans
@@ -213,7 +225,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Start dashboard: `cd my-vite-app && npm install && npm run dev`
    - **See [my-vite-app/README.md](my-vite-app/README.md) for complete dashboard guide!**
 
-18. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
+19. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
    - Comprehensive code quality metrics and complexity analysis
    - Measures cyclomatic complexity, maintainability index, and code structure
    - Analyzes lines of code, functions, classes, and comment ratios

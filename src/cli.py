@@ -771,6 +771,46 @@ def command_stats(args):
         return 1
 
 
+def command_interactive(args):
+    """Run interactive fixer with manual review."""
+    print_header("Interactive Python 2 to 3 Fixer")
+    
+    validate_path(args.path)
+    
+    print_info(f"Path: {args.path}")
+    print_info(f"Context lines: {args.context}")
+    print_info(f"Auto-backup: {'enabled' if not args.no_backup else 'disabled'}\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from interactive_fixer import InteractiveFixer
+        
+        fixer = InteractiveFixer(
+            directory=args.path,
+            context_lines=args.context,
+            auto_backup=not args.no_backup
+        )
+        
+        stats = fixer.run()
+        
+        if stats['accepted'] > 0:
+            print_success(f"\nSuccessfully applied {stats['accepted']} fixes")
+            return 0
+        elif stats['total_fixes'] == 0:
+            print_success("\nNo fixes needed - code is Python 3 compatible")
+            return 0
+        else:
+            print_warning("\nNo fixes were applied")
+            return 1
+            
+    except Exception as e:
+        print_error(f"Error during interactive fixing: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_report(args):
     """Generate an HTML report of migration progress."""
     print_header("Migration Report Generator")
@@ -1701,6 +1741,18 @@ def main():
     parser_fix.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
     parser_fix.add_argument('-r', '--report', help='Save report to file')
     
+    # Interactive command
+    parser_interactive = subparsers.add_parser(
+        'interactive',
+        help='Review and approve fixes interactively',
+        description='Review each proposed fix and decide whether to apply it'
+    )
+    parser_interactive.add_argument('path', help='Directory to analyze and fix')
+    parser_interactive.add_argument('-c', '--context', type=int, default=3, 
+                                   help='Number of context lines to show (default: 3)')
+    parser_interactive.add_argument('--no-backup', action='store_true', 
+                                   help='Disable automatic backups')
+    
     # Report command
     parser_report = subparsers.add_parser(
         'report',
@@ -2008,6 +2060,8 @@ def main():
         return command_preflight(args)
     elif args.command == 'fix':
         return command_fix(args)
+    elif args.command == 'interactive':
+        return command_interactive(args)
     elif args.command == 'report':
         return command_report(args)
     elif args.command == 'stats':
