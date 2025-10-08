@@ -170,13 +170,40 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 risk --help` to analyze migration risks!
    - **See [RISK_GUIDE.md](RISK_GUIDE.md) for complete risk analysis guide!**
 
+14. **Migration Statistics Dashboard** 📊 **[NEW]**:
+   - Interactive web-based dashboard for visualizing migration progress
+   - Beautiful charts and graphs showing issue distribution and trends
+   - Real-time progress tracking with comparison to previous scans
+   - Ranked list of most problematic files for prioritization
+   - JSON export from stats command for dashboard visualization
+   - Built with React, TypeScript, and Recharts for modern UX
+   - Upload stats files from anywhere or serve from public directory
+   - Perfect for team visibility and stakeholder reporting!
+   - Generate stats: `./py2to3 stats collect src/ --format json --output my-vite-app/public/migration-stats.json`
+   - Start dashboard: `cd my-vite-app && npm install && npm run dev`
+   - **See [my-vite-app/README.md](my-vite-app/README.md) for complete dashboard guide!**
+
 ### Modern Web Application
 
-The `my-vite-app/` directory contains a modern web application built with:
-- React
-- TypeScript
-- Vite (with HMR support)
-- ESLint with TypeScript integration
+The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
+- React 18 - Modern UI library
+- TypeScript - Type-safe development
+- Vite - Fast build tool with HMR support
+- Recharts - Interactive data visualizations
+- ESLint - Code quality enforcement
+
+**Quick Start:**
+```bash
+# Generate migration statistics
+./py2to3 stats collect src/ --format json --output my-vite-app/public/migration-stats.json
+
+# Start the dashboard
+cd my-vite-app
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173` to view your migration progress dashboard!
 
 ## Getting Started
 

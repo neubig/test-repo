@@ -664,8 +664,14 @@ def command_stats(args):
         tracker = MigrationStatsTracker()
         
         if args.stats_action == 'collect':
+            # Validate JSON output requirements
+            if args.format == 'json' and not args.output:
+                print_error("JSON format requires --output option")
+                return 1
+            
             # Collect and display current stats
-            print_info(f"Collecting statistics for: {args.path or 'current directory'}\n")
+            if args.format != 'json':
+                print_info(f"Collecting statistics for: {args.path or 'current directory'}\n")
             
             stats = tracker.collect_stats(args.path)
             
@@ -679,16 +685,32 @@ def command_stats(args):
             # Save snapshot if requested
             if args.save:
                 snapshot_path = tracker.save_snapshot(stats)
-                print_success(f"Snapshot saved to: {snapshot_path}\n")
+                if args.format != 'json':
+                    print_success(f"Snapshot saved to: {snapshot_path}\n")
             
-            # Display stats
-            print(tracker.format_stats(stats, comparison))
-            
-            # Show recommendation
-            if stats['summary']['progress_percentage'] < 100:
-                remaining = stats['summary']['files_with_issues']
-                print_info(f"Recommendation: Focus on fixing the {remaining} files with issues")
-                print_info("Run 'py2to3 fix <path>' to automatically fix common patterns")
+            # Output based on format
+            if args.format == 'json':
+                # Prepare JSON output
+                output_data = {
+                    'stats': stats,
+                    'comparison': comparison,
+                    'generated_at': datetime.datetime.now().isoformat()
+                }
+                
+                # Write to file
+                with open(args.output, 'w') as f:
+                    json.dump(output_data, f, indent=2)
+                
+                print_success(f"Statistics exported to: {args.output}")
+            else:
+                # Display stats
+                print(tracker.format_stats(stats, comparison))
+                
+                # Show recommendation
+                if stats['summary']['progress_percentage'] < 100:
+                    remaining = stats['summary']['files_with_issues']
+                    print_info(f"Recommendation: Focus on fixing the {remaining} files with issues")
+                    print_info("Run 'py2to3 fix <path>' to automatically fix common patterns")
         
         elif args.stats_action == 'show':
             # Show latest snapshot
@@ -1458,6 +1480,8 @@ def main():
     parser_stats_collect.add_argument('path', nargs='?', help='Path to analyze (defaults to current directory)')
     parser_stats_collect.add_argument('-s', '--save', action='store_true', help='Save statistics snapshot')
     parser_stats_collect.add_argument('--no-compare', action='store_true', help='Do not compare with previous snapshot')
+    parser_stats_collect.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
+    parser_stats_collect.add_argument('-o', '--output', help='Output file for statistics (required for JSON format)')
     
     # Stats show
     parser_stats_show = stats_subparsers.add_parser('show', help='Show latest statistics snapshot')

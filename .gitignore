@@ -48,6 +48,7 @@ migration_report.json
 
 # Statistics tracking
 .py2to3-stats/
+migration-stats.json
 
 # OS
 .DS_Store
