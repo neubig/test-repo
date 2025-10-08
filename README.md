@@ -342,6 +342,24 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 state list --filter-state pending` to find work to do!
    - **See [docs/MIGRATION_STATE_GUIDE.md](docs/MIGRATION_STATE_GUIDE.md) for complete state tracking guide!**
 
+27. **Pattern Search Tool** 🔍✨ **[NEW]**:
+   - Smart search for specific Python 2 patterns in your codebase
+   - Find all instances of particular issues (print statements, xrange, iteritems, etc.)
+   - 19 pre-defined patterns covering common Python 2 to 3 migration issues
+   - Beautiful colored output with context lines and highlighting
+   - Search all patterns or target specific ones for focused analysis
+   - Perfect for understanding migration scope before starting fixes
+   - Supports custom workflows - tackle patterns one type at a time
+   - JSON export for automation and integration with custom tools
+   - Non-zero exit code when patterns found (CI/CD integration)
+   - Adjustable context lines for better understanding of matches
+   - List all available patterns with examples and descriptions
+   - Ideal for planning targeted fixes and code review focus
+   - Complements `check` command with targeted pattern discovery
+   - Run `./py2to3 search src/` to find all Python 2 patterns!
+   - Run `./py2to3 search --list-patterns` to see available patterns!
+   - **See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for complete pattern search guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
@@ -443,6 +461,38 @@ The status command shows:
 Perfect for quick daily checks, team standups, and pre-commit validation!
 
 See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete documentation.
+
+**Search for Specific Patterns** 🔍 **[NEW]**
+
+Find specific Python 2 patterns in your codebase with context and highlighting:
+
+```bash
+# List all available patterns
+./py2to3 search --list-patterns
+
+# Search for all Python 2 patterns
+./py2to3 search src/
+
+# Search for specific patterns only
+./py2to3 search src/ -p print_statement xrange
+
+# Search with more context lines
+./py2to3 search src/ -p iteritems -c 5
+
+# Export results as JSON
+./py2to3 search src/ -o patterns.json
+```
+
+The search command helps you:
+- Find all instances of specific Python 2 patterns quickly
+- Plan targeted fixes by focusing on one pattern type at a time
+- Understand migration scope before starting
+- Create custom migration workflows
+- Integrate with CI/CD pipelines (non-zero exit when patterns found)
+
+Perfect for targeted pattern discovery and phased migration strategies!
+
+See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for complete pattern search guide.
 
 **Generate Tests to Verify Migration** 🧪 **[NEW]**
 

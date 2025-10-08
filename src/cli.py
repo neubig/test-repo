@@ -2313,6 +2313,78 @@ def command_status(args):
         return 1
 
 
+def command_search(args):
+    """Search for specific Python 2 patterns in codebase."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from pattern_search import PatternSearcher
+        
+        # List patterns if requested
+        if args.list_patterns:
+            print_header("Available Python 2 Patterns")
+            print(f"\n{Colors.BOLD}Pattern Name{' ' * 8}Description{' ' * 30}Example{Colors.ENDC}\n")
+            print(f"{Colors.BOLD}{'-' * 100}{Colors.ENDC}")
+            
+            for name, description, example in PatternSearcher.list_patterns():
+                print(f"{Colors.OKCYAN}{name:20}{Colors.ENDC} {description:40} {Colors.WARNING}{example}{Colors.ENDC}")
+            
+            print(f"\n{Colors.BOLD}Usage:{Colors.ENDC}")
+            print(f"  py2to3 search <path> -p <pattern_name>")
+            print(f"  py2to3 search <path>                    # Search all patterns")
+            print(f"  py2to3 search <path> -p print_statement xrange  # Search specific patterns\n")
+            return 0
+        
+        # Create searcher
+        path = args.path if hasattr(args, 'path') and args.path else '.'
+        validate_path(path)
+        
+        print_header("Python 2 Pattern Search")
+        print_info(f"Searching path: {path}")
+        
+        if hasattr(args, 'patterns') and args.patterns:
+            print_info(f"Patterns: {', '.join(args.patterns)}\n")
+        else:
+            print_info("Patterns: all\n")
+        
+        searcher = PatternSearcher(path, context_lines=args.context)
+        
+        # Run search
+        results = searcher.search(patterns=args.patterns if hasattr(args, 'patterns') else None)
+        
+        # Output results
+        if args.json or args.output:
+            json_output = searcher.export_json(args.output if args.output else None)
+            if args.output:
+                print_success(f"Results exported to: {args.output}")
+            else:
+                print(json_output)
+        else:
+            output = searcher.format_results_text(colorize=not args.no_color)
+            print(output)
+        
+        summary = searcher.get_summary()
+        
+        if summary['total_matches'] > 0:
+            print_warning(f"Found {summary['total_matches']} Python 2 pattern(s) to address")
+            return 1  # Non-zero exit for CI/CD integration
+        else:
+            print_success("No Python 2 patterns found!")
+            return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import pattern searcher: {e}")
+        return 1
+    except ValueError as e:
+        print_error(str(e))
+        return 1
+    except Exception as e:
+        print_error(f"Error searching patterns: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -2709,6 +2781,25 @@ def main():
     parser_status.add_argument('-o', '--output',
                               help='Export JSON report to file (requires --json)')
     
+    # Search command
+    parser_search = subparsers.add_parser(
+        'search',
+        help='Search for Python 2 patterns',
+        description='Search for specific Python 2 patterns in your codebase with context and highlighting'
+    )
+    parser_search.add_argument('path', nargs='?', default='.',
+                              help='Path to search (default: current directory)')
+    parser_search.add_argument('-p', '--patterns', nargs='+',
+                              help='Specific patterns to search for (e.g., print_statement xrange)')
+    parser_search.add_argument('-l', '--list-patterns', action='store_true',
+                              help='List all available patterns and exit')
+    parser_search.add_argument('-c', '--context', type=int, default=2,
+                              help='Number of context lines to show (default: 2)')
+    parser_search.add_argument('-o', '--output',
+                              help='Output file for JSON export')
+    parser_search.add_argument('--json', action='store_true',
+                              help='Output in JSON format')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -2900,6 +2991,8 @@ def main():
         return command_docs(args)
     elif args.command == 'status':
         return command_status(args)
+    elif args.command == 'search':
+        return command_search(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'lint':
