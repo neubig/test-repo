@@ -3113,6 +3113,117 @@ def command_estimate(args):
         return 1
 
 
+def command_freeze(args):
+    """Freeze Guard - Prevent Python 2 code from being re-introduced."""
+    print_header("Freeze Guard - Python 2 Prevention")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from freeze_guard import FreezeGuard
+        
+        config_path = args.config if hasattr(args, 'config') and args.config else '.freeze-guard.json'
+        guard = FreezeGuard(config_path)
+        
+        if not hasattr(args, 'freeze_action') or not args.freeze_action:
+            print_error("Please specify a freeze action (check, mark, unmark, status, install-hook)")
+            print_info("Use 'py2to3 freeze --help' for more information")
+            return 1
+        
+        if args.freeze_action == 'check':
+            # Check files for Python 2 patterns
+            if args.staged:
+                print_info("Checking git staged files for Python 2 patterns...")
+                violations, files = guard.check_git_staged()
+                if not violations:
+                    checked_frozen = [f for f in files if guard.config.is_frozen(f)]
+                    if checked_frozen:
+                        print_success(f"Checked {len(checked_frozen)} frozen file(s) - all clear!")
+                    else:
+                        print_success("No frozen files in staged changes")
+                    return 0
+            else:
+                paths = args.paths if args.paths else ['.']
+                print_info(f"Checking paths: {', '.join(paths)}")
+                for path in paths:
+                    if os.path.isfile(path):
+                        violations = guard.check_files([path], only_frozen=args.frozen_only)
+                    else:
+                        violations = guard.check_directory(path)
+            
+            # Generate and print report
+            report = guard.generate_report(format=args.format)
+            print(report)
+            return 1 if violations else 0
+        
+        elif args.freeze_action == 'mark':
+            # Mark paths as frozen
+            for path in args.paths:
+                if not os.path.exists(path):
+                    print_warning(f"Path does not exist: {path}")
+                    continue
+                guard.config.add_frozen_path(path)
+                print_success(f"Marked as frozen: {path}")
+            print_info(f"Frozen paths now tracked in: {config_path}")
+            return 0
+        
+        elif args.freeze_action == 'unmark':
+            # Unmark frozen paths
+            for path in args.paths:
+                guard.config.remove_frozen_path(path)
+                print_success(f"Unmarked: {path}")
+            return 0
+        
+        elif args.freeze_action == 'status':
+            # Show frozen paths status
+            frozen_paths = guard.config.get_frozen_paths()
+            
+            if args.json:
+                import json
+                print(json.dumps({
+                    "frozen_paths": frozen_paths,
+                    "total": len(frozen_paths)
+                }, indent=2))
+            else:
+                if not frozen_paths:
+                    print_warning("No frozen paths configured")
+                    print_info(f"Use 'py2to3 freeze mark <path>' to freeze migrated code")
+                else:
+                    print_info(f"🔒 Frozen Paths ({len(frozen_paths)}):")
+                    print()
+                    for path in frozen_paths:
+                        exists = "✓" if os.path.exists(path) else "✗"
+                        status = f"{Colors.OKGREEN}exists{Colors.ENDC}" if exists == "✓" else f"{Colors.FAIL}not found{Colors.ENDC}"
+                        print(f"  [{exists}] {path:50} ({status})")
+                    print()
+                    print_info(f"Config file: {config_path}")
+            return 0
+        
+        elif args.freeze_action == 'install-hook':
+            # Install pre-commit hook
+            print_info("Installing git pre-commit hook for freeze guard...")
+            success = guard.install_pre_commit_hook()
+            if success:
+                print()
+                print_success("Pre-commit hook installed successfully!")
+                print_info("The hook will check frozen files on every commit")
+                print_info("To bypass (not recommended): git commit --no-verify")
+            return 0 if success else 1
+        
+        else:
+            print_error(f"Unknown freeze action: {args.freeze_action}")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import freeze guard: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error in freeze guard: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3850,6 +3961,39 @@ def main():
     parser_journal_delete.add_argument('entry_id', help='Entry ID to delete')
     parser_journal_delete.add_argument('--confirm', action='store_true', help='Skip confirmation prompt')
     
+    # Freeze command
+    parser_freeze = subparsers.add_parser(
+        'freeze',
+        help='Prevent Python 2 code from being re-introduced',
+        description='Freeze Guard - Mark migrated code as Python 3 only and prevent Python 2 patterns from being re-introduced'
+    )
+    parser_freeze.add_argument('--config', default='.freeze-guard.json',
+                               help='Path to freeze guard config file (default: .freeze-guard.json)')
+    
+    freeze_subparsers = parser_freeze.add_subparsers(dest='freeze_action', help='Freeze guard actions')
+    
+    # Freeze check
+    parser_freeze_check = freeze_subparsers.add_parser('check', help='Check files for Python 2 patterns')
+    parser_freeze_check.add_argument('paths', nargs='*', help='Files or directories to check')
+    parser_freeze_check.add_argument('--staged', action='store_true', help='Check git staged files only')
+    parser_freeze_check.add_argument('--frozen-only', action='store_true', help='Check frozen files only')
+    parser_freeze_check.add_argument('--format', choices=['text', 'json'], default='text', help='Output format')
+    
+    # Freeze mark
+    parser_freeze_mark = freeze_subparsers.add_parser('mark', help='Mark paths as frozen (Python 3 only)')
+    parser_freeze_mark.add_argument('paths', nargs='+', help='Paths to mark as frozen')
+    
+    # Freeze unmark
+    parser_freeze_unmark = freeze_subparsers.add_parser('unmark', help='Unmark frozen paths')
+    parser_freeze_unmark.add_argument('paths', nargs='+', help='Paths to unmark')
+    
+    # Freeze status
+    parser_freeze_status = freeze_subparsers.add_parser('status', help='Show frozen paths status')
+    parser_freeze_status.add_argument('--json', action='store_true', help='Output as JSON')
+    
+    # Freeze install-hook
+    parser_freeze_hook = freeze_subparsers.add_parser('install-hook', help='Install git pre-commit hook')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -3941,6 +4085,8 @@ def main():
         return command_journal(args)
     elif args.command == 'venv':
         return command_venv(args)
+    elif args.command == 'freeze':
+        return command_freeze(args)
     else:
         parser.print_help()
         return 1

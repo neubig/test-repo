@@ -485,6 +485,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 estimate src/ -o report.txt` to save detailed report!
    - **See [EFFORT_ESTIMATOR_GUIDE.md](EFFORT_ESTIMATOR_GUIDE.md) for complete effort estimation guide!**
 
+36. **Freeze Guard - Python 2 Prevention** 🔒✨ **[NEW]**:
+   - Prevent Python 2 code from being re-introduced during active migration
+   - Mark migrated files/directories as "frozen" (Python 3 only)
+   - Automatically blocks commits containing Python 2 patterns in frozen files
+   - Pre-commit git hook integration for automatic enforcement
+   - Perfect for team coordination during gradual migration
+   - Protects migration progress from accidental regression
+   - Detects print statements, old imports, iterator methods, and more
+   - CI/CD integration to block PRs with Python 2 code
+   - Check git staged files or specific paths on demand
+   - Track which parts of codebase are migrated vs. pending
+   - Complements the fix/verify workflow with prevention
+   - Run `./py2to3 freeze mark src/auth/` to freeze migrated modules!
+   - Run `./py2to3 freeze install-hook` to enable pre-commit protection!
+   - Run `./py2to3 freeze check --staged` to verify staged changes!
+   - **See [FREEZE_GUIDE.md](FREEZE_GUIDE.md) for complete freeze guard guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
