@@ -3113,6 +3113,205 @@ def command_estimate(args):
         return 1
 
 
+def command_rollback(args):
+    """Rollback migration operations."""
+    print_header("Rollback Manager")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from rollback_manager import RollbackManager
+        
+        manager = RollbackManager()
+        
+        if not hasattr(args, 'rollback_action') or not args.rollback_action:
+            print_error("Please specify a rollback action (undo, list, preview, stats, clear)")
+            print_info("Use 'py2to3 rollback --help' for more information")
+            return 1
+        
+        if args.rollback_action == 'undo':
+            # Rollback an operation
+            operation_id = args.id if hasattr(args, 'id') and args.id else None
+            
+            if operation_id:
+                print_info(f"Rolling back operation: {operation_id}")
+            else:
+                print_info("Rolling back last operation...")
+            
+            # Preview first
+            preview = manager.preview_rollback(operation_id)
+            
+            if not preview["success"]:
+                print_error(preview.get("error", "Failed to preview rollback"))
+                return 1
+            
+            # Show preview
+            op = preview["operation"]
+            print()
+            print_info(f"Operation ID: {op['id']}")
+            print_info(f"Type: {op['type']}")
+            print_info(f"Timestamp: {op['timestamp']}")
+            if op.get('description'):
+                print_info(f"Description: {op['description']}")
+            print()
+            print_info(f"Files to restore: {preview['restorable_files']}/{preview['total_files']}")
+            
+            if preview['files_missing_backups']:
+                print_warning(f"Missing backups: {len(preview['files_missing_backups'])}")
+                if args.verbose:
+                    for f in preview['files_missing_backups']:
+                        print(f"  - {f['path']}")
+            
+            # Check if dry run
+            if args.dry_run:
+                print()
+                print_info("Dry run - showing what would be restored:")
+                for file_info in preview['files_to_restore']:
+                    print(f"  ✓ {file_info['path']}")
+                return 0
+            
+            # Ask for confirmation unless --yes is specified
+            if not args.yes:
+                print()
+                response = input(f"{Colors.WARNING}Proceed with rollback? (y/N): {Colors.ENDC}")
+                if response.lower() != 'y':
+                    print_info("Rollback cancelled")
+                    return 0
+            
+            # Perform rollback
+            print()
+            result = manager.rollback(operation_id, force=args.force)
+            
+            if result["success"]:
+                print_success(f"Successfully rolled back operation {result['operation_id']}")
+                print_info(f"Restored {result['total_restored']} file(s)")
+                
+                if result['total_failed'] > 0:
+                    print_warning(f"Failed to restore {result['total_failed']} file(s)")
+                    if args.verbose:
+                        for f in result['failed_files']:
+                            print(f"  ✗ {f['path']}: {f['error']}")
+                
+                return 0 if result['total_failed'] == 0 else 1
+            else:
+                print_error(f"Rollback failed: {result.get('error', 'Unknown error')}")
+                return 1
+        
+        elif args.rollback_action == 'list':
+            # List all operations
+            operations = manager.get_operations(include_rolled_back=args.all)
+            
+            if not operations:
+                print_warning("No operations found in history")
+                print_info("Operations are tracked automatically when you use 'fix', 'modernize', etc.")
+                return 0
+            
+            print_info(f"Found {len(operations)} operation(s):\n")
+            
+            for op in reversed(operations):  # Show most recent first
+                rolled_back = op.get('rolled_back', False)
+                status_icon = "↩" if rolled_back else "✓"
+                status_color = Colors.WARNING if rolled_back else Colors.OKGREEN
+                
+                print(f"{status_color}{status_icon}{Colors.ENDC} {op['id']}")
+                print(f"  Type: {op['type']}")
+                print(f"  Time: {op['timestamp']}")
+                if op.get('description'):
+                    print(f"  Description: {op['description']}")
+                print(f"  Files: {len(op.get('files', []))}")
+                if rolled_back:
+                    print(f"  {Colors.WARNING}Rolled back: {op.get('rollback_timestamp', 'Unknown')}{Colors.ENDC}")
+                print()
+            
+            return 0
+        
+        elif args.rollback_action == 'preview':
+            # Preview rollback without doing it
+            operation_id = args.id if hasattr(args, 'id') and args.id else None
+            
+            preview = manager.preview_rollback(operation_id)
+            
+            if not preview["success"]:
+                print_error(preview.get("error", "Failed to preview rollback"))
+                return 1
+            
+            op = preview["operation"]
+            print_info(f"Operation ID: {op['id']}")
+            print_info(f"Type: {op['type']}")
+            print_info(f"Timestamp: {op['timestamp']}")
+            if op.get('description'):
+                print_info(f"Description: {op['description']}")
+            print()
+            
+            print_success(f"Files that can be restored: {preview['restorable_files']}")
+            for file_info in preview['files_to_restore'][:10]:  # Show first 10
+                print(f"  ✓ {file_info['path']}")
+            if len(preview['files_to_restore']) > 10:
+                print(f"  ... and {len(preview['files_to_restore']) - 10} more")
+            
+            if preview['files_missing_backups']:
+                print()
+                print_warning(f"Files with missing backups: {len(preview['files_missing_backups'])}")
+                for file_info in preview['files_missing_backups'][:5]:
+                    print(f"  ✗ {file_info['path']}")
+                if len(preview['files_missing_backups']) > 5:
+                    print(f"  ... and {len(preview['files_missing_backups']) - 5} more")
+            
+            return 0
+        
+        elif args.rollback_action == 'stats':
+            # Show rollback statistics
+            stats = manager.get_statistics()
+            
+            if args.json:
+                import json
+                print(json.dumps(stats, indent=2))
+            else:
+                print_info("Rollback Statistics:\n")
+                print(f"Total operations: {stats['total_operations']}")
+                print(f"Active operations: {stats['active_operations']}")
+                print(f"Rolled back: {stats['rolled_back_operations']}")
+                print(f"Total files tracked: {stats['total_files_tracked']}")
+                
+                if stats['operations_by_type']:
+                    print("\nOperations by type:")
+                    for op_type, count in stats['operations_by_type'].items():
+                        print(f"  {op_type}: {count}")
+            
+            return 0
+        
+        elif args.rollback_action == 'clear':
+            # Clear operation history
+            if not args.yes:
+                print_warning("This will clear the operation history.")
+                response = input(f"{Colors.WARNING}Are you sure? (y/N): {Colors.ENDC}")
+                if response.lower() != 'y':
+                    print_info("Clear cancelled")
+                    return 0
+            
+            keep_recent = args.keep if hasattr(args, 'keep') and args.keep else 0
+            result = manager.clear_history(keep_recent=keep_recent)
+            
+            print_success(f"Cleared {result['cleared']} operation(s)")
+            if result['remaining'] > 0:
+                print_info(f"Kept {result['remaining']} recent operation(s)")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown rollback action: {args.rollback_action}")
+            return 1
+        
+    except ImportError as e:
+        print_error(f"Failed to import rollback manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during rollback: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_freeze(args):
     """Freeze Guard - Prevent Python 2 code from being re-introduced."""
     print_header("Freeze Guard - Python 2 Prevention")
@@ -4164,6 +4363,41 @@ def main():
     # Freeze install-hook
     parser_freeze_hook = freeze_subparsers.add_parser('install-hook', help='Install git pre-commit hook')
     
+    # Rollback command
+    parser_rollback = subparsers.add_parser(
+        'rollback',
+        help='Rollback migration operations',
+        description='Quickly undo migration operations using operation history and backups'
+    )
+    
+    rollback_subparsers = parser_rollback.add_subparsers(dest='rollback_action', help='Rollback actions')
+    
+    # Rollback undo
+    parser_rollback_undo = rollback_subparsers.add_parser('undo', help='Rollback the last operation or a specific operation')
+    parser_rollback_undo.add_argument('--id', help='Specific operation ID to rollback (default: last operation)')
+    parser_rollback_undo.add_argument('-n', '--dry-run', action='store_true', help='Preview rollback without making changes')
+    parser_rollback_undo.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    parser_rollback_undo.add_argument('--force', action='store_true', help='Force rollback even if some backups are missing')
+    parser_rollback_undo.add_argument('-v', '--verbose', action='store_true', help='Show detailed information')
+    
+    # Rollback list
+    parser_rollback_list = rollback_subparsers.add_parser('list', help='List all operations in history')
+    parser_rollback_list.add_argument('--all', action='store_true', help='Include rolled back operations')
+    parser_rollback_list.add_argument('-v', '--verbose', action='store_true', help='Show detailed information')
+    
+    # Rollback preview
+    parser_rollback_preview = rollback_subparsers.add_parser('preview', help='Preview what would be rolled back')
+    parser_rollback_preview.add_argument('--id', help='Specific operation ID to preview (default: last operation)')
+    
+    # Rollback stats
+    parser_rollback_stats = rollback_subparsers.add_parser('stats', help='Show rollback statistics')
+    parser_rollback_stats.add_argument('--json', action='store_true', help='Output as JSON')
+    
+    # Rollback clear
+    parser_rollback_clear = rollback_subparsers.add_parser('clear', help='Clear operation history')
+    parser_rollback_clear.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    parser_rollback_clear.add_argument('--keep', type=int, help='Number of recent operations to keep')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -4259,6 +4493,8 @@ def main():
         return command_venv(args)
     elif args.command == 'freeze':
         return command_freeze(args)
+    elif args.command == 'rollback':
+        return command_rollback(args)
     else:
         parser.print_help()
         return 1

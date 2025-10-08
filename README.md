@@ -104,7 +104,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-8. **Comprehensive Test Suite** ✅ **[NEW]**:
+8. **Rollback Manager** ⏪ **[NEW]**:
+   - Quick and safe rollback of migration operations
+   - Automatically track all migration operations in history
+   - Undo the last operation with a single command
+   - Preview what will be rolled back before making changes
+   - Rollback specific operations by ID
+   - View operation history and statistics
+   - Force rollback even with missing backups (when needed)
+   - Perfect for experimenting with migration strategies!
+   - Run `./py2to3 rollback --help` to explore rollback features!
+   - **See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete rollback guide!**
+
+9. **Comprehensive Test Suite** ✅ **[NEW]**:
    - Full pytest-based test suite for all migration tools
    - Unit tests for fixer, verifier, backup manager, and config manager
    - Integration tests for complete workflows
@@ -112,7 +124,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-9. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+10. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -122,7 +134,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-10. **Git Integration** 🔧 **[NEW]**:
+11. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -133,7 +145,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-11. **Code Review Assistant** 🔍 **[NEW]**:
+12. **Code Review Assistant** 🔍 **[NEW]**:
    - Intelligent code review assistance for migration changes
    - Automatically analyzes changes and identifies what needs review
    - Generates comprehensive review checklists tailored to your code
@@ -146,7 +158,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 review src/ --pr` to generate PR descriptions!
    - **See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for complete code review guide!**
 
-12. **CI/CD Integration** 🚀 **[NEW]**:
+13. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts
@@ -990,6 +1002,47 @@ Perfect for:
 - Tracking progress between commits
 - Comparing your project with reference implementations
 - Team collaboration and code review
+
+**Rollback Manager for Safe Experimentation**
+
+Quickly undo migration operations if something goes wrong:
+
+```bash
+# Undo the last operation
+./py2to3 rollback undo
+
+# Preview what would be rolled back without making changes
+./py2to3 rollback preview
+
+# List all operations in history
+./py2to3 rollback list
+
+# Undo a specific operation by ID
+./py2to3 rollback undo --id 20240115_143022_123456
+
+# Dry run to see what would happen
+./py2to3 rollback undo --dry-run
+
+# View rollback statistics
+./py2to3 rollback stats
+
+# Clear old history (keep last 50 operations)
+./py2to3 rollback clear --keep 50
+```
+
+**Use Cases:**
+- Test migration strategies safely
+- Undo bad automated fixes
+- Experiment with different approaches
+- Quick recovery from mistakes
+
+Perfect for:
+- Trying different fix patterns and comparing results
+- Learning which migration strategies work best
+- Ensuring you can always undo changes
+- Building confidence during migration
+
+See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete documentation.
 
 **Git Integration for Migration Tracking**
 
