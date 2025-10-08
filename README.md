@@ -133,7 +133,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-11. **CI/CD Integration** 🚀 **[NEW]**:
+11. **Code Review Assistant** 🔍 **[NEW]**:
+   - Intelligent code review assistance for migration changes
+   - Automatically analyzes changes and identifies what needs review
+   - Generates comprehensive review checklists tailored to your code
+   - Risk assessment with high/medium/low priority categorization
+   - Creates PR descriptions with migration statistics and recommendations
+   - Estimates review time based on change complexity
+   - Multiple output formats: Markdown, text, and JSON
+   - Perfect for ensuring thorough review before production deployment
+   - Helps reviewers focus on critical changes first
+   - Run `./py2to3 review src/ --pr` to generate PR descriptions!
+   - **See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for complete code review guide!**
+
+12. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts
@@ -144,7 +157,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Zero configuration needed - works out of the box!
    - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
 
-12. **Dependency Analyzer** 📦 **[NEW]**:
+13. **Dependency Analyzer** 📦 **[NEW]**:
    - Comprehensive dependency analysis for Python 3 compatibility
    - Scans requirements.txt, setup.py, and import statements
    - Identifies standard library module renames (urllib2 → urllib.request, etc.)
@@ -156,14 +169,14 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 deps --help` to analyze your dependencies!
    - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
 
-13. **Migration Comparison Tool** 🔍:
+14. **Migration Comparison Tool** 🔍:
    - Compare migration progress between different contexts
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time
    - Compare different file system paths or projects
    - Get detailed metrics: progress percentage, issue counts, severity
 
-14. **Automated Test Generator** 🧪 **[NEW]**:
+15. **Automated Test Generator** 🧪 **[NEW]**:
    - Automatically generate unit tests for migrated code
    - Helps verify that migration preserves functionality
    - Creates pytest-style test scaffolds with smart placeholders
@@ -174,7 +187,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 test-gen src/` to generate tests for your code!
    - **See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete test generation guide!**
 
-15. **Interactive Fix Mode** 🎯 **[NEW]**:
+16. **Interactive Fix Mode** 🎯 **[NEW]**:
    - Review and approve each fix before it's applied
    - Gives you complete control over the migration process
    - Shows context around each change for informed decisions
@@ -186,7 +199,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 interactive src/` to start reviewing fixes!
    - **See [INTERACTIVE_MODE.md](INTERACTIVE_MODE.md) for complete interactive mode guide!**
 
-15. **Migration Recipes & Templates** 📋✨ **[NEW]**:
+17. **Migration Recipes & Templates** 📋✨ **[NEW]**:
    - Pre-configured migration strategies for different project types
    - Built-in recipes for Django, Flask, CLI tools, data science, and libraries
    - Framework-specific configurations, fix priorities, and best practices
@@ -201,7 +214,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 recipe apply flask` to apply a recipe!
    - **See [RECIPES_GUIDE.md](RECIPES_GUIDE.md) for complete recipes guide!**
 
-16. **Risk Analyzer** ⚠️:
+18. **Risk Analyzer** ⚠️:
    - Intelligent risk assessment of migration changes
    - Identifies high-risk changes requiring careful manual review
    - Analyzes critical areas: error handling, I/O, database, encoding, etc.
@@ -211,7 +224,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Helps teams focus on the most important changes first
    - Generates detailed reports in text or JSON format
 
-17. **Migration Planner** 📋 **[NEW]**:
+19. **Migration Planner** 📋 **[NEW]**:
    - Strategic planning tool for large-scale migrations
    - Analyzes codebase structure and builds complete dependency graph
    - Creates optimized phased migration plan based on dependencies
@@ -224,7 +237,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 plan src/` to create your migration strategy!
    - **See [PLANNER_GUIDE.md](PLANNER_GUIDE.md) for complete migration planning guide!**
 
-18. **Watch Mode** 👁️ **[NEW]**:
+20. **Watch Mode** 👁️ **[NEW]**:
    - Real-time file monitoring with automatic compatibility checking
    - Get instant feedback as you edit Python files during migration
    - Monitor entire directories or specific files for changes
@@ -237,7 +250,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 watch src/` to start monitoring your code!
    - **See [WATCH_MODE.md](WATCH_MODE.md) for complete watch mode guide!**
 
-19. **Migration Statistics Dashboard** 📊 **[NEW]**:
+21. **Migration Statistics Dashboard** 📊 **[NEW]**:
    - Interactive web-based dashboard for visualizing migration progress
    - Beautiful charts and graphs showing issue distribution and trends
    - Real-time progress tracking with comparison to previous scans
@@ -250,7 +263,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Start dashboard: `cd my-vite-app && npm install && npm run dev`
    - **See [my-vite-app/README.md](my-vite-app/README.md) for complete dashboard guide!**
 
-20. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
+22. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
    - Comprehensive code quality metrics and complexity analysis
    - Measures cyclomatic complexity, maintainability index, and code structure
    - Analyzes lines of code, functions, classes, and comment ratios
@@ -264,7 +277,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 quality src/` to analyze your code!
    - **See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete code quality guide!**
 
-21. **Linting Integration** 🔍 **[NEW]**:
+23. **Linting Integration** 🔍 **[NEW]**:
    - Integrate popular Python linters for comprehensive code quality checking
    - Supports pylint, flake8, mypy, and black formatters
    - Unified reporting across all linters with severity classification
@@ -278,7 +291,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect companion to the quality analyzer for holistic code assessment
    - Run `./py2to3 lint src/` to check your code!
 
-22. **Migration Documentation Generator** 📚 **[NEW]**:
+24. **Migration Documentation Generator** 📚 **[NEW]**:
    - Automatically generates comprehensive Markdown documentation for your migration
    - Creates version-control-friendly documentation that renders beautifully on GitHub
    - Four key documents: Summary, Guide, Changelog, and Best Practices
@@ -292,7 +305,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Complements HTML reports with team-friendly Markdown format
    - Run `./py2to3 docs` to generate migration documentation!
 
-23. **Performance Benchmark Tool** 🚀 **[NEW]**:
+25. **Performance Benchmark Tool** 🚀 **[NEW]**:
    - Compare execution time and performance between Python 2 and Python 3 code
    - Quantify performance improvements to demonstrate ROI of migration
    - Measure execution time with configurable iterations for accuracy
@@ -306,7 +319,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 bench src/` to benchmark your code!
    - **See [PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md) for complete performance benchmarking guide!**
 
-24. **Interactive Progress Dashboard** 📊✨ **[NEW]**:
+26. **Interactive Progress Dashboard** 📊✨ **[NEW]**:
    - Stunning interactive HTML dashboard with real-time charts and visualizations
    - Zero setup required - single HTML file with embedded Chart.js
    - Beautiful burndown chart showing issues decreasing over time
@@ -321,7 +334,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 dashboard` to generate your progress dashboard!
    - Update regularly: collect stats with `--save` flag, then regenerate dashboard
 
-25. **Quick Status Command** 📋⚡ **[NEW]**:
+27. **Quick Status Command** 📋⚡ **[NEW]**:
    - Lightning-fast terminal-based status report for at-a-glance progress checking
    - Shows comprehensive migration status without generating HTML reports
    - Beautiful colorful output with progress bars, icons, and visual indicators
@@ -335,7 +348,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 status` anytime for instant status update!
    - **See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete status command guide!**
 
-26. **Migration State Tracker** 🎯✨ **[NEW]**:
+28. **Migration State Tracker** 🎯✨ **[NEW]**:
    - Track migration status of individual files through the entire migration workflow
    - File-level state management: pending → in_progress → migrated → verified → tested → done
    - Advisory file locking to coordinate team work and prevent conflicts
@@ -352,7 +365,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 state list --filter-state pending` to find work to do!
    - **See [docs/MIGRATION_STATE_GUIDE.md](docs/MIGRATION_STATE_GUIDE.md) for complete state tracking guide!**
 
-27. **Pattern Search Tool** 🔍✨ **[NEW]**:
+29. **Pattern Search Tool** 🔍✨ **[NEW]**:
    - Smart search for specific Python 2 patterns in your codebase
    - Find all instances of particular issues (print statements, xrange, iteritems, etc.)
    - 19 pre-defined patterns covering common Python 2 to 3 migration issues
@@ -370,7 +383,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 search --list-patterns` to see available patterns!
    - **See [SEARCH_GUIDE.md](SEARCH_GUIDE.md) for complete pattern search guide!**
 
-28. **Migration Journal** 📝✨ **[NEW]**:
+30. **Migration Journal** 📝✨ **[NEW]**:
    - Comprehensive note-taking and decision-tracking system for your migration
    - Document decisions, issues, solutions, and insights as you work
    - Organize entries by category: decision, issue, solution, insight, todo, question, general
@@ -389,7 +402,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 journal export migration_diary.md` for documentation!
    - **See [JOURNAL_GUIDE.md](JOURNAL_GUIDE.md) for complete journal guide!**
 
-29. **Virtual Environment Manager** 🐍✨ **[NEW]**:
+31. **Virtual Environment Manager** 🐍✨ **[NEW]**:
    - Integrated Python 3 virtual environment management for migration testing
    - Create isolated Python 3 environments to test migrated code safely
    - Support for multiple Python versions (3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12)
@@ -406,7 +419,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 venv test my-env` to run tests in the environment!
    - **See [VENV_GUIDE.md](VENV_GUIDE.md) for complete virtual environment guide!**
 
-30. **Import Optimizer** 🎯✨ **[NEW]**:
+32. **Import Optimizer** 🎯✨ **[NEW]**:
    - Automatically clean up and organize Python imports after migration
    - Removes unused imports left behind from migration
    - Eliminates duplicate imports added during fixes
@@ -421,7 +434,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 imports src/ --fix` to optimize imports!
    - **See [IMPORT_OPTIMIZER_GUIDE.md](IMPORT_OPTIMIZER_GUIDE.md) for complete import optimization guide!**
 
-31. **Code Modernizer** 🚀✨ **[NEW]**:
+33. **Code Modernizer** 🚀✨ **[NEW]**:
    - Upgrade Python 3 compatible code to use modern Python 3.6+ idioms
    - Identifies opportunities to use f-strings instead of % or .format()
    - Suggests pathlib instead of os.path for better path handling
@@ -837,6 +850,45 @@ Perfect for:
 - CI/CD integration with non-zero exit on issues
 - Complementing quality analysis with linting checks
 - Verifying migrated code is production-ready
+
+**Code Review Assistant for Migration Changes**
+
+Streamline code review with intelligent analysis and automated checklists:
+
+```bash
+# Generate comprehensive review report
+./py2to3 review src/ -o review_report.md
+
+# Create PR description with migration statistics
+./py2to3 review src/ --pr
+
+# Export review data as JSON for automation
+./py2to3 review src/ --format json -o review.json
+
+# Analyze single file for review
+./py2to3 review src/mymodule.py
+
+# Generate text report for email
+./py2to3 review src/ --format text -o review.txt
+```
+
+The review assistant provides:
+- **Automated change detection** - Identifies all Python 2→3 patterns
+- **Risk categorization** - High/medium/low priority assessment
+- **Review checklists** - Tailored to your specific changes
+- **Time estimates** - Know how long the review will take
+- **PR descriptions** - Ready-to-use pull request templates
+- **Multiple formats** - Markdown, text, or JSON output
+
+Perfect for:
+- Ensuring thorough code review before production
+- Generating PR descriptions with migration context
+- Focusing reviewers on critical changes first
+- CI/CD integration for automated review checks
+- Team collaboration and knowledge sharing
+- Training reviewers on what to look for
+
+See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for complete documentation.
 
 **Migration Comparison for Strategy Evaluation**
 

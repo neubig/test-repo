@@ -2936,6 +2936,66 @@ def command_convert(args):
         return 1
 
 
+def command_review(args):
+    """Generate code review assistance for migration changes."""
+    print_header("Code Review Assistant")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing path: {args.path}")
+    print_info(f"Format: {args.format}")
+    
+    if args.pr:
+        print_info("Generating PR description")
+    
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from review_assistant import MigrationReviewAssistant
+        
+        assistant = MigrationReviewAssistant()
+        
+        print_info("Analyzing migration changes...")
+        analysis = assistant.analyze_changes(args.path)
+        
+        # Generate report
+        if args.pr:
+            report = assistant.generate_pr_description(analysis)
+        else:
+            report = assistant.generate_report(analysis, args.format)
+        
+        # Print summary
+        summary = analysis['summary']
+        print_success(f"Analyzed {summary['total_files']} file(s)")
+        print_info(f"Found {summary['total_changes']} change(s)")
+        
+        if analysis['high_risk_changes'] > 0:
+            print_warning(f"{analysis['high_risk_changes']} high-risk change(s) require careful review")
+        
+        print()
+        
+        # Output report
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Review report saved to: {args.output}")
+        else:
+            print(report)
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import review assistant: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during review analysis: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3032,6 +3092,19 @@ def main():
     parser_report.add_argument('-s', '--scan-path', help='Path to scan for migration data')
     parser_report.add_argument('--include-fixes', action='store_true', default=True, help='Include fixes in report')
     parser_report.add_argument('--include-issues', action='store_true', default=True, help='Include issues in report')
+    
+    # Review command
+    parser_review = subparsers.add_parser(
+        'review',
+        help='Generate code review assistance for migrations',
+        description='Analyze migration changes and generate review checklists, risk assessments, and PR descriptions'
+    )
+    parser_review.add_argument('path', help='File or directory to analyze')
+    parser_review.add_argument('-f', '--format', choices=['markdown', 'text', 'json'], 
+                              default='markdown', help='Output format (default: markdown)')
+    parser_review.add_argument('-o', '--output', help='Output file (default: print to stdout)')
+    parser_review.add_argument('--pr', action='store_true', 
+                              help='Generate PR description instead of full report')
     
     # Stats command
     parser_stats = subparsers.add_parser(
@@ -3670,6 +3743,8 @@ def main():
         return command_interactive(args)
     elif args.command == 'report':
         return command_report(args)
+    elif args.command == 'review':
+        return command_review(args)
     elif args.command == 'stats':
         return command_stats(args)
     elif args.command == 'migrate':
