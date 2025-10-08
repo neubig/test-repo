@@ -1530,6 +1530,72 @@ def command_plan(args):
         return 1
 
 
+def command_quality(args):
+    """Analyze code quality and complexity metrics."""
+    print_header("Code Quality and Complexity Analysis")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing: {args.path}")
+    if args.output:
+        print_info(f"Output file: {args.output}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from code_quality import CodeQualityAnalyzer
+        
+        analyzer = CodeQualityAnalyzer()
+        
+        # Analyze path
+        if os.path.isfile(args.path):
+            result = analyzer.analyze_file(args.path)
+            analyzer.metrics = [result]
+            analyzer.summary = analyzer._calculate_summary([result])
+        else:
+            analyzer.analyze_directory(args.path)
+        
+        # Generate output
+        if args.format == 'json':
+            import json
+            output = json.dumps(analyzer.export_json(), indent=2)
+        else:
+            output = analyzer.format_report(include_files=args.detailed)
+        
+        # Write or print output
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(output)
+            print_success(f"Report saved to {args.output}")
+        else:
+            print(output)
+        
+        # Show summary message
+        if analyzer.summary:
+            avg_mi = analyzer.summary.get('avg_maintainability_index', 0)
+            if avg_mi >= 70:
+                print_success(f"Overall quality is good! (MI: {avg_mi:.2f}/100)")
+            elif avg_mi >= 50:
+                print_warning(f"Overall quality is moderate (MI: {avg_mi:.2f}/100)")
+            else:
+                print_warning(f"Overall quality needs improvement (MI: {avg_mi:.2f}/100)")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Could not import code quality analyzer: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+    except Exception as e:
+        print_error(f"Quality analysis failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_watch(args):
     """Monitor files for changes and automatically check compatibility."""
     # Check if watchdog is available
@@ -1897,6 +1963,20 @@ def main():
     parser_watch.add_argument('--debounce', type=float, default=1.0,
                              help='Debounce delay in seconds (default: 1.0)')
     
+    # Quality command
+    parser_quality = subparsers.add_parser(
+        'quality',
+        help='Analyze code quality and complexity',
+        description='Analyze code quality metrics including complexity, maintainability, and code statistics'
+    )
+    parser_quality.add_argument('path', nargs='?', default='src',
+                               help='File or directory to analyze (default: src)')
+    parser_quality.add_argument('-o', '--output', help='Save report to file')
+    parser_quality.add_argument('-f', '--format', choices=['text', 'json'], default='text',
+                               help='Output format (default: text)')
+    parser_quality.add_argument('-d', '--detailed', action='store_true',
+                               help='Include detailed per-file metrics in report')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1952,6 +2032,8 @@ def main():
         return command_plan(args)
     elif args.command == 'watch':
         return command_watch(args)
+    elif args.command == 'quality':
+        return command_quality(args)
     else:
         parser.print_help()
         return 1

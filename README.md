@@ -213,6 +213,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Start dashboard: `cd my-vite-app && npm install && npm run dev`
    - **See [my-vite-app/README.md](my-vite-app/README.md) for complete dashboard guide!**
 
+18. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
+   - Comprehensive code quality metrics and complexity analysis
+   - Measures cyclomatic complexity, maintainability index, and code structure
+   - Analyzes lines of code, functions, classes, and comment ratios
+   - Quality grading system (A-F) for quick assessment
+   - Identifies high-complexity functions and files needing refactoring
+   - Provides actionable recommendations for code improvements
+   - Track code quality before and after migration
+   - JSON export for integration with CI/CD pipelines
+   - Compare quality trends over time
+   - Perfect for ensuring migration improves (or at least maintains) code quality!
+   - Run `./py2to3 quality src/` to analyze your code!
+   - **See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete code quality guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
@@ -393,6 +407,40 @@ The dependency analyzer will:
 - Help you plan dependency upgrades before migration
 
 See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete documentation.
+
+**Code Quality and Complexity Analysis**
+
+Analyze code quality metrics to ensure migration improves or maintains code health:
+
+```bash
+# Analyze code quality for current project
+./py2to3 quality src/
+
+# Save detailed quality report
+./py2to3 quality src/ --detailed --output quality_report.txt
+
+# Generate JSON for automated quality gates
+./py2to3 quality src/ --format json --output quality.json
+
+# Analyze a specific file
+./py2to3 quality src/fixer.py
+```
+
+The quality analyzer provides:
+- **Cyclomatic complexity** - Identifies complex code that needs refactoring
+- **Maintainability index** - Overall quality score (0-100) with A-F grading
+- **Code statistics** - LOC, SLOC, functions, classes, comment ratios
+- **Quality distribution** - Visual representation of quality across files
+- **Actionable recommendations** - Specific suggestions for improvement
+
+Perfect for:
+- Establishing quality baselines before migration
+- Identifying refactoring priorities
+- Tracking quality improvements over time
+- Ensuring migration doesn't degrade code quality
+- Setting quality gates in CI/CD pipelines
+
+See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete documentation.
 
 **Migration Comparison for Strategy Evaluation**
 
