@@ -922,6 +922,137 @@ def command_migrate(args):
     return final_issues
 
 
+def command_recipe(args):
+    """Manage migration recipes/templates."""
+    print_header("Migration Recipe Manager")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from recipe_manager import RecipeManager
+        
+        recipe_mgr = RecipeManager(args.recipes_dir if hasattr(args, 'recipes_dir') else None)
+        
+        if args.recipe_action == 'list':
+            # List all available recipes
+            recipes = recipe_mgr.list_recipes()
+            
+            if not recipes:
+                print_warning("No recipes found")
+                return 0
+            
+            print_info(f"Found {len(recipes)} recipe(s):\n")
+            
+            for recipe in recipes:
+                print(f"{Colors.BOLD}{Colors.OKGREEN}📋 {recipe.name}{Colors.ENDC}")
+                print(f"   {recipe.description}")
+                if recipe.tags:
+                    print(f"   Tags: {', '.join(recipe.tags)}")
+                print(f"   Author: {recipe.author}")
+                print()
+        
+        elif args.recipe_action == 'show':
+            # Show detailed information about a recipe
+            if not args.name:
+                print_error("Please specify a recipe name")
+                return 1
+            
+            recipe = recipe_mgr.load_recipe(args.name)
+            if not recipe:
+                return 1
+            
+            print(f"{Colors.BOLD}{Colors.OKGREEN}📋 {recipe.name}{Colors.ENDC}")
+            print(f"   {recipe.description}\n")
+            
+            if recipe.tags:
+                print(f"{Colors.BOLD}Tags:{Colors.ENDC} {', '.join(recipe.tags)}")
+            print(f"{Colors.BOLD}Author:{Colors.ENDC} {recipe.author}")
+            print(f"{Colors.BOLD}Created:{Colors.ENDC} {recipe.created_at}\n")
+            
+            if recipe.notes:
+                print(f"{Colors.BOLD}📝 Important Notes:{Colors.ENDC}")
+                for i, note in enumerate(recipe.notes, 1):
+                    print(f"   {i}. {note}")
+                print()
+            
+            if recipe.fix_order:
+                print(f"{Colors.BOLD}🔧 Recommended Fix Order:{Colors.ENDC}")
+                for i, fix_type in enumerate(recipe.fix_order, 1):
+                    print(f"   {i}. {fix_type}")
+                print()
+            
+            if recipe.ignore_patterns:
+                print(f"{Colors.BOLD}🚫 Ignore Patterns:{Colors.ENDC}")
+                for pattern in recipe.ignore_patterns:
+                    print(f"   - {pattern}")
+                print()
+            
+            if recipe.config:
+                print(f"{Colors.BOLD}⚙️  Configuration:{Colors.ENDC}")
+                print(json.dumps(recipe.config, indent=2))
+        
+        elif args.recipe_action == 'apply':
+            # Apply a recipe to the current project
+            if not args.name:
+                print_error("Please specify a recipe name")
+                return 1
+            
+            return 0 if recipe_mgr.apply_recipe(args.name, args.target) else 1
+        
+        elif args.recipe_action == 'create':
+            # Create a new recipe from current configuration
+            if not args.name:
+                print_error("Please specify a recipe name")
+                return 1
+            
+            if not args.description:
+                print_error("Please provide a description with --description")
+                return 1
+            
+            return 0 if recipe_mgr.create_from_current(
+                args.name, 
+                args.description,
+                args.config_file
+            ) else 1
+        
+        elif args.recipe_action == 'export':
+            # Export a recipe to a file
+            if not args.name:
+                print_error("Please specify a recipe name")
+                return 1
+            
+            output_path = args.output or f"{args.name}.recipe.json"
+            return 0 if recipe_mgr.export_recipe(args.name, output_path) else 1
+        
+        elif args.recipe_action == 'import':
+            # Import a recipe from a file
+            if not args.file:
+                print_error("Please specify a recipe file to import")
+                return 1
+            
+            return 0 if recipe_mgr.import_recipe(args.file, args.force) else 1
+        
+        elif args.recipe_action == 'delete':
+            # Delete a recipe
+            if not args.name:
+                print_error("Please specify a recipe name to delete")
+                return 1
+            
+            return 0 if recipe_mgr.delete_recipe(args.name) else 1
+        
+        else:
+            print_error(f"Unknown recipe action: {args.recipe_action}")
+            return 1
+            
+    except Exception as e:
+        print_error(f"Recipe management failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+    
+    return 0
+
+
 def command_config(args):
     """Manage configuration for py2to3 toolkit."""
     print_header("Configuration Management")
@@ -2386,6 +2517,48 @@ def main():
     parser_lint.add_argument('-f', '--format', choices=['text', 'json'], default='text',
                             help='Output format (default: text)')
     
+    # Recipe command
+    parser_recipe = subparsers.add_parser(
+        'recipe',
+        help='Manage migration recipes/templates',
+        description='Save, load, and share migration recipes for different project types (Django, Flask, CLI, etc.)'
+    )
+    parser_recipe.add_argument('--recipes-dir', help='Custom recipes directory')
+    
+    recipe_subparsers = parser_recipe.add_subparsers(dest='recipe_action', help='Recipe actions')
+    
+    # Recipe list
+    parser_recipe_list = recipe_subparsers.add_parser('list', help='List all available recipes')
+    
+    # Recipe show
+    parser_recipe_show = recipe_subparsers.add_parser('show', help='Show detailed information about a recipe')
+    parser_recipe_show.add_argument('name', help='Recipe name')
+    
+    # Recipe apply
+    parser_recipe_apply = recipe_subparsers.add_parser('apply', help='Apply a recipe to a project')
+    parser_recipe_apply.add_argument('name', help='Recipe name')
+    parser_recipe_apply.add_argument('-t', '--target', default='.', help='Target directory (default: current directory)')
+    
+    # Recipe create
+    parser_recipe_create = recipe_subparsers.add_parser('create', help='Create a new recipe from current config')
+    parser_recipe_create.add_argument('name', help='Recipe name')
+    parser_recipe_create.add_argument('-d', '--description', required=True, help='Recipe description')
+    parser_recipe_create.add_argument('-c', '--config-file', help='Configuration file to include in recipe')
+    
+    # Recipe export
+    parser_recipe_export = recipe_subparsers.add_parser('export', help='Export a recipe to a file')
+    parser_recipe_export.add_argument('name', help='Recipe name')
+    parser_recipe_export.add_argument('-o', '--output', help='Output file path')
+    
+    # Recipe import
+    parser_recipe_import = recipe_subparsers.add_parser('import', help='Import a recipe from a file')
+    parser_recipe_import.add_argument('file', help='Recipe file to import')
+    parser_recipe_import.add_argument('--force', action='store_true', help='Overwrite existing recipe')
+    
+    # Recipe delete
+    parser_recipe_delete = recipe_subparsers.add_parser('delete', help='Delete a recipe')
+    parser_recipe_delete.add_argument('name', help='Recipe name')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2455,6 +2628,8 @@ def main():
         return command_dashboard(args)
     elif args.command == 'lint':
         return command_lint(args)
+    elif args.command == 'recipe':
+        return command_recipe(args)
     else:
         parser.print_help()
         return 1

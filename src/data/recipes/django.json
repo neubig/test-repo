@@ -1,0 +1,46 @@
+{
+  "name": "django",
+  "description": "Migration recipe for Django web applications",
+  "author": "py2to3",
+  "config": {
+    "fix_rules": {
+      "print_statements": true,
+      "imports": true,
+      "exceptions": true,
+      "string_handling": true,
+      "iterators": true
+    },
+    "backup_enabled": true,
+    "create_report": true
+  },
+  "fix_order": [
+    "print_statements",
+    "imports (especially urllib, urllib2)",
+    "string_handling (unicode issues in templates)",
+    "exceptions",
+    "iterators (dict methods)",
+    "settings configuration",
+    "URL patterns"
+  ],
+  "ignore_patterns": [
+    "*/migrations/*",
+    "*/static/*",
+    "*/media/*",
+    "*/venv/*",
+    "*/node_modules/*"
+  ],
+  "notes": [
+    "Django 2.0+ requires Python 3.5+",
+    "Check third-party packages compatibility first (use py2to3 deps)",
+    "Pay special attention to unicode in templates and forms",
+    "Update DATABASE settings if using MySQL",
+    "Review URL patterns - url() was deprecated in Django 3.1",
+    "Test all admin customizations thoroughly"
+  ],
+  "tags": [
+    "web",
+    "framework",
+    "django"
+  ],
+  "created_at": "2025-10-08T19:18:32.147162"
+}

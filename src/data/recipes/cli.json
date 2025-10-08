@@ -1,0 +1,42 @@
+{
+  "name": "cli",
+  "description": "Migration recipe for command-line tools",
+  "author": "py2to3",
+  "config": {
+    "fix_rules": {
+      "print_statements": true,
+      "imports": true,
+      "exceptions": true,
+      "string_handling": true,
+      "iterators": true
+    },
+    "backup_enabled": true,
+    "create_report": true
+  },
+  "fix_order": [
+    "print_statements (affects output)",
+    "imports (especially argparse, configparser)",
+    "string_handling (input/output encoding)",
+    "exceptions",
+    "file I/O operations"
+  ],
+  "ignore_patterns": [
+    "*/venv/*",
+    "*/build/*",
+    "*/dist/*",
+    "*.egg-info/*"
+  ],
+  "notes": [
+    "Test all command-line arguments and options",
+    "Verify input/output encoding (especially for non-ASCII)",
+    "Check file I/O operations with various file types",
+    "Test error messages and exit codes",
+    "Update shebang lines to python3",
+    "Consider using click or typer for modern CLI"
+  ],
+  "tags": [
+    "cli",
+    "tool"
+  ],
+  "created_at": "2025-10-08T19:18:32.147179"
+}

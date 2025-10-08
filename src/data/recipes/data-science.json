@@ -1,0 +1,47 @@
+{
+  "name": "data-science",
+  "description": "Migration recipe for data science and ML projects",
+  "author": "py2to3",
+  "config": {
+    "fix_rules": {
+      "print_statements": true,
+      "imports": true,
+      "exceptions": true,
+      "string_handling": true,
+      "iterators": true,
+      "division": true
+    },
+    "backup_enabled": true,
+    "create_report": true
+  },
+  "fix_order": [
+    "division (/ vs //)",
+    "imports (especially numpy, pandas, sklearn)",
+    "print_statements",
+    "iterators (zip, map, filter return iterators)",
+    "string_handling",
+    "pickle compatibility"
+  ],
+  "ignore_patterns": [
+    "*/data/*",
+    "*/models/*",
+    "*/checkpoints/*",
+    "*.ipynb_checkpoints/*",
+    "*/venv/*"
+  ],
+  "notes": [
+    "Integer division changed (/ now returns float)",
+    "Check numpy, pandas, scikit-learn versions (use py2to3 deps)",
+    "Pickle files may need regeneration",
+    "map, filter, zip now return iterators (not lists)",
+    "Test all data loading and preprocessing pipelines",
+    "Verify model serialization/deserialization",
+    "Re-run experiments to ensure reproducibility"
+  ],
+  "tags": [
+    "data",
+    "ml",
+    "science"
+  ],
+  "created_at": "2025-10-08T19:18:32.147182"
+}

@@ -1,0 +1,44 @@
+{
+  "name": "flask",
+  "description": "Migration recipe for Flask web applications",
+  "author": "py2to3",
+  "config": {
+    "fix_rules": {
+      "print_statements": true,
+      "imports": true,
+      "exceptions": true,
+      "string_handling": true,
+      "iterators": true
+    },
+    "backup_enabled": true,
+    "create_report": true
+  },
+  "fix_order": [
+    "print_statements",
+    "imports",
+    "string_handling",
+    "exceptions",
+    "iterators",
+    "request/response handling"
+  ],
+  "ignore_patterns": [
+    "*/static/*",
+    "*/venv/*",
+    "*/node_modules/*",
+    "*.pyc"
+  ],
+  "notes": [
+    "Flask 2.0+ requires Python 3.6+",
+    "Check Flask extension compatibility (use py2to3 deps)",
+    "Review string encoding in request/response handling",
+    "Test file upload/download functionality",
+    "Verify JSON serialization works correctly",
+    "Check cookie and session handling"
+  ],
+  "tags": [
+    "web",
+    "framework",
+    "flask"
+  ],
+  "created_at": "2025-10-08T19:18:32.147173"
+}

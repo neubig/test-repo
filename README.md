@@ -176,7 +176,22 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 interactive src/` to start reviewing fixes!
    - **See [INTERACTIVE_MODE.md](INTERACTIVE_MODE.md) for complete interactive mode guide!**
 
-15. **Risk Analyzer** ⚠️:
+15. **Migration Recipes & Templates** 📋✨ **[NEW]**:
+   - Pre-configured migration strategies for different project types
+   - Built-in recipes for Django, Flask, CLI tools, data science, and libraries
+   - Framework-specific configurations, fix priorities, and best practices
+   - Save and share custom recipes with your team
+   - Quick-start migrations with proven strategies
+   - Import/export recipes for team collaboration
+   - Ignore patterns, fix order recommendations, and important notes
+   - Eliminates guesswork - get started with confidence
+   - Perfect for standardizing migration across multiple projects
+   - Run `./py2to3 recipe list` to see available recipes!
+   - Run `./py2to3 recipe show django` to view recipe details!
+   - Run `./py2to3 recipe apply flask` to apply a recipe!
+   - **See [RECIPES_GUIDE.md](RECIPES_GUIDE.md) for complete recipes guide!**
+
+16. **Risk Analyzer** ⚠️:
    - Intelligent risk assessment of migration changes
    - Identifies high-risk changes requiring careful manual review
    - Analyzes critical areas: error handling, I/O, database, encoding, etc.
@@ -186,7 +201,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Helps teams focus on the most important changes first
    - Generates detailed reports in text or JSON format
 
-16. **Migration Planner** 📋 **[NEW]**:
+17. **Migration Planner** 📋 **[NEW]**:
    - Strategic planning tool for large-scale migrations
    - Analyzes codebase structure and builds complete dependency graph
    - Creates optimized phased migration plan based on dependencies
@@ -199,7 +214,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 plan src/` to create your migration strategy!
    - **See [PLANNER_GUIDE.md](PLANNER_GUIDE.md) for complete migration planning guide!**
 
-17. **Watch Mode** 👁️ **[NEW]**:
+18. **Watch Mode** 👁️ **[NEW]**:
    - Real-time file monitoring with automatic compatibility checking
    - Get instant feedback as you edit Python files during migration
    - Monitor entire directories or specific files for changes
@@ -212,7 +227,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 watch src/` to start monitoring your code!
    - **See [WATCH_MODE.md](WATCH_MODE.md) for complete watch mode guide!**
 
-18. **Migration Statistics Dashboard** 📊 **[NEW]**:
+19. **Migration Statistics Dashboard** 📊 **[NEW]**:
    - Interactive web-based dashboard for visualizing migration progress
    - Beautiful charts and graphs showing issue distribution and trends
    - Real-time progress tracking with comparison to previous scans
@@ -225,7 +240,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Start dashboard: `cd my-vite-app && npm install && npm run dev`
    - **See [my-vite-app/README.md](my-vite-app/README.md) for complete dashboard guide!**
 
-19. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
+20. **Code Quality and Complexity Analyzer** 📈 **[NEW]**:
    - Comprehensive code quality metrics and complexity analysis
    - Measures cyclomatic complexity, maintainability index, and code structure
    - Analyzes lines of code, functions, classes, and comment ratios
@@ -239,7 +254,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 quality src/` to analyze your code!
    - **See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete code quality guide!**
 
-20. **Linting Integration** 🔍 **[NEW]**:
+21. **Linting Integration** 🔍 **[NEW]**:
    - Integrate popular Python linters for comprehensive code quality checking
    - Supports pylint, flake8, mypy, and black formatters
    - Unified reporting across all linters with severity classification
@@ -253,7 +268,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect companion to the quality analyzer for holistic code assessment
    - Run `./py2to3 lint src/` to check your code!
 
-21. **Migration Documentation Generator** 📚 **[NEW]**:
+22. **Migration Documentation Generator** 📚 **[NEW]**:
    - Automatically generates comprehensive Markdown documentation for your migration
    - Creates version-control-friendly documentation that renders beautifully on GitHub
    - Four key documents: Summary, Guide, Changelog, and Best Practices
@@ -267,7 +282,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Complements HTML reports with team-friendly Markdown format
    - Run `./py2to3 docs` to generate migration documentation!
 
-22. **Performance Benchmark Tool** 🚀 **[NEW]**:
+23. **Performance Benchmark Tool** 🚀 **[NEW]**:
    - Compare execution time and performance between Python 2 and Python 3 code
    - Quantify performance improvements to demonstrate ROI of migration
    - Measure execution time with configurable iterations for accuracy
@@ -281,7 +296,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 bench src/` to benchmark your code!
    - **See [PERFORMANCE_GUIDE.md](PERFORMANCE_GUIDE.md) for complete performance benchmarking guide!**
 
-22. **Interactive Progress Dashboard** 📊✨ **[NEW]**:
+24. **Interactive Progress Dashboard** 📊✨ **[NEW]**:
    - Stunning interactive HTML dashboard with real-time charts and visualizations
    - Zero setup required - single HTML file with embedded Chart.js
    - Beautiful burndown chart showing issues decreasing over time
@@ -296,7 +311,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 dashboard` to generate your progress dashboard!
    - Update regularly: collect stats with `--save` flag, then regenerate dashboard
 
-23. **Quick Status Command** 📋⚡ **[NEW]**:
+25. **Quick Status Command** 📋⚡ **[NEW]**:
    - Lightning-fast terminal-based status report for at-a-glance progress checking
    - Shows comprehensive migration status without generating HTML reports
    - Beautiful colorful output with progress bars, icons, and visual indicators
