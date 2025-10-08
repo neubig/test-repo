@@ -1814,6 +1814,58 @@ def command_dashboard(args):
         return 1
 
 
+def command_lint(args):
+    """Run Python linters on migrated code."""
+    print_header("Linting Integration")
+    
+    if hasattr(args, 'target') and args.target and args.target != '.':
+        validate_path(args.target)
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from lint_integration import LintingIntegration
+        
+        print_info(f"Running linters on: {args.target}\n")
+        
+        # Create linter instance
+        linter = LintingIntegration()
+        
+        # Run linters
+        results = linter.run_all_linters(
+            target=args.target,
+            enabled_linters=args.linters
+        )
+        
+        # Display results
+        print()
+        report = linter.generate_report(format=args.format)
+        print(report)
+        
+        # Save to file if requested
+        if args.output:
+            linter.save_report(args.output, format=args.format)
+            print_success(f"\nReport saved to: {args.output}")
+        
+        # Return error code if issues found (for CI/CD)
+        total_issues = results['summary']['total_issues']
+        if total_issues > 0:
+            print_warning(f"\n⚠ Found {total_issues} issues")
+            return 1
+        else:
+            print_success("\n✓ No issues found!")
+            return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import linting integration: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error running linters: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_docs(args):
     """Generate migration documentation in Markdown format."""
     print_header("Migration Documentation Generator")
@@ -2318,6 +2370,22 @@ def main():
                                  default='.',
                                  help='Project path (default: current directory)')
     
+    # Lint command
+    parser_lint = subparsers.add_parser(
+        'lint',
+        help='Run Python linters on migrated code',
+        description='Integrate popular linters (pylint, flake8, mypy, black) for comprehensive code quality checking'
+    )
+    parser_lint.add_argument('target', nargs='?', default='.',
+                            help='Path to lint (file or directory, default: current directory)')
+    parser_lint.add_argument('--linters', nargs='+',
+                            choices=['pylint', 'flake8', 'mypy', 'black'],
+                            help='Specific linters to run (default: all available)')
+    parser_lint.add_argument('-o', '--output',
+                            help='Save report to file')
+    parser_lint.add_argument('-f', '--format', choices=['text', 'json'], default='text',
+                            help='Output format (default: text)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2385,6 +2453,8 @@ def main():
         return command_status(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
+    elif args.command == 'lint':
+        return command_lint(args)
     else:
         parser.print_help()
         return 1

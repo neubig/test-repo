@@ -239,7 +239,21 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 quality src/` to analyze your code!
    - **See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete code quality guide!**
 
-20. **Migration Documentation Generator** 📚 **[NEW]**:
+20. **Linting Integration** 🔍 **[NEW]**:
+   - Integrate popular Python linters for comprehensive code quality checking
+   - Supports pylint, flake8, mypy, and black formatters
+   - Unified reporting across all linters with severity classification
+   - Identifies style issues, type errors, and potential bugs
+   - Generates actionable recommendations for improving code
+   - Detects which linters are available and provides installation instructions
+   - JSON and text output formats for CI/CD integration
+   - Returns non-zero exit code when issues found (perfect for CI pipelines)
+   - Helps ensure migrated code meets modern Python standards
+   - Run specific linters or all available ones
+   - Perfect companion to the quality analyzer for holistic code assessment
+   - Run `./py2to3 lint src/` to check your code!
+
+21. **Migration Documentation Generator** 📚 **[NEW]**:
    - Automatically generates comprehensive Markdown documentation for your migration
    - Creates version-control-friendly documentation that renders beautifully on GitHub
    - Four key documents: Summary, Guide, Changelog, and Best Practices
@@ -253,7 +267,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Complements HTML reports with team-friendly Markdown format
    - Run `./py2to3 docs` to generate migration documentation!
 
-21. **Performance Benchmark Tool** 🚀 **[NEW]**:
+22. **Performance Benchmark Tool** 🚀 **[NEW]**:
    - Compare execution time and performance between Python 2 and Python 3 code
    - Quantify performance improvements to demonstrate ROI of migration
    - Measure execution time with configurable iterations for accuracy
@@ -580,6 +594,43 @@ Perfect for:
 - Setting quality gates in CI/CD pipelines
 
 See [QUALITY_GUIDE.md](QUALITY_GUIDE.md) for complete documentation.
+
+**Linting Integration for Code Quality**
+
+Integrate popular Python linters to ensure migrated code meets modern standards:
+
+```bash
+# Run all available linters on your project
+./py2to3 lint src/
+
+# Run specific linters only
+./py2to3 lint src/ --linters pylint flake8
+
+# Check a specific file
+./py2to3 lint src/fixer.py
+
+# Save report to file
+./py2to3 lint src/ --output lint_report.txt
+
+# Generate JSON for CI/CD integration
+./py2to3 lint src/ --format json --output lint_results.json
+```
+
+The linting integration provides:
+- **Pylint** - Comprehensive code analysis with style and error detection
+- **Flake8** - Style guide enforcement (PEP 8 compliance)
+- **Mypy** - Static type checking for type safety
+- **Black** - Code formatting verification
+- **Unified reporting** - All results in one place with severity classification
+- **Installation detection** - Automatically detects available linters
+
+Perfect for:
+- Ensuring code meets PEP 8 and modern Python standards
+- Catching type errors and potential bugs early
+- Enforcing consistent code style across the team
+- CI/CD integration with non-zero exit on issues
+- Complementing quality analysis with linting checks
+- Verifying migrated code is production-ready
 
 **Migration Comparison for Strategy Evaluation**
 
