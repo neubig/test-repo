@@ -3248,6 +3248,199 @@ def command_estimate(args):
         return 1
 
 
+def command_export(args):
+    """Export migration package."""
+    print_header("Migration Package Export")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from export_manager import MigrationExporter, list_packages
+        
+        if not hasattr(args, 'export_action') or not args.export_action:
+            print_error("No export action specified. Use 'create' or 'list'")
+            print_info("Run: py2to3 export --help")
+            return 1
+        
+        if args.export_action == 'create':
+            # Create export package
+            print_info("Creating migration export package...")
+            print()
+            
+            exporter = MigrationExporter(args.path)
+            
+            # Show what will be included
+            print_info("Package contents:")
+            if args.config:
+                print("  ✓ Configuration files")
+            if args.recipes:
+                print("  ✓ Custom recipes")
+            if args.state:
+                print("  ✓ Migration state")
+            if args.journal:
+                print("  ✓ Journal entries")
+            if args.stats:
+                print("  ✓ Statistics snapshots")
+            if args.backups:
+                print("  ✓ Backup files")
+                if args.backup_pattern:
+                    print(f"    Pattern: {args.backup_pattern}")
+            print()
+            
+            # Create package
+            package_path = exporter.export_package(
+                output_path=args.output,
+                include_config=args.config,
+                include_recipes=args.recipes,
+                include_state=args.state,
+                include_journal=args.journal,
+                include_stats=args.stats,
+                include_backups=args.backups,
+                backup_pattern=args.backup_pattern,
+                description=args.description,
+                tags=args.tags.split(',') if args.tags else None
+            )
+            
+            print_success(f"Package created: {package_path}")
+            
+            # Show package info
+            from pathlib import Path as PathLib
+            size = PathLib(package_path).stat().st_size
+            size_mb = size / (1024 * 1024)
+            print_info(f"Package size: {size_mb:.2f} MB")
+            print()
+            print_info("To import this package in another project:")
+            print(f"  py2to3 import {PathLib(package_path).name}")
+            
+        elif args.export_action == 'list':
+            # List available packages
+            print_info(f"Searching for packages in: {args.directory or '.'}")
+            print()
+            
+            packages = list_packages(args.directory or '.')
+            
+            if not packages:
+                print_warning("No migration packages found")
+                return 0
+            
+            print_success(f"Found {len(packages)} package(s):\n")
+            
+            from pathlib import Path as PathLib
+            for i, pkg in enumerate(packages, 1):
+                print(f"{Colors.BOLD}{i}. {PathLib(pkg['file']).name}{Colors.ENDC}")
+                print(f"   Created: {pkg['created_at']}")
+                print(f"   Size: {pkg['size'] / (1024 * 1024):.2f} MB")
+                print(f"   Files: {pkg['file_count']}")
+                if pkg.get('description'):
+                    print(f"   Description: {pkg['description']}")
+                if pkg.get('tags'):
+                    print(f"   Tags: {', '.join(pkg['tags'])}")
+                
+                # Show components
+                components = pkg.get('components', {})
+                included = [k for k, v in components.items() if v]
+                if included:
+                    print(f"   Components: {', '.join(included)}")
+                print()
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import export manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during export: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+def command_import(args):
+    """Import migration package."""
+    print_header("Migration Package Import")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from export_manager import MigrationImporter
+        
+        print_info(f"Importing package: {args.package}")
+        print_info(f"Target path: {args.path}")
+        print()
+        
+        # Show what will be imported
+        print_info("Import options:")
+        print(f"  Configuration: {'Yes' if args.config else 'No'}")
+        print(f"  Recipes: {'Yes' if args.recipes else 'No'}")
+        print(f"  State: {'Yes' if args.state else 'No'}")
+        print(f"  Journal: {'Yes' if args.journal else 'No'}")
+        print(f"  Statistics: {'Yes' if args.stats else 'No'}")
+        print(f"  Backups: {'Yes' if args.backups else 'No'}")
+        print(f"  Merge mode: {'Yes' if args.merge else 'No (overwrite)'}")
+        print()
+        
+        if args.dry_run:
+            print_warning("DRY RUN MODE - No changes will be made")
+            print()
+        
+        importer = MigrationImporter(args.path)
+        
+        report = importer.import_package(
+            package_path=args.package,
+            import_config=args.config,
+            import_recipes=args.recipes,
+            import_state=args.state,
+            import_journal=args.journal,
+            import_stats=args.stats,
+            import_backups=args.backups,
+            merge=args.merge,
+            dry_run=args.dry_run
+        )
+        
+        # Show results
+        if report['files_imported']:
+            print_success(f"Imported {len(report['files_imported'])} file(s):")
+            for file in report['files_imported']:
+                print(f"  ✓ {file}")
+        
+        if report['files_skipped']:
+            print()
+            print_warning(f"Skipped {len(report['files_skipped'])} file(s):")
+            for file in report['files_skipped'][:5]:
+                print(f"  - {file}")
+            if len(report['files_skipped']) > 5:
+                print(f"  ... and {len(report['files_skipped']) - 5} more")
+        
+        if report['errors']:
+            print()
+            print_error(f"Encountered {len(report['errors'])} error(s):")
+            for error in report['errors'][:5]:
+                print(f"  ✗ {error}")
+            if len(report['errors']) > 5:
+                print(f"  ... and {len(report['errors']) - 5} more")
+        
+        if not args.dry_run:
+            print()
+            print_success("Import complete!")
+        else:
+            print()
+            print_info("Dry run complete. Run without --dry-run to apply changes.")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import migration importer: {e}")
+        return 1
+    except FileNotFoundError as e:
+        print_error(str(e))
+        return 1
+    except Exception as e:
+        print_error(f"Error during import: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_rollback(args):
     """Rollback migration operations."""
     print_header("Rollback Manager")
@@ -4627,6 +4820,61 @@ def main():
     parser_rollback_clear.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
     parser_rollback_clear.add_argument('--keep', type=int, help='Number of recent operations to keep')
     
+    # Export command
+    parser_export = subparsers.add_parser(
+        'export',
+        help='Export migration package',
+        description='Package migration configuration, state, and learnings for sharing across teams and projects'
+    )
+    
+    export_subparsers = parser_export.add_subparsers(dest='export_action', help='Export actions')
+    
+    # Export create
+    parser_export_create = export_subparsers.add_parser('create', help='Create a migration package')
+    parser_export_create.add_argument('path', nargs='?', default='.', help='Project path to export (default: current directory)')
+    parser_export_create.add_argument('-o', '--output', help='Output file path (default: migration_export_TIMESTAMP.tar.gz)')
+    parser_export_create.add_argument('--config', action='store_true', default=True, help='Include configuration files (default: True)')
+    parser_export_create.add_argument('--no-config', action='store_false', dest='config', help='Exclude configuration files')
+    parser_export_create.add_argument('--recipes', action='store_true', default=True, help='Include custom recipes (default: True)')
+    parser_export_create.add_argument('--no-recipes', action='store_false', dest='recipes', help='Exclude custom recipes')
+    parser_export_create.add_argument('--state', action='store_true', default=True, help='Include migration state (default: True)')
+    parser_export_create.add_argument('--no-state', action='store_false', dest='state', help='Exclude migration state')
+    parser_export_create.add_argument('--journal', action='store_true', default=True, help='Include journal entries (default: True)')
+    parser_export_create.add_argument('--no-journal', action='store_false', dest='journal', help='Exclude journal entries')
+    parser_export_create.add_argument('--stats', action='store_true', default=True, help='Include statistics (default: True)')
+    parser_export_create.add_argument('--no-stats', action='store_false', dest='stats', help='Exclude statistics')
+    parser_export_create.add_argument('--backups', action='store_true', help='Include backup files (default: False)')
+    parser_export_create.add_argument('--backup-pattern', help='Pattern to filter backups (if including backups)')
+    parser_export_create.add_argument('-d', '--description', help='Package description')
+    parser_export_create.add_argument('-t', '--tags', help='Comma-separated tags for the package')
+    
+    # Export list
+    parser_export_list = export_subparsers.add_parser('list', help='List available migration packages')
+    parser_export_list.add_argument('-d', '--directory', help='Directory to search for packages (default: current directory)')
+    
+    # Import command
+    parser_import = subparsers.add_parser(
+        'import',
+        help='Import migration package',
+        description='Import migration configuration and state from a shared package'
+    )
+    parser_import.add_argument('package', help='Path to migration package file')
+    parser_import.add_argument('path', nargs='?', default='.', help='Target project path (default: current directory)')
+    parser_import.add_argument('--config', action='store_true', default=True, help='Import configuration files (default: True)')
+    parser_import.add_argument('--no-config', action='store_false', dest='config', help='Skip configuration files')
+    parser_import.add_argument('--recipes', action='store_true', default=True, help='Import custom recipes (default: True)')
+    parser_import.add_argument('--no-recipes', action='store_false', dest='recipes', help='Skip custom recipes')
+    parser_import.add_argument('--state', action='store_true', default=True, help='Import migration state (default: True)')
+    parser_import.add_argument('--no-state', action='store_false', dest='state', help='Skip migration state')
+    parser_import.add_argument('--journal', action='store_true', default=True, help='Import journal entries (default: True)')
+    parser_import.add_argument('--no-journal', action='store_false', dest='journal', help='Skip journal entries')
+    parser_import.add_argument('--stats', action='store_true', default=True, help='Import statistics (default: True)')
+    parser_import.add_argument('--no-stats', action='store_false', dest='stats', help='Skip statistics')
+    parser_import.add_argument('--backups', action='store_true', help='Import backup files (default: False)')
+    parser_import.add_argument('--merge', action='store_true', default=True, help='Merge with existing data (default: True)')
+    parser_import.add_argument('--overwrite', action='store_false', dest='merge', help='Overwrite existing data')
+    parser_import.add_argument('-n', '--dry-run', action='store_true', help='Preview import without making changes')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -4730,6 +4978,10 @@ def main():
         return command_freeze(args)
     elif args.command == 'rollback':
         return command_rollback(args)
+    elif args.command == 'export':
+        return command_export(args)
+    elif args.command == 'import':
+        return command_import(args)
     else:
         parser.print_help()
         return 1

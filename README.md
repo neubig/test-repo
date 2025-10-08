@@ -187,6 +187,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Zero configuration needed - works out of the box!
    - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
 
+15. **Migration Package Export/Import** 📦✨ **[NEW]**:
+   - Package migration configurations, state, and learnings into portable files
+   - Share migration strategies and templates across teams and projects
+   - Move migration state between development, staging, and production environments
+   - Create reusable migration templates from successful migrations
+   - Includes configuration, recipes, state, journal entries, and statistics
+   - Optional backup inclusion for complete project snapshots
+   - Merge or overwrite modes for flexible importing
+   - Dry-run support to preview imports before applying
+   - List and browse available migration packages
+   - Perfect for team collaboration and knowledge sharing!
+   - Run `./py2to3 export --help` and `./py2to3 import --help` to explore!
+   - **See [EXPORT_GUIDE.md](EXPORT_GUIDE.md) for complete export/import guide!**
+
 16. **Dependency Analyzer** 📦 **[NEW]**:
    - Comprehensive dependency analysis for Python 3 compatibility
    - Scans requirements.txt, setup.py, and import statements
@@ -1074,6 +1088,52 @@ Perfect for:
 - Building confidence during migration
 
 See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete documentation.
+
+**Migration Package Export/Import for Team Collaboration**
+
+Package and share migration configurations, state, and learnings across teams and projects:
+
+```bash
+# Export your migration configuration and state
+./py2to3 export create -d "Django migration template" -t "django,template"
+
+# Export with custom components
+./py2to3 export create --no-stats --no-journal -o config_only.tar.gz
+
+# Export with backups (can be large!)
+./py2to3 export create --backups --backup-pattern "*.py"
+
+# List available packages
+./py2to3 export list
+
+# Import a package (preview first)
+./py2to3 import migration_package.tar.gz --dry-run
+
+# Actually import the package
+./py2to3 import migration_package.tar.gz
+
+# Import only specific components
+./py2to3 import package.tar.gz --no-state --no-journal
+
+# Import with overwrite instead of merge
+./py2to3 import package.tar.gz --overwrite
+```
+
+**Use Cases:**
+- Share migration strategies and configurations with team members
+- Create reusable templates from successful migrations
+- Move migration state between dev, staging, and production
+- Bootstrap new similar projects with proven configurations
+- Share knowledge and learnings with the community
+
+Perfect for:
+- Team collaboration on large migrations
+- Creating organization-wide migration standards
+- Distributing best practices across projects
+- Backing up complete migration configurations
+- Testing migrations in isolated environments
+
+See [EXPORT_GUIDE.md](EXPORT_GUIDE.md) for complete documentation.
 
 **Git Integration for Migration Tracking**
 
