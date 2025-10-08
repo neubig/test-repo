@@ -2936,6 +2936,80 @@ def command_convert(args):
         return 1
 
 
+def command_version_check(args):
+    """Check Python version compatibility of migrated code."""
+    print_header("Python Version Compatibility Check")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing path: {args.path}")
+    if args.target:
+        print_info(f"Target version: Python {args.target}")
+    print_info(f"Format: {args.format}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from version_checker import VersionChecker
+        
+        checker = VersionChecker()
+        
+        print_info("Scanning for version-specific features...")
+        if os.path.isfile(args.path):
+            checker.analyze_file(args.path)
+        else:
+            checker.analyze_directory(args.path)
+        
+        # Generate report
+        report = checker.generate_report(args.format)
+        
+        # Print or save report
+        if args.output:
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+            print()
+        else:
+            print(report)
+            print()
+        
+        # Show summary
+        min_version = checker.get_minimum_version()
+        print_success(f"Analysis complete: {checker.analyzed_files} file(s) analyzed")
+        print_info(f"Minimum Python version required: {min_version}")
+        
+        # Check target compatibility if specified
+        if args.target:
+            print()
+            incompatible = checker.check_compatibility(args.target)
+            if incompatible:
+                print_warning(f"Found {len(incompatible)} incompatibility(ies) with Python {args.target}:")
+                for issue, details in list(incompatible.items())[:5]:
+                    print(f"  • {details['description']}")
+                    print(f"    Requires: Python {details['required_version']}")
+                if len(incompatible) > 5:
+                    print(f"  ... and {len(incompatible) - 5} more issues")
+                return 1
+            else:
+                print_success(f"✓ Code is compatible with Python {args.target}")
+        
+        if checker.errors:
+            print()
+            print_warning(f"Encountered {len(checker.errors)} error(s) during analysis")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import version checker: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during version check: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_review(args):
     """Generate code review assistance for migration changes."""
     print_header("Code Review Assistant")
@@ -3607,6 +3681,18 @@ def main():
     )
     parser_check.add_argument('path', help='File or directory to check')
     parser_check.add_argument('-r', '--report', help='Save report to file')
+    
+    # Version-check command
+    parser_version_check = subparsers.add_parser(
+        'version-check',
+        help='Check Python version compatibility',
+        description='Analyze code to determine Python 3.x version requirements and compatibility'
+    )
+    parser_version_check.add_argument('path', help='File or directory to analyze')
+    parser_version_check.add_argument('-o', '--output', help='Save report to file')
+    parser_version_check.add_argument('-f', '--format', choices=['text', 'json'], default='text',
+                                     help='Output format (default: text)')
+    parser_version_check.add_argument('-t', '--target', help='Target Python version to check compatibility (e.g., 3.8, 3.9, 3.10)')
     
     # Convert command
     parser_convert = subparsers.add_parser(
@@ -4425,6 +4511,8 @@ def main():
     # Route to appropriate command handler
     if args.command == 'check':
         return command_check(args)
+    elif args.command == 'version-check':
+        return command_version_check(args)
     elif args.command == 'convert':
         return command_convert(args)
     elif args.command == 'preflight':
