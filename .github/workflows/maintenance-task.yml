@@ -1,0 +1,123 @@
+---
+name: Scheduled Maintenance Task
+
+on:
+    # Allow manual trigger with custom parameters
+    workflow_dispatch:
+        inputs:
+            agent_script:
+                description: The Python script to run for the maintenance task
+                required: false
+                type: string
+                default: examples/28_maintenance_task_runner/run.py
+            prompt_location:
+                description: URL or file path to the prompt (Jinja2 template)
+                required: true
+                type: string
+            llm_model:
+                description: LLM model to use
+                required: false
+                type: string
+                default: openhands/claude-sonnet-4-5-20250929
+            llm_base_url:
+                description: Optional base URL for the LLM API
+                required: false
+                type: string
+    # Scheduled trigger - runs every 10 minutes
+    schedule:
+        # Run every 10 minutes
+        - cron: '*/10 * * * *'
+
+permissions:
+    contents: write
+    pull-requests: write
+    issues: write
+
+jobs:
+    run-maintenance-task:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout agent-sdk repository
+              uses: actions/checkout@v4
+              with:
+                  repository: All-Hands-AI/agent-sdk
+                  path: agent-sdk
+
+            - name: Checkout test-repo repository
+              uses: actions/checkout@v4
+              with:
+                  path: test-repo
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+              with:
+                  enable-cache: true
+
+            - name: Install dependencies
+              run: |
+                  cd agent-sdk
+                  uv sync --frozen --group dev
+
+            - name: Check required environment variables
+              env:
+                  LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+                  LLM_MODEL: >-
+                      ${{ secrets.LLM_MODEL || inputs.llm_model ||
+                      'openhands/claude-sonnet-4-5-20250929' }}
+                  LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || inputs.llm_base_url }}
+              run: |
+                  if [ -z "$LLM_API_KEY" ]; then
+                    echo "Error: LLM_API_KEY secret is not set."
+                    exit 1
+                  fi
+
+                  echo "Using LLM model: $LLM_MODEL"
+                  if [ -n "$LLM_BASE_URL" ]; then
+                    echo "Using LLM base URL: $LLM_BASE_URL"
+                  fi
+
+            - name: Create prompt file
+              run: |
+                  cd test-repo
+                  cat > maintenance_prompt.txt << 'EOF'
+                  Think of a feature that could be implemented to make this repo better, implement it, and push directly to main.
+                  EOF
+
+            - name: Run maintenance task
+              env:
+                  LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+                  LLM_MODEL: >-
+                      ${{ secrets.LLM_MODEL || inputs.llm_model ||
+                      'openhands/claude-sonnet-4-5-20250929' }}
+                  LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || inputs.llm_base_url }}
+                  AGENT_SCRIPT: >-
+                      ${{ inputs.agent_script ||
+                      'examples/28_maintenance_task_runner/run.py' }}
+                  PROMPT_LOCATION: >-
+                      ${{ inputs.prompt_location ||
+                      '../test-repo/maintenance_prompt.txt' }}
+                  PYTHONPATH: ''
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  cd agent-sdk
+                  echo "Running agent script: $AGENT_SCRIPT"
+                  echo "With prompt from: $PROMPT_LOCATION"
+                  echo "Working directory for agent: $(pwd)/../test-repo"
+                  cd ../test-repo
+                  uv run --directory ../agent-sdk python ../agent-sdk/"$AGENT_SCRIPT" "$PROMPT_LOCATION"
+
+            - name: Upload logs as artifact
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: maintenance-task-logs
+                  path: |
+                      *.log
+                      output/
+                  retention-days: 7
