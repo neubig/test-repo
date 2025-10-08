@@ -187,7 +187,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 plan src/` to create your migration strategy!
    - **See [PLANNER_GUIDE.md](PLANNER_GUIDE.md) for complete migration planning guide!**
 
-14. **Migration Statistics Dashboard** 📊 **[NEW]**:
+16. **Watch Mode** 👁️ **[NEW]**:
+   - Real-time file monitoring with automatic compatibility checking
+   - Get instant feedback as you edit Python files during migration
+   - Monitor entire directories or specific files for changes
+   - Debouncing to avoid excessive checks during active editing
+   - Multiple modes: check-only, stats tracking, report generation
+   - Clean, formatted output with icons and color coding
+   - Session statistics to track your progress
+   - Perfect for active development with immediate feedback loop
+   - Like webpack watch or jest --watch for Python migration
+   - Run `./py2to3 watch src/` to start monitoring your code!
+   - **See [WATCH_MODE.md](WATCH_MODE.md) for complete watch mode guide!**
+
+17. **Migration Statistics Dashboard** 📊 **[NEW]**:
    - Interactive web-based dashboard for visualizing migration progress
    - Beautiful charts and graphs showing issue distribution and trends
    - Real-time progress tracking with comparison to previous scans
@@ -288,6 +301,31 @@ pytest migration_tests/ --cov=src --cov-report=html
 ```
 
 See [TEST_GEN_GUIDE.md](TEST_GEN_GUIDE.md) for complete guide on test generation.
+
+**Use Watch Mode for Real-Time Feedback** 👁️ **[NEW]**
+
+Get instant feedback as you work on migration with watch mode:
+
+```bash
+# Start watch mode in current directory
+./py2to3 watch
+
+# Watch a specific directory
+./py2to3 watch src/
+
+# Watch with automatic stats tracking
+./py2to3 watch src/ --mode stats
+
+# Adjust debounce delay (wait 2 seconds after changes)
+./py2to3 watch src/ --debounce 2.0
+
+# In another terminal, edit files and see instant feedback
+vim src/core/processor.py  # Save changes and watch terminal
+```
+
+Watch mode is perfect for active development - it automatically checks files as you save them, providing immediate feedback on any Python 3 compatibility issues. Like webpack watch or jest --watch, but for Python migration!
+
+See [WATCH_MODE.md](WATCH_MODE.md) for complete guide on watch mode.
 
 **Use Configuration for Convenience**
 

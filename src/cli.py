@@ -1530,6 +1530,51 @@ def command_plan(args):
         return 1
 
 
+def command_watch(args):
+    """Monitor files for changes and automatically check compatibility."""
+    # Check if watchdog is available
+    try:
+        import watchdog
+    except ImportError:
+        print_error("Watch mode requires the 'watchdog' package")
+        print_info("Install it with: pip install watchdog")
+        return 1
+    
+    validate_path(args.path)
+    
+    print_info(f"Starting watch mode on: {args.path}")
+    print_info(f"Mode: {args.mode}")
+    print_info(f"Debounce: {args.debounce}s")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from watch_mode import WatchMode
+        
+        config = {
+            'debounce_seconds': args.debounce
+        }
+        
+        watch = WatchMode(args.path, mode=args.mode, config=config)
+        watch.start()
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Could not import watch mode: {e}")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_info("Watch mode stopped by user")
+        return 0
+    except Exception as e:
+        print_error(f"Watch mode failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1839,6 +1884,19 @@ def main():
     parser_plan.add_argument('-f', '--format', choices=['text', 'json', 'markdown'],
                             default='text', help='Output format (default: text)')
     
+    # Watch command
+    parser_watch = subparsers.add_parser(
+        'watch',
+        help='Watch files and auto-check for compatibility',
+        description='Monitor Python files for changes and automatically run compatibility checks'
+    )
+    parser_watch.add_argument('path', nargs='?', default='.',
+                             help='Path to watch (default: current directory)')
+    parser_watch.add_argument('-m', '--mode', choices=['check', 'stats', 'report'],
+                             default='check', help='Watch mode (default: check)')
+    parser_watch.add_argument('--debounce', type=float, default=1.0,
+                             help='Debounce delay in seconds (default: 1.0)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1892,6 +1950,8 @@ def main():
         return command_test_gen(args)
     elif args.command == 'plan':
         return command_plan(args)
+    elif args.command == 'watch':
+        return command_watch(args)
     else:
         parser.print_help()
         return 1
