@@ -152,13 +152,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Risk assessment with high/medium/low priority categorization
    - Creates PR descriptions with migration statistics and recommendations
    - Estimates review time based on change complexity
-   - Multiple output formats: Markdown, text, and JSON
-   - Perfect for ensuring thorough review before production deployment
-   - Helps reviewers focus on critical changes first
-   - Run `./py2to3 review src/ --pr` to generate PR descriptions!
-   - **See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for complete code review guide!**
 
-13. **CI/CD Integration** 🚀 **[NEW]**:
+13. **Runtime Validator** ✨ **[NEW]**:
+   - Validate migrated code by attempting to import all modules
+   - Catch runtime errors that static analysis can't detect
+   - Quick smoke test to verify code actually works after migration
+   - Detailed reports showing which modules succeed, fail, or have warnings
+   - JSON output support for CI/CD integration
+   - Calculates overall validation success rate
+   - Perfect complement to static analysis tools
+   - Run `./py2to3 validate src/` after applying fixes!
+   - **See [VALIDATION_GUIDE.md](VALIDATION_GUIDE.md) for complete validation guide!**
+
+14. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts

@@ -3497,6 +3497,56 @@ def command_freeze(args):
         return 1
 
 
+def command_validate(args):
+    """Validate Python 3 code by attempting to import all modules."""
+    print_header("Runtime Validation")
+    
+    validate_path(args.path)
+    
+    print_info(f"Validating: {args.path}")
+    print_info(f"Verbose mode: {'enabled' if args.verbose else 'disabled'}\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from runtime_validator import RuntimeValidator
+        
+        validator = RuntimeValidator(args.path, verbose=args.verbose)
+        
+        print_info("Discovering Python files...")
+        validator.validate()
+        
+        report = validator.generate_report(format=args.format)
+        
+        if args.output:
+            with open(args.output, 'w', encoding='utf-8') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        results = validator._generate_summary()
+        
+        if results['summary']['failed'] == 0:
+            print()
+            print_success("All modules validated successfully!")
+            return 0
+        else:
+            print()
+            print_error(f"Validation failed: {results['summary']['failed']} module(s) have errors")
+            return 1
+        
+    except ImportError as e:
+        print_error(f"Failed to import runtime_validator: {e}")
+        print_info("This feature requires the runtime_validator module")
+        return 1
+    except Exception as e:
+        print_error(f"Validation failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_encoding(args):
     """Analyze and fix encoding issues in Python files."""
     print_header("Encoding Analysis")
@@ -4153,6 +4203,21 @@ def main():
     parser_typehints.add_argument('--json',
                                  help='Save JSON report to file')
     
+    # Validate command
+    parser_validate = subparsers.add_parser(
+        'validate',
+        help='Validate Python 3 code by attempting imports',
+        description='Perform runtime validation by attempting to import all modules and checking for runtime errors. This complements static analysis by verifying code actually works.'
+    )
+    parser_validate.add_argument('path', help='File or directory to validate')
+    parser_validate.add_argument('-v', '--verbose', action='store_true',
+                                help='Show detailed error tracebacks')
+    parser_validate.add_argument('-o', '--output',
+                                help='Save validation report to file')
+    parser_validate.add_argument('-f', '--format', choices=['text', 'json'], 
+                                default='text',
+                                help='Report format (default: text)')
+    
     # Encoding command
     parser_encoding = subparsers.add_parser(
         'encoding',
@@ -4563,6 +4628,8 @@ def main():
         return command_modernize(args)
     elif args.command == 'typehints':
         return command_typehints(args)
+    elif args.command == 'validate':
+        return command_validate(args)
     elif args.command == 'encoding':
         return command_encoding(args)
     elif args.command == 'estimate':
