@@ -61,6 +61,15 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
+3. **Report Generator (`src/report_generator.py`)** 🆕:
+   - Generates comprehensive HTML reports for migration progress
+   - Beautiful, interactive visualizations with charts and statistics
+   - Side-by-side code comparisons showing before/after changes
+   - Detailed issue tracking with severity classification
+   - Export data as JSON for further analysis
+   - Perfect for presenting migration progress to stakeholders
+   - **See `demo_report.html` for a live example!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -87,6 +96,15 @@ The `my-vite-app/` directory contains a modern web application built with:
    ```bash
    python verifier.py . --report post_fix_verification.txt
    ```
+5. **Generate HTML report**: Create a beautiful, comprehensive migration report
+   ```bash
+   python report_generator.py -o migration_report.html
+   ```
+   Open `migration_report.html` in your browser to see:
+   - Interactive charts and statistics
+   - Before/after code comparisons
+   - Detailed fix and issue tracking
+   - Progress visualization
 
 ### Web Application
 

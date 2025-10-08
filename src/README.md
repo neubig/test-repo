@@ -154,6 +154,82 @@ python verifier.py . --use-2to3
 - **Import issues**: Problematic module imports
 - **Encoding issues**: Missing or incorrect encoding declarations
 
+## 4. Migration Report Generator (`report_generator.py`) 🆕
+
+The report generator is a **Python 3 application** that creates comprehensive, beautiful HTML reports for your Python 2 to 3 migration progress.
+
+### Features:
+
+- **Interactive HTML Reports**: Professional, visually appealing reports with modern design
+- **Statistics & Metrics**: Visual charts showing fix distribution and migration progress
+- **Code Comparisons**: Side-by-side before/after views with syntax highlighting
+- **Issue Tracking**: Detailed lists of remaining issues with severity classification
+- **Progress Visualization**: Interactive progress bars showing completion percentage
+- **JSON Export**: Export raw data for further analysis or integration
+- **Standalone or Integrated**: Works independently or with fixer/verifier output
+
+### Usage:
+
+```bash
+# Generate a demo report
+python report_generator.py -o migration_report.html
+
+# Load data from JSON and generate report
+python report_generator.py input_data.json -o report.html
+
+# Generate both HTML and JSON
+python report_generator.py -o report.html --json data.json
+```
+
+### Report Sections:
+
+- **Summary Dashboard**: High-level metrics with cards showing files processed, fixes applied, issues found
+- **Statistics Charts**: Visual representation of fix types and their frequency
+- **Fixes Applied**: Detailed list of all fixes with before/after code comparisons
+- **Remaining Issues**: Categorized by severity (errors vs warnings) with suggestions
+- **Progress Tracking**: Visual indicators showing migration completion status
+
+### Integration Example:
+
+The report generator can be integrated with the fixer and verifier tools programmatically:
+
+```python
+from report_generator import MigrationReportGenerator
+
+# Create report generator
+report = MigrationReportGenerator()
+
+# Add fixes as you process files
+report.add_fix(
+    'core/main.py',
+    'print_statements',
+    'Converted print statement to print() function',
+    line_number=42,
+    before_code='print "Hello"',
+    after_code='print("Hello")'
+)
+
+# Add any issues found
+report.add_issue(
+    'data/processor.py',
+    'basestring_usage',
+    'basestring is not defined in Python 3',
+    severity='error',
+    line_number=67,
+    code_snippet='if isinstance(value, basestring):',
+    suggestion='Replace basestring with str'
+)
+
+# Set total files processed
+report.set_files_processed(10)
+
+# Generate HTML report
+report.generate_html_report('migration_report.html')
+
+# Optionally export as JSON
+report.export_json('migration_data.json')
+```
+
 ## Example Workflow
 
 Here's how to use these tools together for a complete Python 2→3 migration:
@@ -176,15 +252,29 @@ python fixer.py . --backup-dir backups --report fixes_applied.txt
 python verifier.py . --report post_fix_verification.txt
 ```
 
-### 4. Manual Review
-- Review the generated reports
+### 4. Generate Visual Report
+```bash
+# Create a comprehensive HTML report
+python report_generator.py -o migration_report.html
+```
+Open `migration_report.html` in your browser to see:
+- Beautiful visualizations of the migration progress
+- Detailed statistics and charts
+- Side-by-side code comparisons
+- Categorized list of remaining issues
+
+### 5. Manual Review
+- Review the generated reports (both text and HTML)
 - Address any remaining issues manually
 - Test the application thoroughly
 
-### 5. Final Validation
+### 6. Final Validation
 ```bash
 # Final compatibility check
 python verifier.py . --use-2to3
+
+# Generate final report for documentation
+python report_generator.py -o final_migration_report.html
 ```
 
 ## Key Learning Points

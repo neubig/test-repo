@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+backup/
+backups/
+*.bak
+
+# Generated reports (except demo)
+migration_report.html
+migration_report.json
+*_report.html
+*_report.json
+!demo_report.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
