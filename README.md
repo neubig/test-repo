@@ -411,6 +411,24 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 imports src/ --fix` to optimize imports!
    - **See [IMPORT_OPTIMIZER_GUIDE.md](IMPORT_OPTIMIZER_GUIDE.md) for complete import optimization guide!**
 
+31. **Code Modernizer** 🚀✨ **[NEW]**:
+   - Upgrade Python 3 compatible code to use modern Python 3.6+ idioms
+   - Identifies opportunities to use f-strings instead of % or .format()
+   - Suggests pathlib instead of os.path for better path handling
+   - Recommends type hints for improved code documentation and IDE support
+   - Detects classes that could use @dataclass decorator
+   - Finds file operations that should use context managers
+   - Suggests list comprehensions for more concise code
+   - Recommends dictionary merge operators (Python 3.9+)
+   - Generates comprehensive reports with severity indicators
+   - Filter by category to focus on specific modernizations
+   - JSON output for CI/CD integration
+   - Makes your code more Pythonic, readable, and maintainable
+   - Perfect post-migration step to modernize legacy patterns
+   - Run `./py2to3 modernize src/` to analyze code!
+   - Run `./py2to3 modernize src/ -o report.txt` to save detailed report!
+   - **See [MODERNIZER_GUIDE.md](MODERNIZER_GUIDE.md) for complete modernization guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

@@ -2749,6 +2749,108 @@ def command_imports(args):
         return 1
 
 
+def command_modernize(args):
+    """Modernize Python 3 code to use modern idioms and features."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from code_modernizer import CodeModernizer
+        
+        print_header("Code Modernizer")
+        
+        path = args.path
+        
+        if not os.path.exists(path):
+            print_error(f"Path does not exist: {path}")
+            return 1
+        
+        modernizer = CodeModernizer()
+        
+        # Analyze the code
+        print_info(f"Analyzing: {path}\n")
+        
+        if os.path.isdir(path):
+            modernizer.analyze_directory(path, recursive=not args.no_recursive)
+        else:
+            suggestions = modernizer.analyze_file(path)
+            modernizer.suggestions.extend(suggestions)
+            # Update stats for single file analysis
+            for suggestion in suggestions:
+                modernizer.stats[suggestion.category] = modernizer.stats.get(suggestion.category, 0) + 1
+        
+        # Filter by categories if specified
+        if args.categories:
+            modernizer.suggestions = [s for s in modernizer.suggestions if s.category in args.categories]
+            # Recalculate stats after filtering
+            modernizer.stats = {}
+            for suggestion in modernizer.suggestions:
+                modernizer.stats[suggestion.category] = modernizer.stats.get(suggestion.category, 0) + 1
+        
+        if not modernizer.suggestions:
+            print_success("Code is already modern! No suggestions found.")
+            return 0
+        
+        # Generate and display report
+        if args.format == 'json':
+            report = modernizer.generate_report(args.output, format='json')
+            if not args.output:
+                print(report)
+        else:
+            report = modernizer.generate_report(args.output, format='text')
+            if not args.output:
+                print(report)
+        
+        # Show summary
+        print()
+        print_success(f"Found {len(modernizer.suggestions)} modernization opportunity/opportunities")
+        
+        # Show category breakdown
+        print()
+        print_info("Suggestions by category:")
+        for category, count in sorted(modernizer.stats.items(), key=lambda x: x[1], reverse=True):
+            print(f"  • {category:20s}: {count:3d}")
+        
+        print()
+        print_info("💡 These suggestions can help make your code more:")
+        print("  • Readable and concise (f-strings, comprehensions)")
+        print("  • Type-safe (type hints)")
+        print("  • Modern and idiomatic (pathlib, dataclasses)")
+        print("  • Maintainable (context managers)")
+        
+        if args.output:
+            print()
+            print_success(f"Detailed report saved to: {args.output}")
+        
+        # Apply suggestions if requested
+        if args.apply:
+            print()
+            print_warning("Auto-apply is experimental and only supports limited transformations")
+            
+            if args.dry_run or not args.apply:
+                print_info("Running in DRY-RUN mode (no files will be modified)")
+            
+            stats = modernizer.apply_suggestions(
+                categories=args.categories,
+                dry_run=args.dry_run
+            )
+            
+            print()
+            print_success(f"Applied {stats['succeeded']} suggestion(s)")
+            if stats['failed'] > 0:
+                print_warning(f"Failed to apply {stats['failed']} suggestion(s)")
+        
+        return 0 if len(modernizer.suggestions) == 0 else 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import modernizer: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error modernizing code: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3181,6 +3283,29 @@ def main():
     parser_imports.add_argument('-o', '--output',
                                help='Save report to file')
     
+    # Modernize command
+    parser_modernize = subparsers.add_parser(
+        'modernize',
+        help='Upgrade Python 3 code to use modern idioms',
+        description='Analyze Python 3 code and suggest modern features like f-strings, type hints, pathlib, dataclasses, etc.'
+    )
+    parser_modernize.add_argument('path', nargs='?', default='.',
+                                 help='File or directory to analyze (default: current directory)')
+    parser_modernize.add_argument('--no-recursive', action='store_true',
+                                 help='Do not recursively process directories')
+    parser_modernize.add_argument('-o', '--output',
+                                 help='Save detailed report to file')
+    parser_modernize.add_argument('--format', choices=['text', 'json'], default='text',
+                                 help='Report format (default: text)')
+    parser_modernize.add_argument('--apply', action='store_true',
+                                 help='Apply suggested modernizations (experimental)')
+    parser_modernize.add_argument('--dry-run', action='store_true', default=True,
+                                 help='Preview changes without modifying files (default: True)')
+    parser_modernize.add_argument('--categories', nargs='+',
+                                 choices=['f-strings', 'pathlib', 'dict-merge', 'type-hints', 
+                                         'dataclass', 'context-manager', 'comprehension'],
+                                 help='Only analyze specific categories')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -3478,6 +3603,8 @@ def main():
         return command_search(args)
     elif args.command == 'imports':
         return command_imports(args)
+    elif args.command == 'modernize':
+        return command_modernize(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'lint':
@@ -3488,8 +3615,6 @@ def main():
         return command_state(args)
     elif args.command == 'journal':
         return command_journal(args)
-    elif args.command == 'imports':
-        return command_imports(args)
     elif args.command == 'venv':
         return command_venv(args)
     else:
