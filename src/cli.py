@@ -2996,6 +2996,69 @@ def command_review(args):
         return 1
 
 
+def command_typehints(args):
+    """Generate type hints for Python 3 code."""
+    print_header("Type Hints Generator")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing path: {args.path}")
+    
+    if args.dry_run:
+        print_warning("DRY RUN MODE: No files will be modified")
+    
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from type_hints_generator import TypeHintsGenerator
+        
+        generator = TypeHintsGenerator(dry_run=args.dry_run)
+        
+        # Process path
+        if os.path.isfile(args.path):
+            print_info("Processing single file...")
+            results = [generator.process_file(args.path)]
+        else:
+            print_info("Processing directory...")
+            results = generator.process_directory(args.path)
+        
+        print()
+        
+        # Print summary
+        stats = generator.stats
+        print_success(f"Processed {stats['files_processed']} file(s)")
+        print_info(f"Functions annotated: {stats['functions_annotated']}")
+        print_info(f"Parameters annotated: {stats['parameters_annotated']}")
+        print_info(f"Return types added: {stats['returns_annotated']}")
+        print_info(f"Typing imports added: {stats['imports_added']}")
+        
+        print()
+        
+        # Generate reports
+        if args.report:
+            generator.generate_report(results, args.report)
+            print_success(f"Detailed report saved to: {args.report}")
+        else:
+            generator.generate_report(results)
+        
+        if args.json:
+            generator.generate_json_report(results, args.json)
+            print_success(f"JSON report saved to: {args.json}")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import type hints generator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating type hints: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3478,6 +3541,20 @@ def main():
                                          'dataclass', 'context-manager', 'comprehension'],
                                  help='Only analyze specific categories')
     
+    # Type Hints command
+    parser_typehints = subparsers.add_parser(
+        'typehints',
+        help='Add type hints to Python 3 code',
+        description='Automatically generate and add type hints to Python 3 code by analyzing function signatures, return values, and usage patterns'
+    )
+    parser_typehints.add_argument('path', help='File or directory to process')
+    parser_typehints.add_argument('--dry-run', action='store_true',
+                                 help='Preview changes without modifying files')
+    parser_typehints.add_argument('-r', '--report',
+                                 help='Save detailed report to file')
+    parser_typehints.add_argument('--json',
+                                 help='Save JSON report to file')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -3781,6 +3858,8 @@ def main():
         return command_imports(args)
     elif args.command == 'modernize':
         return command_modernize(args)
+    elif args.command == 'typehints':
+        return command_typehints(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'lint':

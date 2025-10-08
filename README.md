@@ -452,6 +452,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 modernize src/ -o report.txt` to save detailed report!
    - **See [MODERNIZER_GUIDE.md](MODERNIZER_GUIDE.md) for complete modernization guide!**
 
+34. **Type Hints Generator** 🎯✨ **[NEW]**:
+   - Automatically add type hints to Python 3 code after migration
+   - Infers types from default values, return statements, and usage patterns
+   - Adds annotations to function parameters and return values
+   - Smart import management for typing module constructs
+   - Supports List, Dict, Set, Tuple, Optional, Union, and more
+   - Dry-run mode to preview changes before applying
+   - Detailed reports showing all changes made
+   - Batch processing for entire directories
+   - Perfect for modernizing code that came from Python 2
+   - Improves IDE support, documentation, and enables static type checking
+   - Makes code more maintainable and self-documenting
+   - Run `./py2to3 typehints src/` to add type hints!
+   - Run `./py2to3 typehints src/ --dry-run` to preview changes!
+   - Run `./py2to3 typehints src/ --report report.txt` for detailed report!
+   - **See [TYPE_HINTS_GUIDE.md](TYPE_HINTS_GUIDE.md) for complete type hints guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
