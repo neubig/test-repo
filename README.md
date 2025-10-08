@@ -123,6 +123,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
+10. **CI/CD Integration** 🚀 **[NEW]**:
+   - GitHub Actions workflow for automated compatibility checking
+   - Runs on every push and pull request automatically
+   - Generates and uploads comprehensive reports as artifacts
+   - Posts detailed results as PR comments with emoji indicators
+   - Tracks migration statistics over time
+   - Smart triggers - only runs when Python files change
+   - Manual dispatch with configurable parameters
+   - Zero configuration needed - works out of the box!
+   - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -235,6 +246,34 @@ Track your migration progress with automatic git integration:
 ```
 
 See [CLI_GUIDE.md](CLI_GUIDE.md), [CONFIG.md](CONFIG.md), [BACKUP_GUIDE.md](BACKUP_GUIDE.md), and [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete documentation.
+
+#### Using CI/CD Integration (Recommended for Teams)
+
+Enable automated compatibility checking on every commit and pull request:
+
+```bash
+# The workflow is already set up! Just push your code:
+git add .
+git commit -m "Migrate authentication module"
+git push
+
+# The GitHub Actions workflow will automatically:
+# ✓ Run preflight safety checks
+# ✓ Check Python 3 compatibility
+# ✓ Collect migration statistics
+# ✓ Generate HTML reports
+# ✓ Post results as PR comments
+# ✓ Upload reports as artifacts
+```
+
+**Benefits:**
+- 🔄 Continuous validation during migration
+- 👥 Automatic feedback on pull requests
+- 📊 Track progress over time
+- 🛡️ Prevent introduction of new Python 2 code
+- 📦 Historical reports stored for 30 days
+
+See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for advanced configuration and usage.
 
 #### Manual Approach (Using Individual Tools)
 
