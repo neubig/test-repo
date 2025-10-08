@@ -64,3 +64,6 @@ node_modules/
 
 # Migration journal data files
 .migration_journal.json
+
+# Virtual environments created by py2to3 venv manager
+.py2to3_venvs/

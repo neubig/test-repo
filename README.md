@@ -379,6 +379,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 journal export migration_diary.md` for documentation!
    - **See [JOURNAL_GUIDE.md](JOURNAL_GUIDE.md) for complete journal guide!**
 
+29. **Virtual Environment Manager** 🐍✨ **[NEW]**:
+   - Integrated Python 3 virtual environment management for migration testing
+   - Create isolated Python 3 environments to test migrated code safely
+   - Support for multiple Python versions (3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12)
+   - Install dependencies from requirements.txt in clean environments
+   - Run tests in isolated environments to validate migration
+   - Execute Python scripts in specific environments for testing
+   - Track all environments with metadata and package information
+   - Easy activation commands for manual testing
+   - Perfect bridge between migration and validation workflows
+   - Test against multiple Python versions to ensure compatibility
+   - Remove old environments when no longer needed
+   - Run `./py2to3 venv create my-env` to create an environment!
+   - Run `./py2to3 venv install my-env -r requirements.txt` to install dependencies!
+   - Run `./py2to3 venv test my-env` to run tests in the environment!
+   - **See [VENV_GUIDE.md](VENV_GUIDE.md) for complete virtual environment guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

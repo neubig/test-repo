@@ -2545,6 +2545,123 @@ def command_search(args):
         return 1
 
 
+def command_venv(args):
+    """Manage virtual environments for Python 3 testing."""
+    print_header("Virtual Environment Manager")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from venv_manager import VirtualEnvironmentManager
+        
+        manager = VirtualEnvironmentManager()
+        
+        # Handle subcommands
+        if args.venv_action == 'create':
+            print_info(f"Creating virtual environment '{args.name}'...")
+            if args.python:
+                print_info(f"Using Python {args.python}")
+            
+            success = manager.create(
+                args.name,
+                python_version=args.python,
+                system_site_packages=args.system_site_packages
+            )
+            
+            if success:
+                manager.print_activation_command(args.name)
+                return 0
+            return 1
+            
+        elif args.venv_action == 'list':
+            envs = manager.list_environments()
+            
+            if not envs:
+                print_info("No virtual environments found")
+                print_info(f"Create one with: py2to3 venv create <name>")
+                return 0
+            
+            print(f"\n{Colors.BOLD}Virtual Environments:{Colors.ENDC}\n")
+            for env in envs:
+                status = f"{Colors.OKGREEN}✓{Colors.ENDC}" if env["exists"] else f"{Colors.FAIL}✗{Colors.ENDC}"
+                print(f"  {status} {Colors.BOLD}{env['name']}{Colors.ENDC}")
+                print(f"      Path: {env['path']}")
+                print(f"      Python: {env['python_version']}")
+                print(f"      Packages: {env['package_count']}")
+                print()
+            
+            return 0
+            
+        elif args.venv_action == 'remove':
+            success = manager.remove(args.name, args.force)
+            return 0 if success else 1
+            
+        elif args.venv_action == 'install':
+            if args.requirements:
+                success = manager.install_requirements(args.name, args.requirements)
+            elif args.package:
+                success = manager.install_package(args.name, args.package)
+            else:
+                print_error("Specify --requirements or --package")
+                return 1
+            
+            return 0 if success else 1
+            
+        elif args.venv_action == 'run':
+            success = manager.run_command(args.name, args.command)
+            return 0 if success else 1
+            
+        elif args.venv_action == 'test':
+            success = manager.run_tests(args.name, args.test_path)
+            return 0 if success else 1
+            
+        elif args.venv_action == 'info':
+            info = manager.get_info(args.name)
+            
+            if not info:
+                print_error(f"Virtual environment '{args.name}' not found")
+                return 1
+            
+            exists_text = f"{Colors.OKGREEN}Yes{Colors.ENDC}" if info['exists'] else f"{Colors.FAIL}No{Colors.ENDC}"
+            
+            print(f"\n{Colors.BOLD}Virtual Environment: {args.name}{Colors.ENDC}\n")
+            print(f"  Path: {info['path']}")
+            print(f"  Exists: {exists_text}")
+            print(f"  Created: {info.get('created', 'Unknown')}")
+            print(f"  Python: {info.get('python_version', 'Unknown')}")
+            print(f"  System site-packages: {info.get('system_site_packages', False)}")
+            print(f"  Packages installed: {len(info.get('packages_installed', []))}")
+            
+            if info.get('packages_installed'):
+                print(f"\n  {Colors.BOLD}Installed packages:{Colors.ENDC}")
+                for pkg in info['packages_installed'][:20]:
+                    print(f"    - {pkg}")
+                if len(info['packages_installed']) > 20:
+                    print(f"    ... and {len(info['packages_installed']) - 20} more")
+            
+            print()
+            manager.print_activation_command(args.name)
+            
+            return 0
+            
+        elif args.venv_action == 'activate':
+            manager.print_activation_command(args.name)
+            return 0
+            
+        else:
+            print_error("No action specified")
+            return 1
+            
+    except ImportError as e:
+        print_error(f"Failed to import virtual environment manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error managing virtual environment: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3086,6 +3203,54 @@ def main():
     parser_state_import.add_argument('file', help='File to import from')
     parser_state_import.add_argument('--merge', action='store_true', help='Merge with existing state instead of replacing')
     
+    # Venv command
+    parser_venv = subparsers.add_parser(
+        'venv',
+        help='Manage Python 3 virtual environments',
+        description='Create and manage isolated Python 3 environments for testing migrated code'
+    )
+    
+    venv_subparsers = parser_venv.add_subparsers(dest='venv_action', help='Virtual environment actions')
+    
+    # Venv create
+    parser_venv_create = venv_subparsers.add_parser('create', help='Create a new virtual environment')
+    parser_venv_create.add_argument('name', help='Name of the virtual environment')
+    parser_venv_create.add_argument('--python', help='Python version to use (e.g., 3.8, 3.9, 3.10)')
+    parser_venv_create.add_argument('--system-site-packages', action='store_true',
+                                   help='Give access to system site-packages')
+    
+    # Venv list
+    parser_venv_list = venv_subparsers.add_parser('list', help='List all virtual environments')
+    
+    # Venv remove
+    parser_venv_remove = venv_subparsers.add_parser('remove', help='Remove a virtual environment')
+    parser_venv_remove.add_argument('name', help='Name of the virtual environment')
+    parser_venv_remove.add_argument('--force', action='store_true', help='Force removal without confirmation')
+    
+    # Venv install
+    parser_venv_install = venv_subparsers.add_parser('install', help='Install packages into a virtual environment')
+    parser_venv_install.add_argument('name', help='Name of the virtual environment')
+    parser_venv_install.add_argument('-r', '--requirements', help='Requirements file to install')
+    parser_venv_install.add_argument('-p', '--package', help='Single package to install')
+    
+    # Venv run
+    parser_venv_run = venv_subparsers.add_parser('run', help='Run a command in a virtual environment')
+    parser_venv_run.add_argument('name', help='Name of the virtual environment')
+    parser_venv_run.add_argument('command', nargs='+', help='Command to run')
+    
+    # Venv test
+    parser_venv_test = venv_subparsers.add_parser('test', help='Run tests in a virtual environment')
+    parser_venv_test.add_argument('name', help='Name of the virtual environment')
+    parser_venv_test.add_argument('--test-path', help='Path to tests (default: tests)')
+    
+    # Venv info
+    parser_venv_info = venv_subparsers.add_parser('info', help='Show detailed information about a virtual environment')
+    parser_venv_info.add_argument('name', help='Name of the virtual environment')
+    
+    # Venv activate
+    parser_venv_activate = venv_subparsers.add_parser('activate', help='Show activation command for a virtual environment')
+    parser_venv_activate.add_argument('name', help='Name of the virtual environment')
+    
     # Journal command
     parser_journal = subparsers.add_parser(
         'journal',
@@ -3217,6 +3382,8 @@ def main():
         return command_state(args)
     elif args.command == 'journal':
         return command_journal(args)
+    elif args.command == 'venv':
+        return command_venv(args)
     else:
         parser.print_help()
         return 1
