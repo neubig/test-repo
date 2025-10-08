@@ -1,0 +1,225 @@
+======================================================================
+IMPORT OPTIMIZATION REPORT
+======================================================================
+
+Summary Statistics:
+  Files analyzed: 39
+  Unused imports: 32
+  Duplicate imports: 33
+  Wildcard imports: 0
+  Unsorted imports: 7
+  Total optimizations: 72
+
+======================================================================
+DETAILED ISSUES
+======================================================================
+
+File: src/migration_state.py
+  Unused Import:
+    Line 17: Unused import: Set
+      → Remove unused import 'Set'
+
+File: src/recipe_manager.py
+  Unused Import:
+    Line 11: Unused import: os
+      → Remove unused import 'os'
+    Line 12: Unused import: sys
+      → Remove unused import 'sys'
+
+File: src/fixer.py
+  Duplicate Import:
+    Line 531: Duplicate import on line 11: shutil
+      → Remove duplicate import of 'shutil'
+
+File: src/watch_mode.py
+  Duplicate Import:
+    Line 211: Duplicate import on line 146: Python3CompatibilityVerifier
+      → Remove duplicate import of 'Python3CompatibilityVerifier'
+  Unsorted Imports:
+    Line 9: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 9: Unused import: os
+      → Remove unused import 'os'
+
+File: src/git_integration.py
+  Unused Import:
+    Line 9: Unused import: json
+      → Remove unused import 'json'
+    Line 14: Unused import: Path
+      → Remove unused import 'Path'
+
+File: src/test_generator.py
+  Unused Import:
+    Line 11: Unused import: re
+      → Remove unused import 're'
+    Line 13: Unused import: Optional
+      → Remove unused import 'Optional'
+
+File: src/interactive_fixer.py
+  Unsorted Imports:
+    Line 10: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 14: Unused import: Optional
+      → Remove unused import 'Optional'
+
+File: src/progress_dashboard.py
+  Unsorted Imports:
+    Line 9: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 11: Unused import: os
+      → Remove unused import 'os'
+    Line 13: Unused import: escape
+      → Remove unused import 'escape'
+
+File: src/cli.py
+  Duplicate Import:
+    Line 234: Duplicate import on line 11: json
+      → Remove duplicate import of 'json'
+    Line 2112: Duplicate import on line 11: json
+      → Remove duplicate import of 'json'
+    Line 3263: Duplicate import on line 1443: ConfigManager
+      → Remove duplicate import of 'ConfigManager'
+    Line 211: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 318: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 563: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 648: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 769: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 809: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 850: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1049: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1270: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1430: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1561: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1822: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1877: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 1941: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2010: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2080: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2140: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2146: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2232: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2238: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2283: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2324: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2376: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2436: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2471: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2543: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+    Line 2630: Duplicate import on line 133: traceback
+      → Remove duplicate import of 'traceback'
+  Unsorted Imports:
+    Line 9: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 2247: Unused import: watchdog
+      → Remove unused import 'watchdog'
+
+File: src/comparison_tool.py
+  Duplicate Import:
+    Line 153: Duplicate import on line 37: MigrationStatsTracker
+      → Remove duplicate import of 'MigrationStatsTracker'
+  Unsorted Imports:
+    Line 9: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 10: Unused import: os
+      → Remove unused import 'os'
+    Line 12: Unused import: tempfile
+      → Remove unused import 'tempfile'
+    Line 13: Unused import: Path
+      → Remove unused import 'Path'
+    Line 14: Unused import: Tuple
+      → Remove unused import 'Tuple'
+
+File: src/config_manager.py
+  Unused Import:
+    Line 10: Unused import: os
+      → Remove unused import 'os'
+
+File: src/migration_journal.py
+  Unused Import:
+    Line 13: Unused import: Set
+      → Remove unused import 'Set'
+
+File: src/lint_integration.py
+  Unused Import:
+    Line 10: Unused import: os
+      → Remove unused import 'os'
+    Line 15: Unused import: Tuple
+      → Remove unused import 'Tuple'
+
+File: src/doc_generator.py
+  Unsorted Imports:
+    Line 9: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local
+  Unused Import:
+    Line 10: Unused import: json
+      → Remove unused import 'json'
+    Line 11: Unused import: os
+      → Remove unused import 'os'
+    Line 13: Unused import: List
+      → Remove unused import 'List'
+    Line 13: Unused import: Any
+      → Remove unused import 'Any'
+
+File: src/import_optimizer.py
+  Unused Import:
+    Line 16: Unused import: re
+      → Remove unused import 're'
+    Line 20: Unused import: Tuple
+      → Remove unused import 'Tuple'
+
+File: src/migration_planner.py
+  Unused Import:
+    Line 10: Unused import: os
+      → Remove unused import 'os'
+    Line 13: Unused import: deque
+      → Remove unused import 'deque'
+    Line 15: Unused import: Set
+      → Remove unused import 'Set'
+    Line 15: Unused import: Tuple
+      → Remove unused import 'Tuple'
+
+File: src/performance_benchmark.py
+  Unused Import:
+    Line 18: Unused import: Tuple
+      → Remove unused import 'Tuple'
+
+File: src/code_quality.py
+  Unused Import:
+    Line 11: Unused import: re
+      → Remove unused import 're'
+
+File: src/utils/utils.py
+  Unsorted Imports:
+    Line 6: Imports are not sorted according to PEP 8
+      → Sort imports: stdlib → third-party → local

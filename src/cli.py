@@ -3409,18 +3409,6 @@ def main():
     parser_journal_delete.add_argument('entry_id', help='Entry ID to delete')
     parser_journal_delete.add_argument('--confirm', action='store_true', help='Skip confirmation prompt')
     
-    # Import Optimizer command
-    parser_imports = subparsers.add_parser(
-        'imports',
-        help='Analyze and optimize Python imports',
-        description='Clean up unused imports, remove duplicates, and sort imports according to PEP 8'
-    )
-    parser_imports.add_argument('path', help='Path to Python file or directory to analyze')
-    parser_imports.add_argument('--fix', action='store_true', help='Apply import optimizations')
-    parser_imports.add_argument('--no-backup', action='store_true', help='Skip backup before applying fixes')
-    parser_imports.add_argument('--recursive', '-r', action='store_true', help='Analyze directories recursively')
-    parser_imports.add_argument('--output', '-o', help='Save report to file')
-    
     # Parse arguments
     args = parser.parse_args()
     
