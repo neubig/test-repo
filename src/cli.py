@@ -1165,6 +1165,61 @@ def command_git(args):
         return 1
 
 
+def command_deps(args):
+    """Analyze dependencies for Python 3 compatibility."""
+    print_header("Python 3 Dependency Compatibility Analysis")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing dependencies in: {args.path}")
+    print_info(f"Output format: {args.format}\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from dependency_analyzer import DependencyAnalyzer
+        
+        analyzer = DependencyAnalyzer(args.path)
+        
+        print_info("Scanning requirements.txt...")
+        analyzer.scan_requirements_txt()
+        
+        print_info("Scanning setup.py...")
+        analyzer.scan_setup_py()
+        
+        print_info("Scanning Python imports...")
+        analyzer.scan_imports()
+        
+        print_info("Analyzing compatibility...\n")
+        
+        report = analyzer.generate_report(args.format)
+        
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        # Check if there are critical issues
+        results = analyzer.analyze_compatibility()
+        if results['incompatible'] or results['stdlib_renames']:
+            print_warning("\nAction required: Some dependencies need attention!")
+            return 1
+        else:
+            print_success("\nAll dependencies appear to be compatible!")
+            return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import dependency analyzer: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during dependency analysis: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1343,6 +1398,16 @@ def main():
     # Backup scan
     parser_backup_scan = backup_subparsers.add_parser('scan', help='Scan backup directory and check for inconsistencies')
     
+    # Deps command
+    parser_deps = subparsers.add_parser(
+        'deps',
+        help='Analyze dependencies for Python 3 compatibility',
+        description='Scan and analyze project dependencies for Python 3 compatibility'
+    )
+    parser_deps.add_argument('path', nargs='?', default='.', help='Project path to analyze (default: current directory)')
+    parser_deps.add_argument('-o', '--output', help='Save report to file (default: print to console)')
+    parser_deps.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
+    
     # Git command
     parser_git = subparsers.add_parser(
         'git',
@@ -1432,6 +1497,8 @@ def main():
         return command_config(args)
     elif args.command == 'backup':
         return command_backup(args)
+    elif args.command == 'deps':
+        return command_deps(args)
     elif args.command == 'git':
         return command_git(args)
     else:

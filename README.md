@@ -134,6 +134,18 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Zero configuration needed - works out of the box!
    - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
 
+11. **Dependency Analyzer** 📦 **[NEW]**:
+   - Comprehensive dependency analysis for Python 3 compatibility
+   - Scans requirements.txt, setup.py, and import statements
+   - Identifies standard library module renames (urllib2 → urllib.request, etc.)
+   - Detects incompatible packages and suggests alternatives
+   - Recommends minimum and optimal versions for Python 3
+   - Generates detailed reports in text or JSON format
+   - Helps plan dependency upgrades before migration
+   - Perfect for understanding the full scope of migration work!
+   - Run `./py2to3 deps --help` to analyze your dependencies!
+   - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -154,7 +166,10 @@ The easiest way to get started is using the unified CLI tool:
 # STEP 1: Run preflight checks before starting (recommended!)
 ./py2to3 preflight src/
 
-# STEP 2: Run the complete migration in one command
+# STEP 2: Analyze dependencies for Python 3 compatibility (NEW!)
+./py2to3 deps src/ --output dependency_report.txt
+
+# STEP 3: Run the complete migration in one command
 ./py2to3 migrate src/ --output my_migration_report.html
 ```
 
@@ -163,6 +178,9 @@ Or use individual commands for more control:
 ```bash
 # Validate environment and project readiness
 ./py2to3 preflight src/ -v
+
+# Analyze dependencies (NEW!)
+./py2to3 deps src/
 
 # Check compatibility
 ./py2to3 check src/
@@ -213,6 +231,33 @@ The fixer creates backups before modifying files. You can manage these backups:
 # Scan backup directory for issues
 ./py2to3 backup scan
 ```
+
+**Dependency Analysis**
+
+Analyze your project's dependencies for Python 3 compatibility:
+
+```bash
+# Analyze dependencies in current directory
+./py2to3 deps
+
+# Analyze specific project path
+./py2to3 deps src/
+
+# Save report to file
+./py2to3 deps src/ --output dependency_report.txt
+
+# Generate JSON output for CI/CD integration
+./py2to3 deps src/ --format json --output deps.json
+```
+
+The dependency analyzer will:
+- Scan requirements.txt, setup.py, and import statements
+- Identify standard library modules that were renamed in Python 3
+- Detect incompatible packages and suggest alternatives
+- Recommend minimum and optimal versions for Python 3
+- Help you plan dependency upgrades before migration
+
+See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete documentation.
 
 **Git Integration for Migration Tracking**
 
