@@ -112,7 +112,7 @@ jobs:
                   echo "Test repo path: $(pwd)/test-repo"
                   cd test-repo
                   echo "Current directory: $(pwd)"
-                  uv run --directory ../agent-sdk python ../agent-sdk/"$AGENT_SCRIPT" "$PROMPT_LOCATION"
+                  uv run --directory ../agent-sdk python "$AGENT_SCRIPT" "$PROMPT_LOCATION"
 
             - name: Upload logs as artifact
               uses: actions/upload-artifact@v4
