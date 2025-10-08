@@ -2326,6 +2326,67 @@ def command_dashboard(args):
         return 1
 
 
+def command_health(args):
+    """Monitor migration health and generate health report."""
+    print_header("Migration Health Monitor")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from health_monitor import MigrationHealthMonitor, format_health_report
+        
+        path = args.path if hasattr(args, 'path') else '.'
+        
+        print_info(f"Analyzing migration health for: {path}\n")
+        
+        # Create monitor and analyze
+        monitor = MigrationHealthMonitor(path)
+        report = monitor.analyze(save_history=not args.no_history)
+        
+        # Print report
+        print(format_health_report(report, verbose=args.verbose))
+        
+        # Show trend analysis if requested
+        if args.trend:
+            trend = monitor.get_trend_analysis(days=args.trend)
+            if trend['available']:
+                print(f"📊 Trend Analysis (Last {trend['days']} days):")
+                print(f"   Measurements: {trend['measurements']}")
+                print(f"   Average Score: {trend['average_score']}/100")
+                print(f"   Range: {trend['min_score']}-{trend['max_score']}")
+                print(f"   Change: {trend['improvement']:+.1f} points")
+                print(f"   Trend: {trend['trend'].upper()}")
+                print()
+            else:
+                print(f"⚠️  {trend['message']}\n")
+        
+        # Save JSON if requested
+        if args.output:
+            import json
+            with open(args.output, 'w') as f:
+                json.dump(report, f, indent=2)
+            print(f"✓ JSON report saved to: {args.output}\n")
+        
+        # Show quick tips
+        if report['overall_score'] < 70:
+            print(f"{Colors.BOLD}Quick Start:{Colors.ENDC}")
+            print(f"  1. Review recommendations above")
+            print(f"  2. Run suggested commands to improve health")
+            print(f"  3. Re-run health check: {Colors.OKCYAN}py2to3 health{Colors.ENDC}")
+            print(f"  4. Track progress: {Colors.OKCYAN}py2to3 health --trend 7{Colors.ENDC}")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import health monitor: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error analyzing health: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_lint(args):
     """Run Python linters on migrated code."""
     print_header("Linting Integration")
@@ -4266,6 +4327,23 @@ def main():
                                  default='.',
                                  help='Project path (default: current directory)')
     
+    # Health command
+    parser_health = subparsers.add_parser(
+        'health',
+        help='Monitor migration health',
+        description='Analyze and report on overall migration health with actionable recommendations'
+    )
+    parser_health.add_argument('path', nargs='?', default='.',
+                              help='Project path (default: current directory)')
+    parser_health.add_argument('-o', '--output',
+                              help='Save JSON report to file')
+    parser_health.add_argument('-v', '--verbose', action='store_true',
+                              help='Show detailed recommendations for each dimension')
+    parser_health.add_argument('--no-history', action='store_true',
+                              help='Do not save to history')
+    parser_health.add_argument('--trend', type=int, metavar='DAYS',
+                              help='Show trend analysis for last N days')
+    
     # Lint command
     parser_lint = subparsers.add_parser(
         'lint',
@@ -4636,6 +4714,8 @@ def main():
         return command_estimate(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
+    elif args.command == 'health':
+        return command_health(args)
     elif args.command == 'lint':
         return command_lint(args)
     elif args.command == 'recipe':

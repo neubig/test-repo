@@ -153,7 +153,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Creates PR descriptions with migration statistics and recommendations
    - Estimates review time based on change complexity
 
-13. **Runtime Validator** ✨ **[NEW]**:
+13. **Migration Health Monitor** 🏥 **[NEW]**:
+   - Comprehensive health scoring system for migration tracking (0-100)
+   - Single metric to communicate status to stakeholders
+   - Analyzes 6 key dimensions: compatibility, quality, tests, risk, progress, safety
+   - Provides actionable, prioritized recommendations
+   - Tracks health trends over time with historical data
+   - CI/CD integration with exit codes based on health score
+   - Beautiful visual output with emoji indicators and progress bars
+   - JSON export for custom reporting and dashboards
+   - Run `./py2to3 health` to check your migration health!
+   - **See [HEALTH_GUIDE.md](HEALTH_GUIDE.md) for complete health monitoring guide!**
+
+14. **Runtime Validator** ✨ **[NEW]**:
    - Validate migrated code by attempting to import all modules
    - Catch runtime errors that static analysis can't detect
    - Quick smoke test to verify code actually works after migration
@@ -164,7 +176,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 validate src/` after applying fixes!
    - **See [VALIDATION_GUIDE.md](VALIDATION_GUIDE.md) for complete validation guide!**
 
-14. **CI/CD Integration** 🚀 **[NEW]**:
+15. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts
@@ -175,7 +187,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Zero configuration needed - works out of the box!
    - **See [CI_CD_GUIDE.md](CI_CD_GUIDE.md) for complete CI/CD integration guide!**
 
-13. **Dependency Analyzer** 📦 **[NEW]**:
+16. **Dependency Analyzer** 📦 **[NEW]**:
    - Comprehensive dependency analysis for Python 3 compatibility
    - Scans requirements.txt, setup.py, and import statements
    - Identifies standard library module renames (urllib2 → urllib.request, etc.)
@@ -187,7 +199,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 deps --help` to analyze your dependencies!
    - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
 
-14. **Python Version Compatibility Checker** 🐍 **[NEW]**:
+17. **Python Version Compatibility Checker** 🐍 **[NEW]**:
    - Analyzes migrated code to determine Python 3.x version requirements
    - Detects version-specific features (f-strings, walrus operator, pattern matching, etc.)
    - Identifies minimum Python version required for your code
@@ -200,7 +212,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 version-check src/ -t 3.8` to check Python 3.8 compatibility!
    - **See [VERSION_CHECKER_GUIDE.md](VERSION_CHECKER_GUIDE.md) for complete version checking guide!**
 
-15. **Migration Comparison Tool** 🔍:
+18. **Migration Comparison Tool** 🔍:
    - Compare migration progress between different contexts
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time
