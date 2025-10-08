@@ -1053,6 +1053,227 @@ def command_recipe(args):
     return 0
 
 
+def command_state(args):
+    """Manage migration state tracking for individual files."""
+    print_header("Migration State Tracker")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from migration_state import MigrationStateTracker, MigrationState
+        
+        project_root = args.project_root if hasattr(args, 'project_root') and args.project_root else '.'
+        tracker = MigrationStateTracker(project_root)
+        
+        if args.state_action == 'init':
+            # Initialize state tracking
+            scan_dir = args.scan_dir if hasattr(args, 'scan_dir') and args.scan_dir else None
+            result = tracker.initialize(
+                scan_directory=scan_dir,
+                force=args.force if hasattr(args, 'force') else False
+            )
+            
+            if result['status'] == 'already_initialized':
+                print_warning(f"State tracking already initialized")
+                print_info(f"State file: {result['state_file']}")
+                print_info(f"Tracking {result['file_count']} files")
+                print_info("Use --force to reinitialize")
+            else:
+                print_success(f"Initialized migration state tracking")
+                print_info(f"State file: {result['state_file']}")
+                print_info(f"Found {result['files_found']} Python files")
+                print_info(f"Added {result['files_added']} new files to tracking")
+                print_info(f"Total tracked files: {result['total_tracked']}")
+            
+            return 0
+        
+        elif args.state_action == 'list':
+            # List files with optional filtering
+            state_filter = None
+            if hasattr(args, 'filter_state') and args.filter_state:
+                try:
+                    state_filter = MigrationState(args.filter_state)
+                except ValueError:
+                    print_error(f"Invalid state: {args.filter_state}")
+                    print_info(f"Valid states: {', '.join([s.value for s in MigrationState])}")
+                    return 1
+            
+            files = tracker.list_files(
+                state=state_filter,
+                locked=args.locked if hasattr(args, 'locked') else None,
+                owner=args.owner if hasattr(args, 'owner') else None
+            )
+            
+            if not files:
+                print_warning("No files found matching criteria")
+                return 0
+            
+            print_info(f"Found {len(files)} file(s):\n")
+            
+            for file_data in files:
+                # Color code based on state
+                state = file_data['state']
+                if state == MigrationState.DONE.value:
+                    color = Colors.OKGREEN
+                elif state == MigrationState.PENDING.value:
+                    color = Colors.WARNING
+                elif state in [MigrationState.IN_PROGRESS.value, MigrationState.MIGRATED.value]:
+                    color = Colors.OKCYAN
+                else:
+                    color = Colors.OKBLUE
+                
+                lock_indicator = "🔒" if file_data.get('locked') else "  "
+                print(f"{lock_indicator} {color}{state:12}{Colors.ENDC} {file_data['path']}", end='')
+                if file_data.get('locked'):
+                    print(f" (locked by {file_data.get('owner', 'unknown')})", end='')
+                print()
+            
+            return 0
+        
+        elif args.state_action == 'set':
+            # Set state for a file
+            if not args.file:
+                print_error("Please specify a file path")
+                return 1
+            
+            if not args.state:
+                print_error("Please specify a state")
+                return 1
+            
+            try:
+                new_state = MigrationState(args.state)
+            except ValueError:
+                print_error(f"Invalid state: {args.state}")
+                print_info(f"Valid states: {', '.join([s.value for s in MigrationState])}")
+                return 1
+            
+            try:
+                tracker.set_state(
+                    args.file, 
+                    new_state,
+                    notes=args.notes if hasattr(args, 'notes') else None,
+                    user=args.user if hasattr(args, 'user') else None
+                )
+                print_success(f"Set {args.file} to state: {new_state.value}")
+                return 0
+            except ValueError as e:
+                print_error(str(e))
+                return 1
+        
+        elif args.state_action == 'lock':
+            # Lock a file
+            if not args.file:
+                print_error("Please specify a file path")
+                return 1
+            
+            try:
+                tracker.lock_file(
+                    args.file,
+                    owner=args.owner if hasattr(args, 'owner') else None
+                )
+                print_success(f"Locked file: {args.file}")
+                return 0
+            except ValueError as e:
+                print_error(str(e))
+                return 1
+        
+        elif args.state_action == 'unlock':
+            # Unlock a file
+            if not args.file:
+                print_error("Please specify a file path")
+                return 1
+            
+            try:
+                tracker.unlock_file(
+                    args.file,
+                    owner=args.owner if hasattr(args, 'owner') else None,
+                    force=args.force if hasattr(args, 'force') else False
+                )
+                print_success(f"Unlocked file: {args.file}")
+                return 0
+            except ValueError as e:
+                print_error(str(e))
+                return 1
+        
+        elif args.state_action == 'stats':
+            # Show statistics
+            stats = tracker.get_statistics()
+            
+            print(f"{Colors.BOLD}Migration State Statistics{Colors.ENDC}\n")
+            
+            print(f"Total Files: {stats['total_files']}")
+            print(f"Completion: {stats['completion_percentage']:.1f}%\n")
+            
+            print(f"{Colors.BOLD}By State:{Colors.ENDC}")
+            for state in MigrationState:
+                count = stats['by_state'].get(state.value, 0)
+                if count > 0:
+                    percentage = (count / stats['total_files'] * 100) if stats['total_files'] > 0 else 0
+                    print(f"  {state.value:12} : {count:4} ({percentage:.1f}%)")
+            
+            print(f"\n{Colors.BOLD}Activity:{Colors.ENDC}")
+            print(f"  In Progress  : {stats['in_progress_files']}")
+            print(f"  Locked Files : {stats['locked_files']}")
+            
+            return 0
+        
+        elif args.state_action == 'reset':
+            # Reset a file to pending
+            if not args.file:
+                print_error("Please specify a file path")
+                return 1
+            
+            if tracker.reset_file(args.file):
+                print_success(f"Reset {args.file} to pending state")
+                return 0
+            else:
+                print_error(f"File not found in state tracking: {args.file}")
+                return 1
+        
+        elif args.state_action == 'export':
+            # Export state
+            output_file = args.output if hasattr(args, 'output') else None
+            result = tracker.export_state(output_file)
+            
+            if output_file:
+                print_success(f"Exported state to: {output_file}")
+            else:
+                print(json.dumps(result, indent=2))
+            
+            return 0
+        
+        elif args.state_action == 'import':
+            # Import state
+            if not args.file:
+                print_error("Please specify a file to import from")
+                return 1
+            
+            result = tracker.import_state(
+                args.file,
+                merge=args.merge if hasattr(args, 'merge') else False
+            )
+            
+            print_success(f"Imported state: {result['status']}")
+            if 'files_imported' in result:
+                print_info(f"Files imported: {result['files_imported']}")
+            if 'files_updated' in result:
+                print_info(f"Files updated: {result['files_updated']}")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown state action: {args.state_action}")
+            return 1
+            
+    except Exception as e:
+        print_error(f"State tracking failed: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+    
+    return 0
+
+
 def command_config(args):
     """Manage configuration for py2to3 toolkit."""
     print_header("Configuration Management")
@@ -2559,6 +2780,61 @@ def main():
     parser_recipe_delete = recipe_subparsers.add_parser('delete', help='Delete a recipe')
     parser_recipe_delete.add_argument('name', help='Recipe name')
     
+    # State tracking command
+    parser_state = subparsers.add_parser(
+        'state',
+        help='Track migration state of individual files',
+        description='Manage migration state tracking for coordinating team work and tracking file-level progress'
+    )
+    parser_state.add_argument('--project-root', help='Project root directory (default: current directory)')
+    
+    state_subparsers = parser_state.add_subparsers(dest='state_action', help='State tracking actions')
+    
+    # State init
+    parser_state_init = state_subparsers.add_parser('init', help='Initialize state tracking for the project')
+    parser_state_init.add_argument('--scan-dir', help='Directory to scan for Python files (default: project root)')
+    parser_state_init.add_argument('--force', action='store_true', help='Reinitialize even if already initialized')
+    
+    # State list
+    parser_state_list = state_subparsers.add_parser('list', help='List files and their migration states')
+    parser_state_list.add_argument('--filter-state', help='Filter by state (pending, in_progress, migrated, verified, tested, done)')
+    parser_state_list.add_argument('--locked', action='store_true', help='Show only locked files')
+    parser_state_list.add_argument('--owner', help='Filter by owner')
+    
+    # State set
+    parser_state_set = state_subparsers.add_parser('set', help='Set the migration state for a file')
+    parser_state_set.add_argument('file', help='File path')
+    parser_state_set.add_argument('state', help='New state (pending, in_progress, migrated, verified, tested, done, skipped)')
+    parser_state_set.add_argument('--notes', help='Notes about the state change')
+    parser_state_set.add_argument('--user', help='User making the change')
+    
+    # State lock
+    parser_state_lock = state_subparsers.add_parser('lock', help='Lock a file for exclusive editing')
+    parser_state_lock.add_argument('file', help='File path')
+    parser_state_lock.add_argument('--owner', help='Owner of the lock (default: current user@hostname)')
+    
+    # State unlock
+    parser_state_unlock = state_subparsers.add_parser('unlock', help='Unlock a file')
+    parser_state_unlock.add_argument('file', help='File path')
+    parser_state_unlock.add_argument('--owner', help='Owner requesting unlock')
+    parser_state_unlock.add_argument('--force', action='store_true', help='Force unlock regardless of owner')
+    
+    # State stats
+    parser_state_stats = state_subparsers.add_parser('stats', help='Show migration state statistics')
+    
+    # State reset
+    parser_state_reset = state_subparsers.add_parser('reset', help='Reset a file to pending state')
+    parser_state_reset.add_argument('file', help='File path')
+    
+    # State export
+    parser_state_export = state_subparsers.add_parser('export', help='Export state to a file')
+    parser_state_export.add_argument('-o', '--output', help='Output file path')
+    
+    # State import
+    parser_state_import = state_subparsers.add_parser('import', help='Import state from a file')
+    parser_state_import.add_argument('file', help='File to import from')
+    parser_state_import.add_argument('--merge', action='store_true', help='Merge with existing state instead of replacing')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2630,6 +2906,8 @@ def main():
         return command_lint(args)
     elif args.command == 'recipe':
         return command_recipe(args)
+    elif args.command == 'state':
+        return command_state(args)
     else:
         parser.print_help()
         return 1

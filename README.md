@@ -325,6 +325,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 status` anytime for instant status update!
    - **See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete status command guide!**
 
+26. **Migration State Tracker** 🎯✨ **[NEW]**:
+   - Track migration status of individual files through the entire migration workflow
+   - File-level state management: pending → in_progress → migrated → verified → tested → done
+   - Advisory file locking to coordinate team work and prevent conflicts
+   - Export/import state for team synchronization and backup
+   - Rich statistics and progress reporting by state
+   - Filter and list files by state, lock status, or owner
+   - Full history tracking with notes and timestamps for each state change
+   - Perfect for large-scale migrations with multiple team members
+   - Resumable workflows - easily pick up where you left off after interruptions
+   - Integrates seamlessly with git for shared state tracking
+   - JSON-based state persistence in `.py2to3.state.json`
+   - Run `./py2to3 state init` to start tracking migration progress!
+   - Run `./py2to3 state stats` to see comprehensive statistics!
+   - Run `./py2to3 state list --filter-state pending` to find work to do!
+   - **See [docs/MIGRATION_STATE_GUIDE.md](docs/MIGRATION_STATE_GUIDE.md) for complete state tracking guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
