@@ -94,6 +94,14 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
+7. **Comprehensive Test Suite** ✅ **[NEW]**:
+   - Full pytest-based test suite for all migration tools
+   - Unit tests for fixer, verifier, backup manager, and config manager
+   - Integration tests for complete workflows
+   - Test fixtures for easy test development
+   - Ensures reliability and correctness of migration tools
+   - **See [tests/README.md](tests/README.md) for complete testing guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -212,6 +220,29 @@ You can also run each tool separately:
    ```bash
    npm run dev
    ```
+
+## Testing
+
+The toolkit includes a comprehensive test suite to ensure reliability:
+
+```bash
+# Install testing dependencies
+pip install pytest pytest-cov
+
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=src --cov-report=html
+
+# Run only unit tests
+pytest -m unit
+
+# Run only integration tests
+pytest -m integration
+```
+
+For more details on running and writing tests, see [tests/README.md](tests/README.md).
 
 ## Learning Points
 
