@@ -84,8 +84,8 @@ jobs:
 
             - name: Create prompt file
               run: |
-                  cd test-repo
-                  cat > maintenance_prompt.txt << 'EOF'
+                  mkdir -p /tmp/prompts
+                  cat > /tmp/prompts/maintenance_prompt.txt << 'EOF'
                   Think of a feature that could be implemented to make this repo better, implement it, and push directly to main.
                   EOF
 
@@ -101,15 +101,14 @@ jobs:
                       'examples/28_maintenance_task_runner/run.py' }}
                   PROMPT_LOCATION: >-
                       ${{ inputs.prompt_location ||
-                      '../test-repo/maintenance_prompt.txt' }}
+                      '/tmp/prompts/maintenance_prompt.txt' }}
                   PYTHONPATH: ''
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              working-directory: test-repo
               run: |
-                  cd agent-sdk
                   echo "Running agent script: $AGENT_SCRIPT"
                   echo "With prompt from: $PROMPT_LOCATION"
-                  echo "Working directory for agent: $(pwd)/../test-repo"
-                  cd ../test-repo
+                  echo "Working directory: $(pwd)"
                   uv run --directory ../agent-sdk python ../agent-sdk/"$AGENT_SCRIPT" "$PROMPT_LOCATION"
 
             - name: Upload logs as artifact
