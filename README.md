@@ -112,6 +112,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
+9. **Git Integration** 🔧 **[NEW]**:
+   - Seamless git integration for tracking migration progress
+   - Create migration branches and checkpoints automatically
+   - Generate detailed commit messages with migration statistics
+   - View migration history and rollback to previous states
+   - Show git status and diff for migration changes
+   - Perfect for team collaboration and code review workflows
+   - Integrates with existing git repositories or creates new ones
+   - Run `./py2to3 git --help` to explore git integration features!
+   - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -192,7 +203,38 @@ The fixer creates backups before modifying files. You can manage these backups:
 ./py2to3 backup scan
 ```
 
-See [CLI_GUIDE.md](CLI_GUIDE.md), [CONFIG.md](CONFIG.md), and [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete documentation.
+**Git Integration for Migration Tracking**
+
+Track your migration progress with automatic git integration:
+
+```bash
+# Check repository status
+./py2to3 git status
+
+# View repository information
+./py2to3 git info
+
+# Create a migration branch
+./py2to3 git branch py2to3-migration
+
+# Create a checkpoint before starting migration
+./py2to3 git checkpoint "Pre-migration baseline"
+
+# Apply fixes and create a commit with statistics
+./py2to3 fix src/
+./py2to3 git commit "fixes-applied" -m "Applied Python 2 to 3 fixes"
+
+# View migration commit history
+./py2to3 git log
+
+# Rollback to a previous state if needed
+./py2to3 git rollback
+
+# Show differences between commits
+./py2to3 git diff HEAD~1 HEAD
+```
+
+See [CLI_GUIDE.md](CLI_GUIDE.md), [CONFIG.md](CONFIG.md), [BACKUP_GUIDE.md](BACKUP_GUIDE.md), and [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete documentation.
 
 #### Manual Approach (Using Individual Tools)
 

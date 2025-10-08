@@ -904,6 +904,267 @@ def command_config(args):
         return 1
 
 
+def command_git(args):
+    """Handle git integration commands."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from git_integration import GitIntegration, GitIntegrationError
+        
+        git = GitIntegration(args.path)
+        
+        # Check if action is provided
+        if not args.git_action:
+            print_error("No git action specified")
+            print_info("Available actions: status, init, branch, checkpoint, commit, log, rollback, diff, info")
+            return 1
+        
+        # Git status
+        if args.git_action == 'status':
+            print_header("Git Status")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                print_info("Initialize with: ./py2to3 git init")
+                return 1
+            
+            status = git.get_status()
+            branch = git.get_current_branch()
+            is_clean = git.is_clean()
+            
+            print_info(f"Current branch: {branch}")
+            print_info(f"Working directory: {'clean' if is_clean else 'has changes'}\n")
+            
+            if not is_clean:
+                if status['modified']:
+                    print(f"{Colors.WARNING}Modified files:{Colors.ENDC}")
+                    for f in status['modified']:
+                        print(f"  {Colors.WARNING}M{Colors.ENDC} {f}")
+                
+                if status['added']:
+                    print(f"\n{Colors.OKGREEN}Added files:{Colors.ENDC}")
+                    for f in status['added']:
+                        print(f"  {Colors.OKGREEN}A{Colors.ENDC} {f}")
+                
+                if status['deleted']:
+                    print(f"\n{Colors.FAIL}Deleted files:{Colors.ENDC}")
+                    for f in status['deleted']:
+                        print(f"  {Colors.FAIL}D{Colors.ENDC} {f}")
+                
+                if status['untracked']:
+                    print(f"\n{Colors.OKCYAN}Untracked files:{Colors.ENDC}")
+                    for f in status['untracked']:
+                        print(f"  {Colors.OKCYAN}?{Colors.ENDC} {f}")
+            else:
+                print_success("No changes to commit")
+            
+            return 0
+        
+        # Git init
+        elif args.git_action == 'init':
+            print_header("Initialize Git Repository")
+            
+            if git.is_git_repo():
+                print_info("Already a git repository")
+                return 0
+            
+            git.init_repo()
+            print_success("Initialized git repository")
+            return 0
+        
+        # Git branch
+        elif args.git_action == 'branch':
+            print_header("Create Migration Branch")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            branch_name = git.create_migration_branch(args.name)
+            print_success(f"Created and switched to branch: {branch_name}")
+            return 0
+        
+        # Git checkpoint
+        elif args.git_action == 'checkpoint':
+            print_header("Create Migration Checkpoint")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            if not args.message:
+                print_error("Commit message is required")
+                return 1
+            
+            try:
+                commit_hash = git.create_checkpoint(args.message, args.tag)
+                print_success(f"Created checkpoint: {commit_hash[:8]}")
+                if args.tag:
+                    print_info(f"Tagged as: {git.migration_tag_prefix}-{args.tag}")
+                return 0
+            except GitIntegrationError as e:
+                print_error(str(e))
+                return 1
+        
+        # Git commit (with migration stats)
+        elif args.git_action == 'commit':
+            print_header("Create Migration Commit")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            # Load statistics if provided
+            stats = {}
+            if args.stats_file:
+                if not os.path.exists(args.stats_file):
+                    print_error(f"Statistics file not found: {args.stats_file}")
+                    return 1
+                
+                with open(args.stats_file, 'r') as f:
+                    stats = json.load(f)
+            
+            try:
+                commit_hash = git.create_migration_commit(
+                    args.phase,
+                    stats=stats,
+                    additional_info=args.message
+                )
+                print_success(f"Created migration commit: {commit_hash[:8]}")
+                print_info(f"Phase: {args.phase}")
+                return 0
+            except GitIntegrationError as e:
+                print_error(str(e))
+                return 1
+        
+        # Git log
+        elif args.git_action == 'log':
+            print_header("Migration Commit History")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            commits = git.get_migration_commits()
+            
+            if not commits:
+                print_info("No migration commits found")
+                return 0
+            
+            # Show first N commits
+            for i, commit in enumerate(commits[:args.count], 1):
+                print(f"{Colors.BOLD}{i}. {commit['hash'][:8]}{Colors.ENDC}")
+                print(f"   {commit['message']}")
+                print(f"   {Colors.OKCYAN}{commit['date']}{Colors.ENDC}\n")
+            
+            if len(commits) > args.count:
+                print_info(f"Showing {args.count} of {len(commits)} migration commits")
+            
+            return 0
+        
+        # Git rollback
+        elif args.git_action == 'rollback':
+            print_header("Rollback Migration")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            # If no commit specified, use last migration commit
+            commit_hash = args.commit
+            if not commit_hash:
+                commits = git.get_migration_commits()
+                if not commits:
+                    print_error("No migration commits found")
+                    return 1
+                commit_hash = commits[0]['hash']
+                print_info(f"Rolling back to last migration commit: {commit_hash[:8]}")
+            
+            # Confirm
+            if not args.yes:
+                reset_type = "HARD (discard all changes)" if args.hard else "MIXED (keep changes as unstaged)"
+                response = input(f"{Colors.WARNING}Rollback to {commit_hash[:8]} ({reset_type})? [y/N]: {Colors.ENDC}")
+                if response.lower() not in ['y', 'yes']:
+                    print_info("Operation cancelled")
+                    return 0
+            
+            try:
+                git.rollback_to_commit(commit_hash, hard=args.hard)
+                print_success(f"Rolled back to commit: {commit_hash[:8]}")
+                if args.hard:
+                    print_warning("All changes have been discarded")
+                else:
+                    print_info("Changes are preserved as unstaged")
+                return 0
+            except GitIntegrationError as e:
+                print_error(str(e))
+                return 1
+        
+        # Git diff
+        elif args.git_action == 'diff':
+            print_header("Git Diff")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            diff = git.get_diff(args.commit1, args.commit2)
+            
+            if not diff:
+                print_info("No differences found")
+                return 0
+            
+            print(diff)
+            return 0
+        
+        # Git info
+        elif args.git_action == 'info':
+            print_header("Repository Information")
+            
+            if not git.is_git_repo():
+                print_error("Not a git repository")
+                return 1
+            
+            info = git.get_repo_info()
+            
+            print(f"{Colors.BOLD}Repository:{Colors.ENDC}")
+            print(f"  Branch:        {info['branch']}")
+            print(f"  Status:        {'Clean' if info['is_clean'] else 'Modified'}")
+            print(f"  Total commits: {info['commit_count']}")
+            
+            if info.get('remote_url'):
+                print(f"  Remote:        {info['remote_url']}")
+            
+            if info.get('last_commit'):
+                print(f"\n{Colors.BOLD}Last Commit:{Colors.ENDC}")
+                print(f"  Hash:    {info['last_commit']['hash'][:8]}")
+                print(f"  Message: {info['last_commit']['message']}")
+                print(f"  Date:    {info['last_commit']['date']}")
+            
+            # Get migration commits count
+            migration_commits = git.get_migration_commits()
+            if migration_commits:
+                print(f"\n{Colors.BOLD}Migration:{Colors.ENDC}")
+                print(f"  Migration commits: {len(migration_commits)}")
+                print(f"  Last migration:    {migration_commits[0]['message']}")
+                print(f"  Migration date:    {migration_commits[0]['date']}")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown git action: {args.git_action}")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import git integration module: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during git operation: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1082,6 +1343,54 @@ def main():
     # Backup scan
     parser_backup_scan = backup_subparsers.add_parser('scan', help='Scan backup directory and check for inconsistencies')
     
+    # Git command
+    parser_git = subparsers.add_parser(
+        'git',
+        help='Git integration for migration tracking',
+        description='Integrate migration workflow with git version control'
+    )
+    parser_git.add_argument('-p', '--path', default='.', help='Repository path (default: current directory)')
+    git_subparsers = parser_git.add_subparsers(dest='git_action', help='Git actions')
+    
+    # Git status
+    parser_git_status = git_subparsers.add_parser('status', help='Show git status of migration files')
+    
+    # Git init
+    parser_git_init = git_subparsers.add_parser('init', help='Initialize git repository (if not already initialized)')
+    
+    # Git branch
+    parser_git_branch = git_subparsers.add_parser('branch', help='Create a migration branch')
+    parser_git_branch.add_argument('name', nargs='?', help='Branch name (default: auto-generated)')
+    
+    # Git checkpoint
+    parser_git_checkpoint = git_subparsers.add_parser('checkpoint', help='Create a migration checkpoint (commit)')
+    parser_git_checkpoint.add_argument('message', nargs='?', help='Commit message')
+    parser_git_checkpoint.add_argument('-t', '--tag', help='Tag name for this checkpoint')
+    
+    # Git commit (alias for checkpoint with migration stats)
+    parser_git_commit = git_subparsers.add_parser('commit', help='Create a migration commit with statistics')
+    parser_git_commit.add_argument('phase', help='Migration phase (e.g., pre-migration, fixes-applied, verified)')
+    parser_git_commit.add_argument('-s', '--stats-file', help='JSON file with migration statistics')
+    parser_git_commit.add_argument('-m', '--message', help='Additional commit message')
+    
+    # Git log
+    parser_git_log = git_subparsers.add_parser('log', help='Show migration commit history')
+    parser_git_log.add_argument('-n', '--count', type=int, default=10, help='Number of commits to show (default: 10)')
+    
+    # Git rollback
+    parser_git_rollback = git_subparsers.add_parser('rollback', help='Rollback to a previous migration state')
+    parser_git_rollback.add_argument('commit', nargs='?', help='Commit hash to rollback to (default: last migration commit)')
+    parser_git_rollback.add_argument('--hard', action='store_true', help='Discard all changes (hard reset)')
+    parser_git_rollback.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    
+    # Git diff
+    parser_git_diff = git_subparsers.add_parser('diff', help='Show changes between commits')
+    parser_git_diff.add_argument('commit1', nargs='?', default='HEAD', help='First commit (default: HEAD)')
+    parser_git_diff.add_argument('commit2', nargs='?', help='Second commit (default: working directory)')
+    
+    # Git info
+    parser_git_info = git_subparsers.add_parser('info', help='Show repository information')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1123,6 +1432,8 @@ def main():
         return command_config(args)
     elif args.command == 'backup':
         return command_backup(args)
+    elif args.command == 'git':
+        return command_git(args)
     else:
         parser.print_help()
         return 1
