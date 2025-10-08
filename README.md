@@ -282,6 +282,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 dashboard` to generate your progress dashboard!
    - Update regularly: collect stats with `--save` flag, then regenerate dashboard
 
+23. **Quick Status Command** 📋⚡ **[NEW]**:
+   - Lightning-fast terminal-based status report for at-a-glance progress checking
+   - Shows comprehensive migration status without generating HTML reports
+   - Beautiful colorful output with progress bars, icons, and visual indicators
+   - Displays project info, progress percentage, issue breakdown by severity
+   - Git integration showing current branch, modified files, and recent commits
+   - Backup status and count of available backups
+   - Smart recommendations for next steps based on current state
+   - Trend analysis comparing with previous snapshots
+   - JSON output support for CI/CD integration and automation
+   - Perfect for quick daily checks, team standups, and pre-commit validation
+   - Run `./py2to3 status` anytime for instant status update!
+   - **See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete status command guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
@@ -338,8 +352,14 @@ Or use individual commands for more control:
 # Check compatibility
 ./py2to3 check src/
 
+# Quick status check (NEW!)
+./py2to3 status
+
 # Apply fixes (with confirmation)
 ./py2to3 fix src/
+
+# Check status again to see progress (NEW!)
+./py2to3 status
 
 # Analyze migration risks (NEW!)
 ./py2to3 risk src/ -o risk_assessment.txt
@@ -350,6 +370,33 @@ Or use individual commands for more control:
 # Generate report
 ./py2to3 report --scan-path src/ --output report.html
 ```
+
+**Quick Status Checks** 📋 **[NEW]**
+
+Get an instant overview of your migration progress at any time:
+
+```bash
+# Show current migration status in the terminal
+./py2to3 status
+
+# Export status as JSON for CI/CD or automation
+./py2to3 status --json -o status.json
+
+# Check status for specific project path
+./py2to3 status src/
+```
+
+The status command shows:
+- Migration progress percentage with visual progress bar
+- Issue counts by severity (Critical, High, Medium, Low)
+- Git status (current branch, modified files, recent commits)
+- Backup information
+- Smart recommendations for next steps
+- Progress trends compared to previous snapshots
+
+Perfect for quick daily checks, team standups, and pre-commit validation!
+
+See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete documentation.
 
 **Generate Tests to Verify Migration** 🧪 **[NEW]**
 

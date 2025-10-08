@@ -1874,6 +1874,41 @@ def command_docs(args):
         return 1
 
 
+def command_status(args):
+    """Show quick status summary of migration progress."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from status_reporter import MigrationStatusReporter
+        
+        path = args.path if hasattr(args, 'path') else '.'
+        stats_dir = args.stats_dir if hasattr(args, 'stats_dir') else '.migration_stats'
+        
+        reporter = MigrationStatusReporter(path, stats_dir)
+        
+        if args.json:
+            # Export as JSON
+            output = reporter.export_json(args.output if hasattr(args, 'output') else None)
+            if hasattr(args, 'output') and args.output:
+                print_success(f"Status report exported to: {args.output}")
+            else:
+                print(output)
+        else:
+            # Print colorful terminal report
+            reporter.print_status(color=not args.no_color)
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import status reporter: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating status report: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -2255,6 +2290,21 @@ def main():
     parser_docs.add_argument('-b', '--backup-dir',
                             help='Backup directory path to include in changelog')
     
+    # Status command
+    parser_status = subparsers.add_parser(
+        'status',
+        help='Show quick migration status summary',
+        description='Display an at-a-glance status report of migration progress in the terminal'
+    )
+    parser_status.add_argument('path', nargs='?', default='.',
+                              help='Project path to analyze (default: current directory)')
+    parser_status.add_argument('--stats-dir', default='.migration_stats',
+                              help='Stats directory (default: .migration_stats)')
+    parser_status.add_argument('--json', action='store_true',
+                              help='Output in JSON format')
+    parser_status.add_argument('-o', '--output',
+                              help='Export JSON report to file (requires --json)')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -2331,6 +2381,8 @@ def main():
         return command_bench(args)
     elif args.command == 'docs':
         return command_docs(args)
+    elif args.command == 'status':
+        return command_status(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     else:
