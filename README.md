@@ -173,9 +173,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Provides specific recommendations for each risk category
    - Helps teams focus on the most important changes first
    - Generates detailed reports in text or JSON format
-   - Perfect for ensuring thorough review of critical changes!
-   - Run `./py2to3 risk --help` to analyze migration risks!
-   - **See [RISK_GUIDE.md](RISK_GUIDE.md) for complete risk analysis guide!**
+
+15. **Migration Planner** 📋 **[NEW]**:
+   - Strategic planning tool for large-scale migrations
+   - Analyzes codebase structure and builds complete dependency graph
+   - Creates optimized phased migration plan based on dependencies
+   - Breaks down complex migrations into manageable phases
+   - Assesses complexity and risk level for each file
+   - Estimates effort (hours) for planning and resource allocation
+   - Exports plans in multiple formats: text, Markdown, JSON
+   - Start with Phase 1 (leaf nodes) for safest migration approach
+   - Perfect for understanding scope before starting migration
+   - Run `./py2to3 plan src/` to create your migration strategy!
+   - **See [PLANNER_GUIDE.md](PLANNER_GUIDE.md) for complete migration planning guide!**
 
 14. **Migration Statistics Dashboard** 📊 **[NEW]**:
    - Interactive web-based dashboard for visualizing migration progress
@@ -236,6 +246,9 @@ Or use individual commands for more control:
 ```bash
 # Validate environment and project readiness
 ./py2to3 preflight src/ -v
+
+# Create a strategic migration plan (NEW!)
+./py2to3 plan src/ -o migration_plan.txt
 
 # Analyze dependencies (NEW!)
 ./py2to3 deps src/

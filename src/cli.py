@@ -1460,6 +1460,76 @@ def command_risk(args):
         return 1
 
 
+def command_plan(args):
+    """Create a strategic migration plan for the codebase."""
+    print_header("Migration Planning")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing codebase: {args.path}")
+    print_info(f"Output format: {args.format}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from migration_planner import MigrationPlanner
+        
+        planner = MigrationPlanner(args.path)
+        
+        print_info("📊 Analyzing files and dependencies...")
+        planner.analyze_codebase()
+        
+        print_info("📋 Creating phased migration plan...")
+        planner.create_migration_plan()
+        
+        print()
+        print_success(f"✓ Plan created: {len(planner.phases)} phases, ~{planner.total_estimated_hours:.1f} hours")
+        print()
+        
+        # Export in requested format
+        if args.format == "json":
+            output_file = args.output or "migration_plan.json"
+            planner.export_json(output_file)
+        elif args.format == "markdown":
+            output_file = args.output or "migration_plan.md"
+            planner.export_markdown(output_file)
+        else:
+            text_output = planner.export_text(args.output)
+            if not args.output:
+                print(text_output)
+        
+        # Print quick summary
+        if args.output:
+            print()
+            print_info("Quick Summary:")
+            print(f"  📁 Total Files: {len(planner.files)}")
+            print(f"  📊 Phases: {len(planner.phases)}")
+            
+            risk_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+            for f in planner.files.values():
+                risk_counts[f.risk_level] += 1
+            
+            print(f"  🔴 High Risk: {risk_counts['HIGH']} files")
+            print(f"  🟡 Medium Risk: {risk_counts['MEDIUM']} files")
+            print(f"  🟢 Low Risk: {risk_counts['LOW']} files")
+            print(f"  ⏱️  Estimated: {planner.total_estimated_hours:.1f} hours")
+            print()
+            print_info("💡 Tip: Start with Phase 1 files (minimal dependencies)")
+            print_info("💡 Tip: Use './py2to3 fix <file>' to migrate individual files")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Could not import migration planner: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Planning failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -1758,6 +1828,17 @@ def main():
     parser_test_gen.add_argument('--overwrite', action='store_true', 
                                  help='Overwrite existing test files')
     
+    # Plan command
+    parser_plan = subparsers.add_parser(
+        'plan',
+        help='Create a strategic migration plan',
+        description='Analyze codebase and create a phased migration plan based on dependencies'
+    )
+    parser_plan.add_argument('path', help='Directory to analyze')
+    parser_plan.add_argument('-o', '--output', help='Output file (default: print to console)')
+    parser_plan.add_argument('-f', '--format', choices=['text', 'json', 'markdown'],
+                            default='text', help='Output format (default: text)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1809,6 +1890,8 @@ def main():
         return command_risk(args)
     elif args.command == 'test-gen':
         return command_test_gen(args)
+    elif args.command == 'plan':
+        return command_plan(args)
     else:
         parser.print_help()
         return 1
