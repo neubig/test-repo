@@ -42,7 +42,7 @@ setup(
         ],
     },
     install_requires=[
-        # Add any dependencies here if needed
+        "chardet>=4.0.0",  # Required for encoding detection
     ],
     extras_require={
         "dev": [

@@ -3224,6 +3224,154 @@ def command_freeze(args):
         return 1
 
 
+def command_encoding(args):
+    """Analyze and fix encoding issues in Python files."""
+    print_header("Encoding Analysis")
+    
+    validate_path(args.path)
+    
+    print_info(f"Analyzing: {args.path}")
+    print_info(f"Recursive: {args.recursive}")
+    if args.add_declarations:
+        print_info(f"{'[DRY RUN] ' if args.dry_run else ''}Will add missing encoding declarations")
+    if args.convert_to_utf8:
+        print_info(f"{'[DRY RUN] ' if args.dry_run else ''}Will convert non-UTF-8 files to UTF-8")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from encoding_analyzer import EncodingAnalyzer
+        
+        analyzer = EncodingAnalyzer(target_encoding='utf-8')
+        
+        # Analyze files
+        if os.path.isdir(args.path):
+            results = analyzer.analyze_directory(args.path, recursive=args.recursive)
+        else:
+            result = analyzer.detect_encoding(args.path)
+            analyzer.results = [result]
+            results = [result]
+        
+        print_info(f"Analyzed {len(results)} file(s)\n")
+        
+        # Apply fixes if requested
+        if args.add_declarations:
+            print(f"{Colors.BOLD}Adding encoding declarations...{Colors.ENDC}\n")
+            added_count = 0
+            for result in results:
+                if not result['has_declaration'] and result['status'] != 'error':
+                    fix_result = analyzer.add_encoding_declaration(
+                        result['file'],
+                        dry_run=args.dry_run
+                    )
+                    if fix_result['success'] and fix_result['action'] != 'skipped':
+                        print_success(f"{fix_result['file']}: {fix_result['message']}")
+                        added_count += 1
+            
+            if added_count > 0:
+                print()
+                print_success(f"Added encoding declarations to {added_count} file(s)")
+            else:
+                print_info("No files needed encoding declarations")
+            print()
+        
+        if args.convert_to_utf8:
+            print(f"{Colors.BOLD}Converting files to UTF-8...{Colors.ENDC}\n")
+            converted_count = 0
+            for result in results:
+                if result['detected_encoding'] and \
+                   result['detected_encoding'].lower() not in ['utf-8', 'utf8', 'ascii']:
+                    convert_result = analyzer.convert_to_utf8(
+                        result['file'],
+                        backup=not args.no_backup,
+                        dry_run=args.dry_run
+                    )
+                    if convert_result['converted']:
+                        print_success(f"{convert_result['file']}: {convert_result['message']}")
+                        if convert_result['backup_created']:
+                            print_info(f"  Backup created: {convert_result['file']}.bak")
+                        converted_count += 1
+            
+            if converted_count > 0:
+                print()
+                print_success(f"Converted {converted_count} file(s) to UTF-8")
+            else:
+                print_info("No files needed conversion")
+            print()
+        
+        # Generate and display report
+        if args.format or args.output:
+            report_format = args.format or 'text'
+            report = analyzer.generate_report(output_format=report_format)
+            
+            if args.output:
+                with open(args.output, 'w', encoding='utf-8') as f:
+                    f.write(report)
+                print_success(f"Report saved to: {args.output}")
+            else:
+                print(report)
+        else:
+            # Show summary statistics
+            stats = analyzer.get_statistics()
+            print(f"{Colors.BOLD}Summary Statistics{Colors.ENDC}")
+            print("=" * 60)
+            print(f"Total files:                 {stats['total_files']}")
+            print(f"Files with issues:           {stats['files_with_issues']}")
+            print(f"Files without declaration:   {stats['files_without_declaration']}")
+            print(f"Files with non-UTF-8:        {stats['files_non_utf8']}")
+            print()
+            
+            if stats['encoding_distribution']:
+                print(f"{Colors.BOLD}Encoding Distribution:{Colors.ENDC}")
+                for encoding, count in sorted(stats['encoding_distribution'].items(), 
+                                             key=lambda x: x[1], reverse=True):
+                    print(f"  {encoding}: {count}")
+                print()
+            
+            print(f"{Colors.BOLD}Status Distribution:{Colors.ENDC}")
+            for status, count in stats['status_distribution'].items():
+                if count > 0:
+                    symbol = {
+                        'ok': '✓',
+                        'info': 'ℹ',
+                        'warning': '⚠',
+                        'error': '✗'
+                    }.get(status, '?')
+                    print(f"  {symbol} {status}: {count}")
+            print()
+        
+        # Provide recommendations
+        stats = analyzer.get_statistics()
+        if stats['files_with_issues'] > 0 or stats['files_without_declaration'] > 0:
+            print(f"{Colors.BOLD}Recommendations:{Colors.ENDC}")
+            
+            if stats['files_without_declaration'] > 0:
+                print_warning(f"{stats['files_without_declaration']} file(s) lack encoding declarations")
+                print_info("Run with --add-declarations to fix automatically")
+            
+            if stats['files_non_utf8'] > 0:
+                print_warning(f"{stats['files_non_utf8']} file(s) use non-UTF-8 encoding")
+                print_info("Run with --convert-to-utf8 to convert to UTF-8")
+            
+            print()
+        else:
+            print_success("All files have proper encoding declarations!")
+        
+        # Exit with error code if issues found
+        return 1 if stats['files_with_issues'] > 0 else 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import encoding analyzer: {e}")
+        print_info("Make sure the 'chardet' package is installed: pip install chardet")
+        return 1
+    except Exception as e:
+        print_error(f"Error analyzing encodings: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -3720,6 +3868,28 @@ def main():
     parser_typehints.add_argument('--json',
                                  help='Save JSON report to file')
     
+    # Encoding command
+    parser_encoding = subparsers.add_parser(
+        'encoding',
+        help='Analyze and fix file encoding issues',
+        description='Detect file encodings, identify encoding issues, and fix encoding declarations for Python 3 compatibility'
+    )
+    parser_encoding.add_argument('path', help='File or directory to analyze')
+    parser_encoding.add_argument('-r', '--recursive', action='store_true',
+                                help='Recursively analyze subdirectories')
+    parser_encoding.add_argument('-o', '--output',
+                                help='Save report to file')
+    parser_encoding.add_argument('-f', '--format', choices=['text', 'json', 'markdown'],
+                                help='Report format')
+    parser_encoding.add_argument('--add-declarations', action='store_true',
+                                help='Add encoding declarations to files without them')
+    parser_encoding.add_argument('--convert-to-utf8', action='store_true',
+                                help='Convert files to UTF-8 encoding')
+    parser_encoding.add_argument('--dry-run', action='store_true',
+                                help='Preview changes without modifying files')
+    parser_encoding.add_argument('--no-backup', action='store_true',
+                                help='Do not create backups when converting files')
+    
     # Estimate command
     parser_estimate = subparsers.add_parser(
         'estimate',
@@ -4071,6 +4241,8 @@ def main():
         return command_modernize(args)
     elif args.command == 'typehints':
         return command_typehints(args)
+    elif args.command == 'encoding':
+        return command_encoding(args)
     elif args.command == 'estimate':
         return command_estimate(args)
     elif args.command == 'dashboard':

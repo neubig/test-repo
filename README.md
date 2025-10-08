@@ -502,6 +502,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 freeze check --staged` to verify staged changes!
    - **See [FREEZE_GUIDE.md](FREEZE_GUIDE.md) for complete freeze guard guide!**
 
+37. **Encoding Analyzer** 🔤✨ **[NEW]**:
+   - Detect and fix file encoding issues during Python 2→3 migration
+   - Automatically detect actual file encodings (UTF-8, Latin-1, CP1252, etc.)
+   - Identify missing or incorrect encoding declarations
+   - Add proper PEP 263 encoding declarations automatically
+   - Convert files to UTF-8 (Python 3 standard) with automatic backups
+   - Detailed reports in text, JSON, or Markdown format
+   - Detect mismatched declared vs. actual encodings
+   - Find files with non-ASCII characters but no encoding declaration
+   - CI/CD integration with exit codes for automation
+   - Dry-run mode to preview changes before applying
+   - Essential for catching runtime encoding errors early
+   - Run `./py2to3 encoding src/ -r` to analyze your codebase!
+   - Run `./py2to3 encoding src/ -r --add-declarations` to fix declarations!
+   - Run `./py2to3 encoding src/ -r --convert-to-utf8` to standardize encodings!
+   - **See [ENCODING_GUIDE.md](ENCODING_GUIDE.md) for complete encoding guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
