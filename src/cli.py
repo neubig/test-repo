@@ -8,6 +8,7 @@ Combines fixer, verifier, and report generator into a single, easy-to-use tool.
 
 import argparse
 import datetime
+import json
 import os
 import sys
 from pathlib import Path
@@ -318,6 +319,135 @@ def command_migrate(args):
     return final_issues
 
 
+def command_config(args):
+    """Manage configuration for py2to3 toolkit."""
+    print_header("Configuration Management")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from config_manager import ConfigManager
+        
+        config_mgr = ConfigManager()
+        
+        if args.config_action == 'init':
+            # Initialize a new config file
+            if args.user:
+                if config_mgr.has_user_config():
+                    print_warning("User config already exists!")
+                    print_info(f"Location: {config_mgr.USER_CONFIG_PATH}")
+                    if not args.force:
+                        print_error("Use --force to overwrite")
+                        return 1
+                
+                if config_mgr.save_user_config():
+                    print_success(f"User config created: {config_mgr.USER_CONFIG_PATH}")
+                else:
+                    print_error("Failed to create user config")
+                    return 1
+            else:
+                # Project config
+                config_path = args.path or Path.cwd() / ConfigManager.DEFAULT_CONFIG_NAME
+                
+                if Path(config_path).exists() and not args.force:
+                    print_error(f"Config already exists: {config_path}")
+                    print_info("Use --force to overwrite")
+                    return 1
+                
+                if config_mgr.init_project_config(config_path):
+                    print_success(f"Project config created: {config_path}")
+                    print_info("Edit this file to customize your project settings")
+                else:
+                    print_error("Failed to create project config")
+                    return 1
+        
+        elif args.config_action == 'show':
+            # Show current configuration
+            print_info("Active Configuration:\n")
+            
+            if config_mgr.has_user_config():
+                print_success(f"User config: {config_mgr.USER_CONFIG_PATH}")
+            
+            if config_mgr.has_project_config():
+                print_success(f"Project config: {config_mgr.get_config_path()}")
+            
+            if not config_mgr.has_user_config() and not config_mgr.has_project_config():
+                print_info("No configuration files found (using defaults)")
+            
+            print("\nCurrent Settings:")
+            print(json.dumps(config_mgr.to_dict(), indent=2))
+        
+        elif args.config_action == 'get':
+            # Get a specific config value
+            if not args.key:
+                print_error("Please specify a key to get")
+                return 1
+            
+            value = config_mgr.get(args.key)
+            if value is not None:
+                print_success(f"{args.key} = {json.dumps(value, indent=2)}")
+            else:
+                print_warning(f"Key not found: {args.key}")
+                return 1
+        
+        elif args.config_action == 'set':
+            # Set a config value
+            if not args.key or args.value is None:
+                print_error("Please specify both key and value")
+                return 1
+            
+            # Try to parse value as JSON, fall back to string
+            try:
+                value = json.loads(args.value)
+            except json.JSONDecodeError:
+                value = args.value
+            
+            config_mgr.set(args.key, value)
+            
+            # Save to appropriate config file
+            if args.user:
+                if config_mgr.save_user_config():
+                    print_success(f"Updated user config: {args.key} = {value}")
+                else:
+                    return 1
+            else:
+                if not config_mgr.has_project_config():
+                    print_error("No project config file found. Run 'py2to3 config init' first")
+                    return 1
+                
+                if config_mgr.save_project_config():
+                    print_success(f"Updated project config: {args.key} = {value}")
+                else:
+                    return 1
+        
+        elif args.config_action == 'path':
+            # Show config file paths
+            if args.user:
+                print_info(f"User config path: {config_mgr.USER_CONFIG_PATH}")
+                if config_mgr.has_user_config():
+                    print_success("(exists)")
+                else:
+                    print_warning("(not created yet)")
+            else:
+                project_config = config_mgr.get_config_path()
+                if project_config:
+                    print_success(f"Project config: {project_config}")
+                else:
+                    print_warning("No project config found in current directory")
+                    print_info(f"Default location: {Path.cwd() / ConfigManager.DEFAULT_CONFIG_NAME}")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import config manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error managing config: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -389,6 +519,37 @@ def main():
     parser_migrate.add_argument('-o', '--output', default='migration_report.html', help='Output report base name (default: migration_report.html)')
     parser_migrate.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
     
+    # Config command
+    parser_config = subparsers.add_parser(
+        'config',
+        help='Manage configuration',
+        description='Manage py2to3 configuration files'
+    )
+    config_subparsers = parser_config.add_subparsers(dest='config_action', help='Config actions')
+    
+    # Config init
+    parser_config_init = config_subparsers.add_parser('init', help='Initialize configuration file')
+    parser_config_init.add_argument('-u', '--user', action='store_true', help='Create user-level config')
+    parser_config_init.add_argument('-p', '--path', help='Config file path (for project config)')
+    parser_config_init.add_argument('-f', '--force', action='store_true', help='Overwrite existing config')
+    
+    # Config show
+    parser_config_show = config_subparsers.add_parser('show', help='Show current configuration')
+    
+    # Config get
+    parser_config_get = config_subparsers.add_parser('get', help='Get a configuration value')
+    parser_config_get.add_argument('key', nargs='?', help='Configuration key (dot notation supported)')
+    
+    # Config set
+    parser_config_set = config_subparsers.add_parser('set', help='Set a configuration value')
+    parser_config_set.add_argument('key', nargs='?', help='Configuration key (dot notation supported)')
+    parser_config_set.add_argument('value', nargs='?', help='Value to set')
+    parser_config_set.add_argument('-u', '--user', action='store_true', help='Save to user config instead of project config')
+    
+    # Config path
+    parser_config_path = config_subparsers.add_parser('path', help='Show configuration file path')
+    parser_config_path.add_argument('-u', '--user', action='store_true', help='Show user config path')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -401,6 +562,18 @@ def main():
     if args.no_color or not sys.stdout.isatty():
         Colors.disable()
     
+    # Load and apply configuration defaults (skip for config command)
+    if args.command != 'config':
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from config_manager import ConfigManager
+            
+            config_mgr = ConfigManager()
+            args = config_mgr.apply_to_args(args)
+        except Exception:
+            # If config loading fails, continue with defaults
+            pass
+    
     # Route to appropriate command handler
     if args.command == 'check':
         return command_check(args)
@@ -410,6 +583,8 @@ def main():
         return command_report(args)
     elif args.command == 'migrate':
         return command_migrate(args)
+    elif args.command == 'config':
+        return command_config(args)
     else:
         parser.print_help()
         return 1

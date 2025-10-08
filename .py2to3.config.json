@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "backup_dir": "my_backups",
+  "report_output": "migration_report.html",
+  "auto_confirm": false,
+  "verbose": false,
+  "no_color": false,
+  "ignore_patterns": [
+    "**/node_modules/**",
+    "**/venv/**",
+    "**/env/**",
+    "**/.git/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/__pycache__/**",
+    "**/*.pyc"
+  ],
+  "fix_rules": {
+    "fix_print_statements": true,
+    "fix_imports": true,
+    "fix_exceptions": true,
+    "fix_iterators": true,
+    "fix_unicode": true,
+    "fix_comparisons": true
+  },
+  "verify_rules": {
+    "check_syntax": true,
+    "check_imports": true,
+    "check_deprecated": true
+  }
+}

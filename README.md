@@ -54,7 +54,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
 1. **Unified CLI Tool (`py2to3`)** **[NEW]**:
    - Single command-line interface for the entire migration workflow
    - Beautiful colored output with progress indicators
-   - Four powerful commands: `check`, `fix`, `report`, `migrate`
+   - Five powerful commands: `check`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
 2. **Fixer Tool (`src/fixer.py`)**:
@@ -75,6 +75,14 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Export data as JSON for further analysis
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
+
+5. **Configuration Management** ✨ **[NEW]**:
+   - Flexible configuration system with user and project-level settings
+   - JSON-based configuration files (`.py2to3.config.json`)
+   - Customize default behaviors, ignore patterns, and fix rules
+   - Share configuration across teams via version control
+   - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
+   - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
 ### Modern Web Application
 
@@ -110,7 +118,23 @@ Or use individual commands for more control:
 ./py2to3 report --scan-path src/ --output report.html
 ```
 
-See [CLI_GUIDE.md](CLI_GUIDE.md) for complete documentation.
+**NEW: Use Configuration for Convenience**
+
+Save your preferences to avoid repeating flags:
+
+```bash
+# Initialize project configuration
+./py2to3 config init
+
+# Set your preferences
+./py2to3 config set backup_dir "my_backups"
+./py2to3 config set report_output "reports/migration.html"
+
+# Now these defaults are used automatically
+./py2to3 fix src/  # Uses my_backups/ directory
+```
+
+See [CLI_GUIDE.md](CLI_GUIDE.md) and [CONFIG.md](CONFIG.md) for complete documentation.
 
 #### Manual Approach (Using Individual Tools)
 
