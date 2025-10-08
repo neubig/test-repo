@@ -565,6 +565,91 @@ def command_backup(args):
         return 1
 
 
+def command_compare(args):
+    """Compare migration progress across different contexts."""
+    print_header("Migration Comparison")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from comparison_tool import MigrationComparison
+        
+        comparator = MigrationComparison()
+        
+        if args.compare_mode == 'paths':
+            print_info(f"Comparing paths: {args.path_a} vs {args.path_b}\n")
+            result = comparator.compare_paths(
+                args.path_a, args.path_b,
+                args.label_a, args.label_b
+            )
+        
+        elif args.compare_mode == 'branches':
+            print_info(f"Comparing branches: {args.branch_a} vs {args.branch_b}\n")
+            print_warning("This will temporarily switch git branches. Your working directory will be restored.")
+            
+            if not args.yes:
+                confirm = input(f"{Colors.WARNING}Proceed with branch comparison? (y/N): {Colors.ENDC}")
+                if confirm.lower() != 'y':
+                    print_info("Comparison cancelled")
+                    return 0
+            
+            result = comparator.compare_branches(
+                args.branch_a, args.branch_b,
+                args.scan_path
+            )
+        
+        elif args.compare_mode == 'commits':
+            print_info(f"Comparing commits: {args.commit_a} vs {args.commit_b}\n")
+            print_warning("This will temporarily checkout commits. Your working directory will be restored.")
+            
+            if not args.yes:
+                confirm = input(f"{Colors.WARNING}Proceed with commit comparison? (y/N): {Colors.ENDC}")
+                if confirm.lower() != 'y':
+                    print_info("Comparison cancelled")
+                    return 0
+            
+            result = comparator.compare_commits(
+                args.commit_a, args.commit_b,
+                args.scan_path
+            )
+        
+        else:
+            print_error("Unknown comparison mode")
+            return 1
+        
+        # Format and display results
+        output = comparator.format_comparison(result, args.format)
+        
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(output)
+            print_success(f"\nComparison saved to: {args.output}")
+        else:
+            print(output)
+        
+        # Show actionable insights
+        winner = result['winner']
+        if winner['winner'] != 'tie' and args.format != 'json':
+            print_info("\nRecommendations:")
+            if winner['margin'] > 10:
+                print(f"  • {winner['winner']} shows significantly better progress")
+                print(f"  • Consider adopting strategies from {winner['winner']}")
+            else:
+                print(f"  • Both approaches are performing similarly")
+                print(f"  • Review specific issue types for optimization opportunities")
+        
+        return 0
+        
+    except RuntimeError as e:
+        print_error(f"Comparison failed: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Unexpected error during comparison: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_stats(args):
     """Track and display migration statistics."""
     print_header("Migration Statistics")
@@ -1456,6 +1541,42 @@ def main():
     # Git info
     parser_git_info = git_subparsers.add_parser('info', help='Show repository information')
     
+    # Compare command
+    parser_compare = subparsers.add_parser(
+        'compare',
+        help='Compare migration progress',
+        description='Compare migration progress between branches, commits, or paths'
+    )
+    compare_subparsers = parser_compare.add_subparsers(dest='compare_mode', help='Comparison mode')
+    
+    # Compare paths
+    parser_compare_paths = compare_subparsers.add_parser('paths', help='Compare two file system paths')
+    parser_compare_paths.add_argument('path_a', help='First path to compare')
+    parser_compare_paths.add_argument('path_b', help='Second path to compare')
+    parser_compare_paths.add_argument('--label-a', default='Path A', help='Label for first path (default: Path A)')
+    parser_compare_paths.add_argument('--label-b', default='Path B', help='Label for second path (default: Path B)')
+    parser_compare_paths.add_argument('-o', '--output', help='Save comparison to file')
+    parser_compare_paths.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
+    parser_compare_paths.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompts')
+    
+    # Compare branches
+    parser_compare_branches = compare_subparsers.add_parser('branches', help='Compare two git branches')
+    parser_compare_branches.add_argument('branch_a', help='First branch to compare')
+    parser_compare_branches.add_argument('branch_b', help='Second branch to compare')
+    parser_compare_branches.add_argument('-s', '--scan-path', default='.', help='Path to scan in branches (default: current directory)')
+    parser_compare_branches.add_argument('-o', '--output', help='Save comparison to file')
+    parser_compare_branches.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
+    parser_compare_branches.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompts')
+    
+    # Compare commits
+    parser_compare_commits = compare_subparsers.add_parser('commits', help='Compare two git commits')
+    parser_compare_commits.add_argument('commit_a', help='First commit hash/reference')
+    parser_compare_commits.add_argument('commit_b', help='Second commit hash/reference')
+    parser_compare_commits.add_argument('-s', '--scan-path', default='.', help='Path to scan in commits (default: current directory)')
+    parser_compare_commits.add_argument('-o', '--output', help='Save comparison to file')
+    parser_compare_commits.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
+    parser_compare_commits.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompts')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1501,6 +1622,8 @@ def main():
         return command_deps(args)
     elif args.command == 'git':
         return command_git(args)
+    elif args.command == 'compare':
+        return command_compare(args)
     else:
         parser.print_help()
         return 1

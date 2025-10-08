@@ -146,6 +146,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 deps --help` to analyze your dependencies!
    - **See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete dependency analysis guide!**
 
+12. **Migration Comparison Tool** 🔍 **[LATEST]**:
+   - Compare migration progress between different contexts
+   - Compare two git branches side-by-side to evaluate different approaches
+   - Compare commits to track progress over time
+   - Compare different file system paths or projects
+   - Get detailed metrics: progress percentage, issue counts, severity distribution
+   - Identify which approach performs better with automatic winner determination
+   - Generate comparison reports in text or JSON format
+   - Perfect for team collaboration and evaluating migration strategies!
+   - Run `./py2to3 compare --help` to explore comparison features!
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern web application built with:
@@ -258,6 +269,40 @@ The dependency analyzer will:
 - Help you plan dependency upgrades before migration
 
 See [DEPENDENCY_GUIDE.md](DEPENDENCY_GUIDE.md) for complete documentation.
+
+**Migration Comparison for Strategy Evaluation**
+
+Compare migration progress across different contexts to evaluate approaches:
+
+```bash
+# Compare two different file system paths (e.g., two projects)
+./py2to3 compare paths project_a/src project_b/src
+
+# Compare two git branches to evaluate different migration strategies
+./py2to3 compare branches main feature/migration-v2
+
+# Compare two commits to track progress over time
+./py2to3 compare commits abc1234 def5678
+
+# Save comparison to file for sharing with team
+./py2to3 compare branches main feature/py3-migration -o comparison_report.txt
+
+# Generate JSON output for CI/CD integration
+./py2to3 compare paths src_old src_new --format json -o comparison.json
+```
+
+The comparison tool will:
+- Analyze migration progress in both contexts
+- Show side-by-side metrics (files, issues, progress percentage)
+- Determine which approach is performing better
+- Break down differences by issue type and severity
+- Provide actionable recommendations
+
+Perfect for:
+- Evaluating different migration approaches in parallel branches
+- Tracking progress between commits
+- Comparing your project with reference implementations
+- Team collaboration and code review
 
 **Git Integration for Migration Tracking**
 
