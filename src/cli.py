@@ -4072,6 +4072,55 @@ def command_metadata(args):
         return 1
 
 
+def command_changelog(args):
+    """Generate changelog from migration activities."""
+    print_header("Changelog Generator")
+    
+    validate_path(args.path)
+    
+    print_info(f"Project directory: {args.path}")
+    if args.since:
+        print_info(f"Since: {args.since}")
+    if args.until:
+        print_info(f"Until: {args.until}")
+    print_info(f"Version: {args.version}")
+    print_info(f"Format: {args.format}")
+    if args.output:
+        print_info(f"Output: {args.output} ({'append' if args.append else 'overwrite'})")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from changelog_generator import ChangelogGenerator
+        
+        generator = ChangelogGenerator(args.path)
+        changelog = generator.generate_changelog(
+            output_file=args.output,
+            since=args.since,
+            until=args.until,
+            version=args.version,
+            format_style=args.format,
+            append=args.append,
+        )
+        
+        if args.output:
+            print_success(f"Changelog {'appended to' if args.append else 'written to'}: {args.output}")
+            print_info(f"Generated {len(changelog.splitlines())} lines")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import changelog generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating changelog: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_wizard(args):
     """Launch the interactive Smart Migration Wizard."""
     print_header("Smart Migration Wizard")
@@ -5249,6 +5298,20 @@ def main():
     parser_metadata.add_argument('-n', '--dry-run', action='store_true', help='Show what would be changed without making changes')
     parser_metadata.add_argument('--json', action='store_true', help='Output results as JSON')
     
+    # Changelog command
+    parser_changelog = subparsers.add_parser(
+        'changelog',
+        help='Generate migration changelog',
+        description='Automatically generate a changelog from migration activities including git commits, journal entries, and statistics'
+    )
+    parser_changelog.add_argument('path', nargs='?', default='.', help='Project directory (default: current directory)')
+    parser_changelog.add_argument('-o', '--output', help='Output file (default: stdout)')
+    parser_changelog.add_argument('--since', help='Start date (ISO format or relative like "30 days ago")')
+    parser_changelog.add_argument('--until', help='End date (ISO format or "now")')
+    parser_changelog.add_argument('--version', default='Unreleased', help='Version string for changelog entry (default: Unreleased)')
+    parser_changelog.add_argument('--format', choices=['keepachangelog', 'simple'], default='keepachangelog', help='Changelog format style (default: keepachangelog)')
+    parser_changelog.add_argument('--append', action='store_true', help='Append to existing changelog file')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -5364,6 +5427,8 @@ def main():
         return command_report_card(args)
     elif args.command == 'metadata':
         return command_metadata(args)
+    elif args.command == 'changelog':
+        return command_changelog(args)
     else:
         parser.print_help()
         return 1

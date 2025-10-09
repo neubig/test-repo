@@ -615,7 +615,24 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 encoding src/ -r --convert-to-utf8` to standardize encodings!
    - **See [ENCODING_GUIDE.md](ENCODING_GUIDE.md) for complete encoding guide!**
 
-39. **Migration Report Card** 🎓✨ **[NEW]**:
+39. **Automated Changelog Generator** 📝✨ **[NEW]**:
+   - Automatically generate professional changelogs from migration activities
+   - Consolidates git commits, journal entries, and statistics
+   - Supports industry-standard "Keep a Changelog" format
+   - Categorizes changes by type (syntax, imports, fixes, features, etc.)
+   - Automatically detects and highlights breaking changes
+   - Includes migration metrics (issues fixed, files modified, completion %)
+   - Generate for specific date ranges or entire migration history
+   - Append new versions to existing changelogs
+   - Perfect for stakeholder communication and release documentation
+   - Multiple output formats: Keep a Changelog or simple categorized
+   - Integrates seamlessly with journal, stats, and git tools
+   - Run `./py2to3 changelog` to generate changelog!
+   - Run `./py2to3 changelog -o CHANGELOG.md` to save to file!
+   - Run `./py2to3 changelog --since "30 days ago" --append` for updates!
+   - **See [CHANGELOG_GUIDE.md](CHANGELOG_GUIDE.md) for complete changelog guide!**
+
+40. **Migration Report Card** 🎓✨ **[NEW]**:
    - Comprehensive quality assessment for Python 2→3 migrations
    - Letter grades (A-F) for overall migration and individual categories
    - Evaluates 6 key quality dimensions with weighted scoring
