@@ -2382,6 +2382,35 @@ def command_dashboard(args):
         return 1
 
 
+def command_live(args):
+    """Run live migration monitoring dashboard."""
+    print_header("Live Migration Monitor")
+    
+    print_info(f"Starting live monitor for: {args.path}")
+    print_info(f"Refresh rate: {args.refresh} seconds")
+    print_info("Press Ctrl+C to exit\n")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from live_monitor import LiveMigrationMonitor
+        
+        monitor = LiveMigrationMonitor(args.path, args.refresh)
+        monitor.run()
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import live monitor: {e}")
+        print_warning("Tip: Install required dependencies with: pip install rich")
+        return 1
+    except Exception as e:
+        print_error(f"Error running live monitor: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_health(args):
     """Monitor migration health and generate health report."""
     print_header("Migration Health Monitor")
@@ -5592,6 +5621,19 @@ def main():
                                  default='.',
                                  help='Project path (default: current directory)')
     
+    # Live monitor command
+    parser_live = subparsers.add_parser(
+        'live',
+        help='Live terminal dashboard for migration monitoring',
+        description='Real-time terminal-based dashboard showing migration progress, statistics, and activity'
+    )
+    parser_live.add_argument('path', nargs='?', default='.',
+                            help='Project path to monitor (default: current directory)')
+    parser_live.add_argument('-r', '--refresh',
+                            type=int,
+                            default=2,
+                            help='Refresh rate in seconds (default: 2)')
+    
     # Health command
     parser_health = subparsers.add_parser(
         'health',
@@ -6188,6 +6230,8 @@ def main():
         return command_estimate(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
+    elif args.command == 'live':
+        return command_live(args)
     elif args.command == 'health':
         return command_health(args)
     elif args.command == 'lint':

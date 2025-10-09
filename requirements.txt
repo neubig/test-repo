@@ -15,3 +15,6 @@ colorama>=0.4.6
 
 # Progress bars for long-running operations
 tqdm>=4.65.0
+
+# Rich terminal UI - Required for live migration monitor
+rich>=13.0.0

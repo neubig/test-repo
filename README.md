@@ -543,7 +543,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 dashboard` to generate your progress dashboard!
    - Update regularly: collect stats with `--save` flag, then regenerate dashboard
 
-28. **Quick Status Command** 📋⚡ **[NEW]**:
+28. **Live Migration Monitor** 🔴✨ **[NEW]**:
+   - Real-time terminal dashboard for monitoring migration progress live
+   - Beautiful, auto-refreshing interface built with Rich library
+   - Live statistics showing files migrated, issues found/fixed, and completion percentage
+   - Color-coded progress bars with visual indicators (red → yellow → green)
+   - Top issues breakdown showing most common migration patterns
+   - Recent activity feed displaying latest migration actions
+   - Issue severity tracking (high/medium/low) with emoji indicators
+   - Customizable refresh rate (default: 2 seconds)
+   - Perfect for keeping an eye on long-running migrations
+   - No browser needed - runs directly in your terminal
+   - Press Ctrl+C to exit anytime
+   - Run `./py2to3 live` to start monitoring in real-time!
+   - Works great alongside the wizard, fix, and other commands
+   - Keep it open in a split terminal while working on migration
+
+29. **Quick Status Command** 📋⚡ **[NEW]**:
    - Lightning-fast terminal-based status report for at-a-glance progress checking
    - Shows comprehensive migration status without generating HTML reports
    - Beautiful colorful output with progress bars, icons, and visual indicators
@@ -557,7 +573,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 status` anytime for instant status update!
    - **See [STATUS_GUIDE.md](STATUS_GUIDE.md) for complete status command guide!**
 
-29. **Migration State Tracker** 🎯✨ **[NEW]**:
+30. **Migration State Tracker** 🎯✨ **[NEW]**:
    - Track migration status of individual files through the entire migration workflow
    - File-level state management: pending → in_progress → migrated → verified → tested → done
    - Advisory file locking to coordinate team work and prevent conflicts
@@ -574,7 +590,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 state list --filter-state pending` to find work to do!
    - **See [docs/MIGRATION_STATE_GUIDE.md](docs/MIGRATION_STATE_GUIDE.md) for complete state tracking guide!**
 
-30. **Pattern Search Tool** 🔍✨ **[NEW]**:
+31. **Pattern Search Tool** 🔍✨ **[NEW]**:
    - Smart search for specific Python 2 patterns in your codebase
    - Find all instances of particular issues (print statements, xrange, iteritems, etc.)
    - 19 pre-defined patterns covering common Python 2 to 3 migration issues
@@ -611,7 +627,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 journal export migration_diary.md` for documentation!
    - **See [JOURNAL_GUIDE.md](JOURNAL_GUIDE.md) for complete journal guide!**
 
-32. **Virtual Environment Manager** 🐍✨ **[NEW]**:
+33. **Virtual Environment Manager** 🐍✨ **[NEW]**:
    - Integrated Python 3 virtual environment management for migration testing
    - Create isolated Python 3 environments to test migrated code safely
    - Support for multiple Python versions (3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12)
@@ -628,7 +644,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 venv test my-env` to run tests in the environment!
    - **See [VENV_GUIDE.md](VENV_GUIDE.md) for complete virtual environment guide!**
 
-33. **Import Optimizer** 🎯✨ **[NEW]**:
+34. **Import Optimizer** 🎯✨ **[NEW]**:
    - Automatically clean up and organize Python imports after migration
    - Removes unused imports left behind from migration
    - Eliminates duplicate imports added during fixes
@@ -643,7 +659,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 imports src/ --fix` to optimize imports!
    - **See [IMPORT_OPTIMIZER_GUIDE.md](IMPORT_OPTIMIZER_GUIDE.md) for complete import optimization guide!**
 
-34. **Code Modernizer** 🚀✨ **[NEW]**:
+35. **Code Modernizer** 🚀✨ **[NEW]**:
    - Upgrade Python 3 compatible code to use modern Python 3.6+ idioms
    - Identifies opportunities to use f-strings instead of % or .format()
    - Suggests pathlib instead of os.path for better path handling
@@ -661,7 +677,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 modernize src/ -o report.txt` to save detailed report!
    - **See [MODERNIZER_GUIDE.md](MODERNIZER_GUIDE.md) for complete modernization guide!**
 
-35. **Type Hints Generator** 🎯✨ **[NEW]**:
+36. **Type Hints Generator** 🎯✨ **[NEW]**:
    - Automatically add type hints to Python 3 code after migration
    - Infers types from default values, return statements, and usage patterns
    - Adds annotations to function parameters and return values
@@ -678,7 +694,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 typehints src/ --report report.txt` for detailed report!
    - **See [TYPE_HINTS_GUIDE.md](TYPE_HINTS_GUIDE.md) for complete type hints guide!**
 
-36. **Migration Effort Estimator** 📊💼 **[NEW]**:
+37. **Migration Effort Estimator** 📊💼 **[NEW]**:
    - Analyze codebase and estimate time/resources required for migration
    - Provides detailed breakdown of fix, testing, review, and documentation time
    - Recommends optimal team size and composition
@@ -694,7 +710,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 estimate src/ -o report.txt` to save detailed report!
    - **See [EFFORT_ESTIMATOR_GUIDE.md](EFFORT_ESTIMATOR_GUIDE.md) for complete effort estimation guide!**
 
-37. **Freeze Guard - Python 2 Prevention** 🔒✨ **[NEW]**:
+38. **Freeze Guard - Python 2 Prevention** 🔒✨ **[NEW]**:
    - Prevent Python 2 code from being re-introduced during active migration
    - Mark migrated files/directories as "frozen" (Python 3 only)
    - Automatically blocks commits containing Python 2 patterns in frozen files
@@ -711,7 +727,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 freeze check --staged` to verify staged changes!
    - **See [FREEZE_GUIDE.md](FREEZE_GUIDE.md) for complete freeze guard guide!**
 
-38. **Encoding Analyzer** 🔤✨ **[NEW]**:
+39. **Encoding Analyzer** 🔤✨ **[NEW]**:
    - Detect and fix file encoding issues during Python 2→3 migration
    - Automatically detect actual file encodings (UTF-8, Latin-1, CP1252, etc.)
    - Identify missing or incorrect encoding declarations
@@ -728,7 +744,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 encoding src/ -r --convert-to-utf8` to standardize encodings!
    - **See [ENCODING_GUIDE.md](ENCODING_GUIDE.md) for complete encoding guide!**
 
-39. **Automated Changelog Generator** 📝✨ **[NEW]**:
+40. **Automated Changelog Generator** 📝✨ **[NEW]**:
    - Automatically generate professional changelogs from migration activities
    - Consolidates git commits, journal entries, and statistics
    - Supports industry-standard "Keep a Changelog" format
@@ -745,7 +761,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 changelog --since "30 days ago" --append` for updates!
    - **See [CHANGELOG_GUIDE.md](CHANGELOG_GUIDE.md) for complete changelog guide!**
 
-40. **Migration Report Card** 🎓✨ **[NEW]**:
+41. **Migration Report Card** 🎓✨ **[NEW]**:
    - Comprehensive quality assessment for Python 2→3 migrations
    - Letter grades (A-F) for overall migration and individual categories
    - Evaluates 6 key quality dimensions with weighted scoring
@@ -768,7 +784,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 report-card -f json -o quality.json` for CI/CD!
    - **See [REPORT_CARD_GUIDE.md](REPORT_CARD_GUIDE.md) for complete report card guide!**
 
-41. **Shell Completions** 🎯✨ **[NEW]**:
+42. **Shell Completions** 🎯✨ **[NEW]**:
    - Powerful Tab completion for bash, zsh, and fish shells
    - Auto-complete all 47 commands and subcommands instantly
    - Context-aware suggestions for options and arguments
@@ -787,7 +803,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 completion generate bash` to view script!
    - **See [COMPLETION_GUIDE.md](COMPLETION_GUIDE.md) for complete shell completion guide!**
 
-42. **Visual Dependency Graph** 🕸️✨ **[NEW]**:
+43. **Visual Dependency Graph** 🕸️✨ **[NEW]**:
    - Interactive visualization of module dependencies
    - Understand complex codebases at a glance
    - Plan migration order based on dependency relationships
