@@ -250,17 +250,30 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 insights` to get strategic recommendations!
    - **See [INSIGHTS_GUIDE.md](INSIGHTS_GUIDE.md) for complete guide!**
 
-14. **Fixer Tool (`src/fixer.py`)**:
+14. **Documentation Modernizer** 📝 ✨ **[NEW]**:
+   - Automatically updates docstrings and comments to reflect Python 3 syntax
+   - Modernizes example code in documentation (print statements, types, imports)
+   - Updates Python 2 type references (basestring → str, unicode → str)
+   - Fixes dictionary iteration methods in examples (.iteritems() → .items())
+   - Updates import references in docstrings (urllib2 → urllib.request)
+   - Flags comments mentioning Python 2 compatibility for manual review
+   - Safe backup system with easy restoration (.docbackup files)
+   - Detailed reports showing all documentation changes
+   - Perfect for keeping documentation in sync with code changes
+   - Run `./py2to3 doc-modernizer src/` to update your documentation!
+   - **See [DOC_MODERNIZER_GUIDE.md](DOC_MODERNIZER_GUIDE.md) for complete guide!**
+
+15. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-14. **Verifier Tool (`src/verifier.py`)**:
+16. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-15. **Report Generator (`src/report_generator.py`)** 🆕:
+17. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes

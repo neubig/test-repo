@@ -6388,6 +6388,66 @@ def command_insights(args):
         return 1
 
 
+def command_doc_modernizer(args):
+    """Modernize documentation and comments for Python 3."""
+    print_header("Documentation Modernizer")
+    
+    validate_path(args.path)
+    
+    try:
+        from doc_modernizer import DocumentationModernizer
+        
+        # Restore backups if requested
+        if args.restore:
+            modernizer = DocumentationModernizer(backup=True)
+            restored = modernizer.restore_backups(args.path)
+            print_success(f"Restored {restored} files from backups")
+            return
+        
+        # Setup modernizer
+        modernizer = DocumentationModernizer(
+            project_path=args.path,
+            backup=not args.no_backup
+        )
+        
+        print_info(f"Modernizing documentation in: {args.path}")
+        if args.no_backup:
+            print_warning("Backups disabled - changes will be permanent!")
+        else:
+            print_info("Creating backups with .docbackup extension")
+        print()
+        
+        # Run modernization
+        if os.path.isfile(args.path):
+            result = modernizer.modernize_file(args.path)
+            changes = len(result.get('changes', []))
+            print_success(f"Processed {args.path}")
+            if changes > 0:
+                print_info(f"  Made {changes} documentation update(s)")
+            else:
+                print_info("  No changes needed")
+        else:
+            result = modernizer.modernize_directory(args.path)
+            print_success(f"Scanned {result['files_scanned']} files")
+            print_success(f"Modified {result['files_modified']} files")
+            print_success(f"Total updates: {result['total_updates']}")
+        
+        # Generate report
+        print()
+        print_info("Generating report...")
+        report = modernizer.generate_report(args.report)
+        
+        if args.report:
+            print_success(f"Report saved to: {args.report}")
+        elif result.get('files_modified', 0) > 0 or result.get('changes'):
+            print()
+            print(report)
+        
+    except Exception as e:
+        print_error(f"Documentation modernization failed: {e}")
+        sys.exit(1)
+
+
 def command_smell(args):
     """Detect code smells in Python code."""
     print_header("Code Smell Detection")
@@ -8468,6 +8528,32 @@ def main():
     )
     parser_insights.set_defaults(func=command_insights)
     
+    # doc-modernizer command - Modernize documentation and comments
+    parser_doc_modernizer = subparsers.add_parser(
+        'doc-modernizer',
+        help='📝 Modernize documentation and comments for Python 3',
+        description='Update docstrings and comments to reflect Python 3 syntax and conventions'
+    )
+    parser_doc_modernizer.add_argument(
+        'path',
+        help='File or directory to modernize'
+    )
+    parser_doc_modernizer.add_argument(
+        '-r', '--report',
+        help='Save detailed report to file'
+    )
+    parser_doc_modernizer.add_argument(
+        '--no-backup',
+        action='store_true',
+        help='Do not create backup files (.docbackup)'
+    )
+    parser_doc_modernizer.add_argument(
+        '--restore',
+        action='store_true',
+        help='Restore all files from .docbackup files'
+    )
+    parser_doc_modernizer.set_defaults(func=command_doc_modernizer)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8631,6 +8717,8 @@ def main():
         return command_smell(args)
     elif args.command == 'insights':
         return command_insights(args)
+    elif args.command == 'doc-modernizer':
+        return command_doc_modernizer(args)
     else:
         parser.print_help()
         return 1
