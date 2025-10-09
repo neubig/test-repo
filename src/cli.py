@@ -6895,6 +6895,199 @@ def command_demo(args):
         return 1
 
 
+def command_templates(args):
+    """Manage configuration templates for different project types."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from template_manager import TemplateManager
+
+        manager = TemplateManager()
+
+        if args.template_action == 'list':
+            print_header("Available Configuration Templates")
+            
+            templates = manager.list_templates(category=args.category if hasattr(args, 'category') else None)
+            
+            if not templates:
+                print_warning("No templates found")
+                return 0
+            
+            # Group by category
+            by_category = {}
+            for template in templates:
+                cat = template['category']
+                if cat not in by_category:
+                    by_category[cat] = []
+                by_category[cat].append(template)
+            
+            # Print grouped templates
+            for category in sorted(by_category.keys()):
+                print(f"\n{Colors.BOLD}{Colors.OKCYAN}{category.upper()}{Colors.ENDC}")
+                print(f"{Colors.OKCYAN}{'─' * 70}{Colors.ENDC}")
+                for template in by_category[category]:
+                    source_badge = f"[{template['source']}]"
+                    print(f"\n  {Colors.BOLD}{template['id']}{Colors.ENDC} {Colors.WARNING}{source_badge}{Colors.ENDC}")
+                    print(f"  {template['name']}")
+                    print(f"  {Colors.OKBLUE}{template['description']}{Colors.ENDC}")
+            
+            print(f"\n{Colors.OKGREEN}💡 Use './py2to3 templates show <id>' to view template details{Colors.ENDC}")
+            print(f"{Colors.OKGREEN}💡 Use './py2to3 templates apply <id>' to apply a template{Colors.ENDC}\n")
+            return 0
+
+        elif args.template_action == 'show':
+            template = manager.get_template(args.template_id)
+            if not template:
+                print_error(f"Template not found: {args.template_id}")
+                return 1
+            
+            print_header(f"Template: {template.get('name', args.template_id)}")
+            
+            print(f"\n{Colors.BOLD}Description:{Colors.ENDC}")
+            print(f"  {template.get('description', 'No description')}")
+            
+            print(f"\n{Colors.BOLD}Category:{Colors.ENDC}")
+            print(f"  {template.get('category', 'general')}")
+            
+            if 'tips' in template and template['tips']:
+                print(f"\n{Colors.BOLD}Migration Tips:{Colors.ENDC}")
+                for i, tip in enumerate(template['tips'], 1):
+                    print(f"  {i}. {tip}")
+            
+            print(f"\n{Colors.BOLD}Configuration:{Colors.ENDC}")
+            config_json = json.dumps(template.get('config', {}), indent=2)
+            for line in config_json.split('\n'):
+                print(f"  {line}")
+            
+            print(f"\n{Colors.OKGREEN}💡 Use './py2to3 templates apply {args.template_id}' to apply this template{Colors.ENDC}\n")
+            return 0
+
+        elif args.template_action == 'apply':
+            template = manager.get_template(args.template_id)
+            if not template:
+                print_error(f"Template not found: {args.template_id}")
+                return 1
+            
+            config_file = args.config if hasattr(args, 'config') else '.py2to3config.json'
+            merge = not (hasattr(args, 'replace') and args.replace)
+            
+            print_header(f"Applying Template: {template.get('name', args.template_id)}")
+            
+            if os.path.exists(config_file) and merge:
+                print_info(f"Merging with existing configuration: {config_file}")
+            elif os.path.exists(config_file):
+                print_warning(f"Replacing existing configuration: {config_file}")
+            else:
+                print_info(f"Creating new configuration: {config_file}")
+            
+            if manager.apply_template(args.template_id, config_file, merge=merge):
+                print_success(f"Template applied successfully!")
+                
+                if 'tips' in template and template['tips']:
+                    print(f"\n{Colors.BOLD}{Colors.WARNING}💡 Migration Tips:{Colors.ENDC}")
+                    for tip in template['tips'][:3]:  # Show first 3 tips
+                        print(f"   • {tip}")
+                    if len(template['tips']) > 3:
+                        print(f"   {Colors.OKBLUE}... and {len(template['tips']) - 3} more (use 'show' to see all){Colors.ENDC}")
+                
+                print(f"\n{Colors.OKGREEN}Next steps:{Colors.ENDC}")
+                print(f"  1. Review configuration: ./py2to3 config show")
+                print(f"  2. Run diagnostics: ./py2to3 doctor")
+                print(f"  3. Start migration: ./py2to3 wizard\n")
+                return 0
+            else:
+                print_error("Failed to apply template")
+                return 1
+
+        elif args.template_action == 'create':
+            if not os.path.exists(args.config):
+                print_error(f"Configuration file not found: {args.config}")
+                return 1
+            
+            print_header("Creating Custom Template")
+            
+            category = args.category if hasattr(args, 'category') else 'general'
+            tips = args.tips.split('|') if hasattr(args, 'tips') and args.tips else []
+            
+            if manager.create_template(args.name, args.description, args.config, category, tips):
+                template_id = args.name.lower().replace(" ", "-").replace("_", "-")
+                print_success(f"Template created: {template_id}")
+                print_info(f"Location: {manager.templates_dir / (template_id + '.json')}")
+                print(f"\n{Colors.OKGREEN}Use './py2to3 templates apply {template_id}' to apply it{Colors.ENDC}\n")
+                return 0
+            else:
+                print_error("Failed to create template")
+                return 1
+
+        elif args.template_action == 'export':
+            print_header("Exporting Template")
+            
+            if manager.export_template(args.template_id, args.output):
+                print_success(f"Template exported: {args.output}")
+                print_info("Share this file with your team or commit it to your repository")
+                return 0
+            else:
+                print_error(f"Failed to export template: {args.template_id}")
+                return 1
+
+        elif args.template_action == 'import':
+            if not os.path.exists(args.file):
+                print_error(f"Template file not found: {args.file}")
+                return 1
+            
+            print_header("Importing Template")
+            
+            template_id = manager.import_template(args.file)
+            if template_id:
+                print_success(f"Template imported: {template_id}")
+                print_info(f"Location: {manager.templates_dir / (template_id + '.json')}")
+                print(f"\n{Colors.OKGREEN}Use './py2to3 templates apply {template_id}' to apply it{Colors.ENDC}\n")
+                return 0
+            else:
+                print_error("Failed to import template")
+                return 1
+
+        elif args.template_action == 'delete':
+            if args.template_id in manager.BUILTIN_TEMPLATES:
+                print_error("Cannot delete built-in templates")
+                return 1
+            
+            print_warning(f"Are you sure you want to delete template '{args.template_id}'? (y/N): ")
+            if input().lower() != 'y':
+                print_info("Cancelled")
+                return 0
+            
+            if manager.delete_template(args.template_id):
+                print_success(f"Template deleted: {args.template_id}")
+                return 0
+            else:
+                print_error(f"Failed to delete template: {args.template_id}")
+                return 1
+
+        elif args.template_action == 'categories':
+            print_header("Template Categories")
+            
+            categories = manager.get_categories()
+            for category in categories:
+                templates = manager.list_templates(category=category)
+                print(f"\n{Colors.BOLD}{category}{Colors.ENDC} ({len(templates)} templates)")
+            
+            print(f"\n{Colors.OKGREEN}Use './py2to3 templates list --category <name>' to filter by category{Colors.ENDC}\n")
+            return 0
+
+        else:
+            print_error("Unknown action")
+            return 1
+
+    except ImportError as e:
+        print_error(f"Failed to import template manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error managing templates: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -9055,6 +9248,129 @@ def main():
         help='Minimal output (less verbose)'
     )
     parser_demo.set_defaults(func=command_demo)
+
+    # Templates command - Configuration templates for different project types
+    parser_templates = subparsers.add_parser(
+        'templates',
+        help='🎨 Manage configuration templates for different project types',
+        description='Quickly set up optimal migration configurations using pre-built templates for Django, Flask, data science, CLI tools, and more.'
+    )
+
+    templates_subparsers = parser_templates.add_subparsers(
+        dest='template_action',
+        help='Template action to perform'
+    )
+
+    # List templates
+    parser_templates_list = templates_subparsers.add_parser(
+        'list',
+        help='List available templates'
+    )
+    parser_templates_list.add_argument(
+        '--category',
+        help='Filter by category (web, data, tool, library, testing, general)'
+    )
+
+    # Show template details
+    parser_templates_show = templates_subparsers.add_parser(
+        'show',
+        help='Show template details'
+    )
+    parser_templates_show.add_argument(
+        'template_id',
+        help='Template ID to show'
+    )
+
+    # Apply template
+    parser_templates_apply = templates_subparsers.add_parser(
+        'apply',
+        help='Apply template to configuration'
+    )
+    parser_templates_apply.add_argument(
+        'template_id',
+        help='Template ID to apply'
+    )
+    parser_templates_apply.add_argument(
+        '--config',
+        default='.py2to3config.json',
+        help='Configuration file path (default: .py2to3config.json)'
+    )
+    parser_templates_apply.add_argument(
+        '--replace',
+        action='store_true',
+        help='Replace existing config instead of merging'
+    )
+
+    # Create custom template
+    parser_templates_create = templates_subparsers.add_parser(
+        'create',
+        help='Create custom template from configuration'
+    )
+    parser_templates_create.add_argument(
+        'name',
+        help='Template name'
+    )
+    parser_templates_create.add_argument(
+        '--description',
+        required=True,
+        help='Template description'
+    )
+    parser_templates_create.add_argument(
+        '--config',
+        required=True,
+        help='Source configuration file'
+    )
+    parser_templates_create.add_argument(
+        '--category',
+        default='general',
+        help='Template category (default: general)'
+    )
+    parser_templates_create.add_argument(
+        '--tips',
+        help='Migration tips separated by | (pipe)'
+    )
+
+    # Export template
+    parser_templates_export = templates_subparsers.add_parser(
+        'export',
+        help='Export template to file'
+    )
+    parser_templates_export.add_argument(
+        'template_id',
+        help='Template ID to export'
+    )
+    parser_templates_export.add_argument(
+        'output',
+        help='Output file path'
+    )
+
+    # Import template
+    parser_templates_import = templates_subparsers.add_parser(
+        'import',
+        help='Import template from file'
+    )
+    parser_templates_import.add_argument(
+        'file',
+        help='Template file to import'
+    )
+
+    # Delete template
+    parser_templates_delete = templates_subparsers.add_parser(
+        'delete',
+        help='Delete custom template'
+    )
+    parser_templates_delete.add_argument(
+        'template_id',
+        help='Template ID to delete'
+    )
+
+    # List categories
+    templates_subparsers.add_parser(
+        'categories',
+        help='List all template categories'
+    )
+
+    parser_templates.set_defaults(func=command_templates)
     
     # Parse arguments
     args = parser.parse_args()
@@ -9233,6 +9549,8 @@ def main():
         return command_notify(args)
     elif args.command == 'demo':
         return command_demo(args)
+    elif args.command == 'templates':
+        return command_templates(args)
     else:
         parser.print_help()
         return 1

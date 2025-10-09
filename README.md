@@ -196,7 +196,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rules init` to get started!
    - **See [CUSTOM_RULES_GUIDE.md](CUSTOM_RULES_GUIDE.md) for complete guide!**
 
-8. **Code Duplication Detector** 🔍 ✨ **[NEW]**:
+8. **Configuration Templates** 🎨 ✨ **[NEW]**:
+   - Pre-built configuration templates for popular frameworks and project types
+   - Quick setup for Django, Flask, FastAPI, data science, CLI tools, and more
+   - Best-practice settings optimized for each framework
+   - Create and share custom templates with your team
+   - Export/import templates for collaboration
+   - Categories: web, data, tool, library, testing, general
+   - Run `./py2to3 templates list` to see all available templates!
+   - **See [TEMPLATES_GUIDE.md](TEMPLATES_GUIDE.md) for complete guide!**
+
+9. **Code Duplication Detector** 🔍 ✨ **[NEW]**:
    - Identify duplicated code blocks to reduce migration work
    - Find refactoring opportunities before migrating
    - Configurable sensitivity with minimum line thresholds
