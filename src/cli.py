@@ -5470,6 +5470,111 @@ def command_story(args):
         return 1
 
 
+def command_find(args):
+    """Search and navigate project documentation."""
+    from doc_navigator import DocNavigator, format_search_results, format_category_list
+    
+    nav = DocNavigator()
+    
+    if args.find_action == 'search':
+        print_header("Documentation Search")
+        print_info(f"Searching for: {args.query}\n")
+        
+        results = nav.search(args.query, args.max_results)
+        
+        if not results:
+            print_warning(f"No documentation found matching '{args.query}'")
+            print_info("Try different keywords or use 'list' to browse all documentation")
+            return 1
+        
+        print(f"{Colors.OKGREEN}Found {len(results)} result(s):{Colors.ENDC}")
+        print(format_search_results(results, not args.no_context))
+        
+        return 0
+        
+    elif args.find_action == 'list':
+        print_header("Documentation Library")
+        
+        categories = nav.list_by_category()
+        
+        if args.category:
+            filtered = {k: v for k, v in categories.items() 
+                       if args.category.lower() in k.lower()}
+            if not filtered:
+                print_warning(f"No category matching '{args.category}'")
+                print_info("Available categories:")
+                for cat in sorted(categories.keys()):
+                    print(f"  • {cat}")
+                return 1
+            print(format_category_list(filtered))
+        else:
+            print(format_category_list(categories))
+        
+        stats = nav.get_stats()
+        print(f"\n{Colors.BOLD}Total: {stats['total_documents']} documents{Colors.ENDC}")
+        
+        return 0
+        
+    elif args.find_action == 'info':
+        print_header("Document Information")
+        
+        doc = nav.get_document(args.doc_path)
+        if not doc:
+            print_error(f"Document not found: {args.doc_path}")
+            print_info("Use 'find list' to see all available documents")
+            return 1
+        
+        print(f"{Colors.BOLD}{Colors.HEADER}{doc['title']}{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}📄 {doc.get('rel_path', doc['path'])}{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}📁 {doc['category']}{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}📏 {doc['size']} bytes{Colors.ENDC}")
+        
+        if doc['description']:
+            print(f"\n{Colors.BOLD}Description:{Colors.ENDC}")
+            print(f"{doc['description']}")
+        
+        if doc['sections']:
+            print(f"\n{Colors.BOLD}Sections:{Colors.ENDC}")
+            for section in doc['sections'][:15]:
+                print(f"  • {section}")
+            if len(doc['sections']) > 15:
+                print(f"  ... and {len(doc['sections']) - 15} more")
+        
+        if doc['keywords']:
+            print(f"\n{Colors.BOLD}Keywords:{Colors.ENDC}")
+            print(f"  {', '.join(doc['keywords'][:10])}")
+        
+        # Show related documents
+        related = nav.get_related(doc.get('rel_path', str(doc['path'])))
+        if related:
+            print(f"\n{Colors.BOLD}Related Documents:{Colors.ENDC}")
+            for rel in related:
+                print(f"  • {rel['title']}")
+                print(f"    {Colors.OKCYAN}{rel['path']}{Colors.ENDC}")
+        
+        return 0
+        
+    elif args.find_action == 'stats':
+        print_header("Documentation Statistics")
+        
+        stats = nav.get_stats()
+        
+        print(f"{Colors.BOLD}Overview:{Colors.ENDC}")
+        print(f"  Total Documents: {Colors.OKGREEN}{stats['total_documents']}{Colors.ENDC}")
+        print(f"  Total Size: {Colors.OKGREEN}{stats['total_size_kb']:.1f} KB{Colors.ENDC}")
+        print(f"  Average Size: {Colors.OKGREEN}{stats['avg_document_size']:.0f} bytes{Colors.ENDC}")
+        
+        print(f"\n{Colors.BOLD}Documents by Category:{Colors.ENDC}")
+        for cat, count in sorted(stats['categories'].items(), 
+                                key=lambda x: x[1], reverse=True):
+            bar = '█' * count
+            print(f"  {cat:30} {Colors.OKBLUE}{bar}{Colors.ENDC} {count}")
+        
+        return 0
+    
+    return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6800,6 +6905,64 @@ def main():
         help='Output HTML file (default: migration_story.html)'
     )
     
+    # Find command - Documentation search and navigation
+    parser_find = subparsers.add_parser(
+        'find',
+        help='🔍 Search and navigate project documentation',
+        description='Search, browse, and explore py2to3 documentation with 50+ guides'
+    )
+    find_subparsers = parser_find.add_subparsers(
+        dest='find_action',
+        help='Find action to perform'
+    )
+    
+    # Find search subcommand
+    parser_find_search = find_subparsers.add_parser(
+        'search',
+        help='Search documentation by keyword'
+    )
+    parser_find_search.add_argument(
+        'query',
+        help='Search query'
+    )
+    parser_find_search.add_argument(
+        '-n', '--max-results',
+        type=int,
+        default=10,
+        help='Maximum number of results (default: 10)'
+    )
+    parser_find_search.add_argument(
+        '--no-context',
+        action='store_true',
+        help='Hide context snippets'
+    )
+    
+    # Find list subcommand
+    parser_find_list = find_subparsers.add_parser(
+        'list',
+        help='List all documentation by category'
+    )
+    parser_find_list.add_argument(
+        '-c', '--category',
+        help='Filter by category'
+    )
+    
+    # Find info subcommand
+    parser_find_info = find_subparsers.add_parser(
+        'info',
+        help='Show detailed information about a document'
+    )
+    parser_find_info.add_argument(
+        'doc_path',
+        help='Document path (can be partial)'
+    )
+    
+    # Find stats subcommand
+    parser_find_stats = find_subparsers.add_parser(
+        'stats',
+        help='Show documentation statistics'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6947,6 +7110,8 @@ def main():
         return command_badges(args)
     elif args.command == 'story':
         return command_story(args)
+    elif args.command == 'find':
+        return command_find(args)
     else:
         parser.print_help()
         return 1
