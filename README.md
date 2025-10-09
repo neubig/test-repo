@@ -226,7 +226,23 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 version-check src/ -t 3.8` to check Python 3.8 compatibility!
    - **See [VERSION_CHECKER_GUIDE.md](VERSION_CHECKER_GUIDE.md) for complete version checking guide!**
 
-18. **Migration Comparison Tool** 🔍:
+18. **Project Metadata Updater** 📝 **[NEW]**:
+   - Automatically updates all project metadata files for Python 3 compatibility
+   - Updates setup.py (python_requires, classifiers), pyproject.toml, setup.cfg
+   - Updates CI/CD configs: GitHub Actions, GitLab CI, Travis CI
+   - Updates tox.ini, Pipfile, .python-version files
+   - Updates README.md Python version badges and mentions
+   - Ensures consistency across all project configuration files
+   - Dry-run mode to preview changes before applying
+   - Automatic backups of all modified files
+   - Customizable Python version range support
+   - JSON output for scripting and automation
+   - Perfect final step after code migration!
+   - Run `./py2to3 metadata --dry-run` to preview changes!
+   - Run `./py2to3 metadata` to update all metadata files!
+   - **See [METADATA_GUIDE.md](METADATA_GUIDE.md) for complete metadata updater guide!**
+
+19. **Migration Comparison Tool** 🔍:
    - Compare migration progress between different contexts
    - Compare two git branches side-by-side to evaluate different approaches
    - Compare commits to track progress over time

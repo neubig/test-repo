@@ -3997,6 +3997,81 @@ def command_report_card(args):
         return 1
 
 
+def command_metadata(args):
+    """Update project metadata files for Python 3 compatibility."""
+    print_header("Project Metadata Updater")
+    
+    validate_path(args.path)
+    
+    print_info(f"Project directory: {args.path}")
+    print_info(f"Python version range: {args.min_version} - {args.max_version}")
+    if args.dry_run:
+        print_warning("DRY RUN MODE - No files will be modified\n")
+    else:
+        print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from metadata_updater import MetadataUpdater
+        
+        updater = MetadataUpdater(args.path, args.min_version, args.max_version)
+        results = updater.update_all(dry_run=args.dry_run)
+        
+        if args.json:
+            print(json.dumps(results, indent=2))
+            return 0
+        
+        # Display results
+        if results["updated_files"]:
+            print_success(f"Updated {len(results['updated_files'])} file(s):")
+            for item in results["updated_files"]:
+                print(f"\n  📄 {Colors.BOLD}{item['file']}{Colors.ENDC}")
+                for change in item['changes']:
+                    print(f"     {Colors.OKGREEN}•{Colors.ENDC} {change}")
+        
+        if results["skipped_files"]:
+            print(f"\n{Colors.OKCYAN}⊘ Skipped {len(results['skipped_files'])} file(s) (no changes needed){Colors.ENDC}")
+            if args.verbose:
+                for file in results["skipped_files"]:
+                    print(f"  • {file}")
+        
+        if results["errors"]:
+            print()
+            print_warning(f"Encountered {len(results['errors'])} error(s):")
+            for error in results["errors"]:
+                print(f"  • {error}")
+        
+        if not args.dry_run and results["updated_files"]:
+            backup_dir = os.path.join(args.path, ".metadata_backups")
+            if os.path.exists(backup_dir):
+                print()
+                print_info(f"💾 Backups saved to: {backup_dir}")
+        
+        print()
+        
+        if results["updated_files"] and not args.dry_run:
+            print_success("✓ Project metadata successfully updated for Python 3!")
+            print_info("Review the changes and commit them to your repository.")
+            return 0
+        elif args.dry_run and results["updated_files"]:
+            print_info("Run without --dry-run to apply these changes.")
+            return 0
+        else:
+            print_info("No metadata updates needed - your project is already configured for Python 3!")
+            return 0
+            
+    except ImportError as e:
+        print_error(f"Failed to import metadata updater: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except Exception as e:
+        print_error(f"Error updating metadata: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -4936,6 +5011,18 @@ def main():
                                     default='text',
                                     help='Output format (default: text)')
     
+    # Metadata command
+    parser_metadata = subparsers.add_parser(
+        'metadata',
+        help='Update project metadata for Python 3',
+        description='Automatically update setup.py, pyproject.toml, tox.ini, CI configs, and other metadata files'
+    )
+    parser_metadata.add_argument('path', nargs='?', default='.', help='Project directory to update (default: current directory)')
+    parser_metadata.add_argument('--min-version', default='3.6', help='Minimum Python 3 version to support (default: 3.6)')
+    parser_metadata.add_argument('--max-version', default='3.12', help='Maximum Python 3 version to support (default: 3.12)')
+    parser_metadata.add_argument('-n', '--dry-run', action='store_true', help='Show what would be changed without making changes')
+    parser_metadata.add_argument('--json', action='store_true', help='Output results as JSON')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -5045,6 +5132,8 @@ def main():
         return command_import(args)
     elif args.command == 'report-card':
         return command_report_card(args)
+    elif args.command == 'metadata':
+        return command_metadata(args)
     else:
         parser.print_help()
         return 1
