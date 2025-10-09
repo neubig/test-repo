@@ -5153,6 +5153,56 @@ def command_heatmap(args):
         return 1
 
 
+def command_timeline(args):
+    """Generate interactive timeline visualization."""
+    print_header("Migration Timeline Visualizer")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from timeline_visualizer import MigrationTimelineVisualizer
+        
+        if not os.path.exists(args.path):
+            print_error(f"Path does not exist: {args.path}")
+            return 1
+        
+        print_info(f"📂 Project directory: {args.path}")
+        print_info(f"📄 Output file: {args.output}")
+        print()
+        
+        visualizer = MigrationTimelineVisualizer(args.path)
+        visualizer.collect_events()
+        
+        output_path = visualizer.generate_html(args.output)
+        
+        if args.json:
+            visualizer.export_json(args.json)
+            print_success(f"Timeline data exported to: {args.json}")
+        
+        print()
+        print_success("✨ Timeline visualization generated successfully!")
+        print_info(f"🌐 Open {output_path.absolute()} in your browser to view")
+        print()
+        print_info("💡 Tip: The timeline shows all migration events chronologically")
+        print_info("   Use the search and filters to explore specific event types")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import timeline visualizer: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error generating timeline: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_checklist(args):
     """Generate personalized migration checklist."""
     print_header("Migration Checklist Generator")
@@ -6473,6 +6523,28 @@ def main():
         help='Save checklist to file (auto-detects format from extension)'
     )
     
+    # Timeline command
+    parser_timeline = subparsers.add_parser(
+        'timeline',
+        help='🕐 Generate interactive migration timeline visualization',
+        description='Create a chronological timeline of your entire migration journey'
+    )
+    parser_timeline.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='Project directory (default: current directory)'
+    )
+    parser_timeline.add_argument(
+        '-o', '--output',
+        default='migration_timeline.html',
+        help='Output HTML file (default: migration_timeline.html)'
+    )
+    parser_timeline.add_argument(
+        '--json',
+        help='Also export timeline data as JSON to specified file'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6612,6 +6684,8 @@ def main():
         return command_heatmap(args)
     elif args.command == 'checklist':
         return command_checklist(args)
+    elif args.command == 'timeline':
+        return command_timeline(args)
     else:
         parser.print_help()
         return 1

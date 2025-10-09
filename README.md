@@ -567,7 +567,21 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 dashboard` to generate your progress dashboard!
    - Update regularly: collect stats with `--save` flag, then regenerate dashboard
 
-28. **Live Migration Monitor** 🔴✨ **[NEW]**:
+28. **Migration Timeline Visualizer** 🕐✨ **[NEW]**:
+   - Interactive chronological timeline of your entire migration journey
+   - Beautiful visual timeline showing when events occurred and what happened
+   - Event categorization: milestones, fixes, issues, rollbacks, commits, and more
+   - Color-coded markers and icons for quick visual identification
+   - Search and filter capabilities to focus on specific event types
+   - Automatic data collection from journal, stats, and git history
+   - Shows migration story: progression, decisions, and achievements over time
+   - Export timeline data as JSON for archiving and analysis
+   - Perfect for team retrospectives and documentation
+   - Complements dashboard: dashboard shows "what", timeline shows "when"
+   - Run `./py2to3 timeline` to generate your migration timeline!
+   - **See [TIMELINE_GUIDE.md](TIMELINE_GUIDE.md) for complete timeline guide!**
+
+29. **Live Migration Monitor** 🔴✨ **[NEW]**:
    - Real-time terminal dashboard for monitoring migration progress live
    - Beautiful, auto-refreshing interface built with Rich library
    - Live statistics showing files migrated, issues found/fixed, and completion percentage
