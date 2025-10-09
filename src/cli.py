@@ -3640,6 +3640,70 @@ def command_estimate(args):
         return 1
 
 
+def command_packages(args):
+    """Analyze and recommend package upgrades for Python 3."""
+    print_header("Package Upgrade Recommender")
+    
+    # Check if requirements file exists
+    if not os.path.exists(args.requirements_file):
+        print_error(f"Requirements file not found: {args.requirements_file}")
+        return 1
+    
+    print_info(f"Analyzing: {args.requirements_file}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from package_upgrade_recommender import PackageUpgradeRecommender
+        
+        # Create recommender and analyze
+        recommender = PackageUpgradeRecommender(args.requirements_file)
+        result = recommender.analyze(verbose=args.verbose)
+        
+        if not result['success']:
+            print_error(f"Analysis failed: {result['error']}")
+            return 1
+        
+        # Generate report
+        report = recommender.generate_report(output_format=args.format)
+        
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        # Generate updated requirements if requested
+        if args.generate_requirements:
+            output_file = recommender.generate_updated_requirements(args.generate_requirements)
+            print()
+            print_success(f"Updated requirements saved to: {output_file}")
+            print_warning("Please review and test the updated requirements before using!")
+        
+        # Return warning if there are issues
+        if result['stats']['python2_only'] > 0:
+            print()
+            print_warning("Some packages are Python 2 only - manual intervention required")
+            return 1
+        elif result['stats']['errors'] > 0:
+            print()
+            print_warning("Some packages could not be checked - please verify manually")
+            return 1
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import package upgrade recommender: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error analyzing packages: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_export(args):
     """Export migration package."""
     print_header("Migration Package Export")
@@ -7259,6 +7323,27 @@ def main():
     parser_estimate.add_argument('-o', '--output',
                                 help='Save report to file (default: print to console)')
     
+    # Packages command
+    parser_packages = subparsers.add_parser(
+        'packages',
+        help='Analyze and recommend package upgrades for Python 3',
+        description='Check package dependencies for Python 3 compatibility and recommend version upgrades'
+    )
+    parser_packages.add_argument('requirements_file', nargs='?', 
+                                default='requirements.txt',
+                                help='Path to requirements.txt (default: requirements.txt)')
+    parser_packages.add_argument('-v', '--verbose', action='store_true',
+                                help='Show detailed progress')
+    parser_packages.add_argument('-f', '--format', 
+                                choices=['text', 'markdown', 'json'], 
+                                default='text',
+                                help='Output format (default: text)')
+    parser_packages.add_argument('-o', '--output',
+                                help='Save report to file')
+    parser_packages.add_argument('--generate-requirements',
+                                metavar='FILE',
+                                help='Generate updated requirements.txt with recommended versions')
+    
     # Dashboard command
     parser_dashboard = subparsers.add_parser(
         'dashboard',
@@ -8771,6 +8856,8 @@ def main():
         return command_encoding(args)
     elif args.command == 'estimate':
         return command_estimate(args)
+    elif args.command == 'packages':
+        return command_packages(args)
     elif args.command == 'dashboard':
         return command_dashboard(args)
     elif args.command == 'live':

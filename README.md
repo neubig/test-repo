@@ -226,7 +226,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 cache stats` to view performance metrics!
    - **See [CACHE_GUIDE.md](CACHE_GUIDE.md) for complete guide!**
 
-11. **Code Complexity Analyzer** 📊 ✨ **[NEW]**:
+11. **Package Upgrade Recommender** 📦 ✨ **[NEW]**:
+   - Automatically analyze package dependencies for Python 3 compatibility
+   - Check every package in requirements.txt against PyPI
+   - Find latest Python 3 compatible versions for all packages
+   - Identify Python 2-only packages that need alternatives
+   - Generate updated requirements.txt with recommended versions
+   - Multiple report formats: text, markdown, JSON
+   - Detailed compatibility information and homepage links
+   - Perfect for planning and executing dependency upgrades
+   - Run `./py2to3 packages` to analyze your dependencies!
+   - **See [PACKAGE_UPGRADE_GUIDE.md](PACKAGE_UPGRADE_GUIDE.md) for complete guide!**
+
+12. **Code Complexity Analyzer** 📊 ✨ **[NEW]**:
    - Measure code complexity before and after migration
    - Track cyclomatic complexity, maintainability index, and Halstead metrics
    - Compare backup vs current state to identify complexity increases
