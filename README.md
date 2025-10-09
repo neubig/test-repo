@@ -238,7 +238,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 smell src/` to analyze your codebase
    - **See [SMELL_DETECTOR_GUIDE.md](SMELL_DETECTOR_GUIDE.md) for complete guide!**
 
-13. **Fixer Tool (`src/fixer.py`)**:
+13. **Migration Insights Generator** 🔍 ✨ **[NEW]**:
+   - Analyzes your migration process to provide actionable strategic insights
+   - Identifies patterns, automation opportunities, and optimization strategies
+   - Tracks efficiency metrics: velocity, time per file, estimated completion
+   - Generates smart recommendations based on your project's characteristics
+   - Discovers repetitive patterns suitable for custom rule automation
+   - Provides learning opportunities tailored to your codebase
+   - Multiple output formats: text, markdown, JSON
+   - Perfect for optimizing workflow, planning, and executive reporting
+   - Run `./py2to3 insights` to get strategic recommendations!
+   - **See [INSIGHTS_GUIDE.md](INSIGHTS_GUIDE.md) for complete guide!**
+
+14. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports

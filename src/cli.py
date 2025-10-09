@@ -6345,6 +6345,49 @@ def command_complexity(args):
         return 1
 
 
+def command_insights(args):
+    """Generate migration insights and recommendations."""
+    print_header("Migration Insights Generator")
+    
+    try:
+        from insights_generator import MigrationInsightsGenerator
+        
+        # Create generator
+        generator = MigrationInsightsGenerator(args.project_dir)
+        
+        # Run analysis
+        print_info(f"Analyzing project: {args.project_dir}")
+        print()
+        
+        insights = generator.analyze()
+        
+        # Generate report
+        if args.output:
+            output_path = generator.save_report(args.output, args.format)
+            print_success(f"\n✅ Report saved to: {output_path}")
+            print_info("\n💡 Tip: Open the report to see detailed insights and recommendations")
+        else:
+            report = generator.generate_report(args.format)
+            print(report)
+        
+        # Show quick summary
+        recommendations = insights.get("recommendations", [])
+        if recommendations and not args.output:
+            print_info(f"\n📌 Found {len(recommendations)} recommendations to improve your migration!")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import insights generator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error generating insights: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_smell(args):
     """Detect code smells in Python code."""
     print_header("Code Smell Detection")
@@ -8401,6 +8444,30 @@ def main():
     )
     parser_smell.set_defaults(func=command_smell)
     
+    # insights command - Generate migration insights and recommendations
+    parser_insights = subparsers.add_parser(
+        'insights',
+        help='🔍 Generate migration insights and recommendations',
+        description='Analyze migration data to provide actionable insights, identify patterns, and suggest optimizations'
+    )
+    parser_insights.add_argument(
+        'project_dir',
+        nargs='?',
+        default='.',
+        help='Project directory to analyze (default: current directory)'
+    )
+    parser_insights.add_argument(
+        '-f', '--format',
+        choices=['text', 'json', 'markdown'],
+        default='text',
+        help='Output format (default: text)'
+    )
+    parser_insights.add_argument(
+        '-o', '--output',
+        help='Save report to file'
+    )
+    parser_insights.set_defaults(func=command_insights)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8562,6 +8629,8 @@ def main():
         return command_complexity(args)
     elif args.command == 'smell':
         return command_smell(args)
+    elif args.command == 'insights':
+        return command_insights(args)
     else:
         parser.print_help()
         return 1
