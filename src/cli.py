@@ -6680,6 +6680,124 @@ def command_smell(args):
         return 1
 
 
+def command_notify(args):
+    """Send notifications about migration progress."""
+    try:
+        from notification_manager import NotificationManager
+        
+        notifier = NotificationManager(args.config)
+        
+        if args.test:
+            print_header("Testing Notification Channels")
+            results = notifier.test_channels()
+            
+            if not results:
+                print_warning("No channels configured. Use --config to set up notifications.")
+                return 1
+            
+            all_success = True
+            for channel, success in results.items():
+                if success:
+                    print_success(f"✅ {channel.capitalize()}: Working")
+                else:
+                    print_error(f"❌ {channel.capitalize()}: Failed")
+                    all_success = False
+            
+            return 0 if all_success else 1
+        
+        elif args.setup:
+            print_header("Notification System Setup")
+            print_info("Creating notification configuration template...")
+            
+            config_template = {
+                "enabled_channels": ["file"],
+                "slack": {
+                    "webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+                    "username": "py2to3-bot",
+                    "channel": "#migration"
+                },
+                "discord": {
+                    "webhook_url": "https://discord.com/api/webhooks/YOUR/WEBHOOK/URL",
+                    "username": "py2to3-bot"
+                },
+                "webhook": {
+                    "url": "https://your-webhook-url.com/endpoint",
+                    "headers": {}
+                },
+                "email": {
+                    "smtp_server": "smtp.gmail.com",
+                    "smtp_port": 587,
+                    "username": "your-email@example.com",
+                    "password": "your-password",
+                    "from_addr": "your-email@example.com",
+                    "to_addrs": ["recipient@example.com"]
+                },
+                "file": {
+                    "output_path": "migration_notifications.log",
+                    "format": "json"
+                },
+                "milestones": [25, 50, 75, 100],
+                "notify_on_start": True,
+                "notify_on_complete": True,
+                "notify_on_error": True
+            }
+            
+            config_path = args.output or 'notification_config.json'
+            
+            with open(config_path, 'w') as f:
+                json.dump(config_template, f, indent=2)
+            
+            print_success(f"✅ Configuration template created: {config_path}")
+            print()
+            print_info("📝 Next steps:")
+            print_info("  1. Edit the configuration file with your webhook URLs and settings")
+            print_info("  2. Enable desired channels by adding them to 'enabled_channels'")
+            print_info("  3. Test with: ./py2to3 notify --test --config notification_config.json")
+            print_info("  4. Set environment variables (alternative to config file):")
+            print_info("     - SLACK_WEBHOOK_URL")
+            print_info("     - DISCORD_WEBHOOK_URL")
+            print_info("     - WEBHOOK_URL")
+            print_info("     - EMAIL credentials (SMTP_SERVER, EMAIL_USERNAME, etc.)")
+            
+            return 0
+        
+        else:
+            # Send a manual notification
+            if not notifier.enabled_channels:
+                print_warning("No channels configured. Use --setup to create a configuration.")
+                return 1
+            
+            message = args.message or "Manual notification from py2to3"
+            title = args.title or "Migration Update"
+            
+            metadata = {}
+            if args.metadata:
+                for item in args.metadata:
+                    if '=' in item:
+                        key, value = item.split('=', 1)
+                        metadata[key] = value
+            
+            print_info(f"Sending {args.type} notification...")
+            success = notifier.send_notification(title, message, args.type, metadata)
+            
+            if success:
+                print_success("✅ Notification sent successfully!")
+                return 0
+            else:
+                print_error("❌ Failed to send notification")
+                return 1
+        
+    except ImportError as e:
+        print_error(f"Failed to import notification manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -8761,6 +8879,51 @@ def main():
     )
     parser_simulate.set_defaults(func=command_simulate)
     
+    # Notify command
+    parser_notify = subparsers.add_parser(
+        'notify',
+        help='📢 Send notifications about migration progress',
+        description='Send notifications to Slack, Discord, email, webhooks, or files. Perfect for team collaboration and CI/CD integration.'
+    )
+    parser_notify.add_argument(
+        '--setup',
+        action='store_true',
+        help='Create notification configuration template'
+    )
+    parser_notify.add_argument(
+        '--test',
+        action='store_true',
+        help='Test all configured notification channels'
+    )
+    parser_notify.add_argument(
+        '--config',
+        help='Path to notification configuration file'
+    )
+    parser_notify.add_argument(
+        '--type',
+        choices=['milestone', 'success', 'error', 'warning', 'info', 'progress'],
+        default='info',
+        help='Type of notification (default: info)'
+    )
+    parser_notify.add_argument(
+        '--title',
+        help='Notification title'
+    )
+    parser_notify.add_argument(
+        '--message',
+        help='Notification message'
+    )
+    parser_notify.add_argument(
+        '--metadata',
+        nargs='*',
+        help='Additional metadata as key=value pairs'
+    )
+    parser_notify.add_argument(
+        '-o', '--output',
+        help='Output file for configuration template (with --setup)'
+    )
+    parser_notify.set_defaults(func=command_notify)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8932,6 +9095,8 @@ def main():
         return command_doc_modernizer(args)
     elif args.command == 'simulate':
         return command_simulate(args)
+    elif args.command == 'notify':
+        return command_notify(args)
     else:
         parser.print_help()
         return 1

@@ -238,6 +238,18 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 packages` to analyze your dependencies!
    - **See [PACKAGE_UPGRADE_GUIDE.md](PACKAGE_UPGRADE_GUIDE.md) for complete guide!**
 
+12. **Notification System** 📢 ✨ **[NEW]**:
+   - Send real-time alerts about migration progress to your team
+   - Multiple channels: Slack, Discord, email, webhooks, and file output
+   - Automatic milestone notifications (25%, 50%, 75%, 100%)
+   - Perfect for team collaboration and CI/CD integration
+   - Notify on start, completion, errors, and progress updates
+   - Rich metadata support for detailed status information
+   - Easy configuration via JSON file or environment variables
+   - Test all channels with a single command
+   - Run `./py2to3 notify --setup` to get started!
+   - **See [NOTIFICATION_GUIDE.md](NOTIFICATION_GUIDE.md) for complete guide!**
+
 12. **Code Complexity Analyzer** 📊 ✨ **[NEW]**:
    - Measure code complexity before and after migration
    - Track cyclomatic complexity, maintainability index, and Halstead metrics
