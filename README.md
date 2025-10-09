@@ -183,17 +183,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 badges` to generate badges!
    - **See [BADGES_GUIDE.md](BADGES_GUIDE.md) for complete guide!**
 
-8. **Fixer Tool (`src/fixer.py`)**:
+8. **Migration Session Manager** ⏱️ ✨ **[NEW]**:
+   - Track migration work sessions with precise time tracking
+   - Monitor developer productivity and velocity
+   - Record files modified, tasks completed, and observations
+   - Pause/resume sessions with automatic break time tracking
+   - Generate detailed productivity reports and statistics
+   - Perfect for project planning and team coordination
+   - Understand actual time spent vs. estimates
+   - Run `./py2to3 session start` to begin tracking!
+   - **See [SESSION_GUIDE.md](SESSION_GUIDE.md) for complete guide!**
+
+9. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-9. **Verifier Tool (`src/verifier.py`)**:
+10. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-10. **Report Generator (`src/report_generator.py`)** 🆕:
+11. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes

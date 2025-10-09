@@ -5876,6 +5876,188 @@ def command_rules(args):
     return 1
 
 
+def command_session(args):
+    """Manage migration work sessions."""
+    from session_manager import SessionManager
+    
+    manager = SessionManager()
+    
+    if args.session_action == 'start':
+        print_header("Start Migration Session")
+        
+        try:
+            session = manager.start_session(args.developer, args.description)
+            print_success(f"Session started: {session['id']}")
+            print_info(f"Developer: {session['developer']}")
+            if session.get('description'):
+                print_info(f"Description: {session['description']}")
+            print()
+            print_info("Use './py2to3 session note' to add notes")
+            print_info("Use './py2to3 session pause' to take a break")
+            print_info("Use './py2to3 session end' when done")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'end':
+        print_header("End Migration Session")
+        
+        try:
+            session = manager.end_session(args.summary)
+            print_success(f"Session ended: {session['id']}")
+            print_info(f"Duration: {manager._format_duration(session['duration_seconds'])}")
+            print_info(f"Files modified: {len(session.get('files_modified', []))}")
+            print_info(f"Tasks completed: {len(session.get('tasks_completed', []))}")
+            if session.get('notes'):
+                print_info(f"Notes recorded: {len(session['notes'])}")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'pause':
+        try:
+            session = manager.pause_session()
+            print_success(f"Session paused: {session['id']}")
+            print_info("Use './py2to3 session resume' to continue")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'resume':
+        try:
+            session = manager.resume_session()
+            print_success(f"Session resumed: {session['id']}")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'note':
+        try:
+            manager.add_note(args.note)
+            print_success("Note added to current session")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'file':
+        try:
+            manager.add_file(args.filepath)
+            print_success(f"File recorded: {args.filepath}")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'task':
+        try:
+            manager.add_task(args.task)
+            print_success("Task recorded")
+        except ValueError as e:
+            print_error(str(e))
+            return 1
+        
+        return 0
+    
+    elif args.session_action == 'status':
+        print_header("Session Status")
+        
+        active = manager.get_active_session()
+        if active:
+            print(f"{Colors.BOLD}Active Session:{Colors.ENDC} {Colors.OKGREEN}{active['id']}{Colors.ENDC}")
+            print(f"  {Colors.BOLD}Developer:{Colors.ENDC} {active['developer']}")
+            print(f"  {Colors.BOLD}Status:{Colors.ENDC} {active['status']}")
+            print(f"  {Colors.BOLD}Started:{Colors.ENDC} {active['start_time']}")
+            
+            if active.get('description'):
+                print(f"  {Colors.BOLD}Description:{Colors.ENDC} {active['description']}")
+            
+            print(f"\n{Colors.BOLD}Activity:{Colors.ENDC}")
+            print(f"  Files modified: {len(active.get('files_modified', []))}")
+            print(f"  Tasks completed: {len(active.get('tasks_completed', []))}")
+            print(f"  Notes: {len(active.get('notes', []))}")
+            print(f"  Breaks: {len(active.get('breaks', []))}")
+            
+            if active.get('files_modified'):
+                print(f"\n{Colors.BOLD}Files:{Colors.ENDC}")
+                for f in active['files_modified'][:10]:
+                    print(f"  - {f}")
+                if len(active['files_modified']) > 10:
+                    print(f"  ... and {len(active['files_modified']) - 10} more")
+        else:
+            print_warning("No active session")
+            print_info("Start a session with: ./py2to3 session start")
+        
+        return 0
+    
+    elif args.session_action == 'history':
+        print_header("Session History")
+        
+        sessions = manager.get_session_history(args.limit)
+        if sessions:
+            for i, session in enumerate(sessions, 1):
+                print(f"{Colors.BOLD}{i}. Session {session['id']}{Colors.ENDC}")
+                print(f"   Developer: {session['developer']}")
+                print(f"   Duration: {manager._format_duration(session.get('duration_seconds', 0))}")
+                print(f"   Files: {len(session.get('files_modified', []))}, Tasks: {len(session.get('tasks_completed', []))}")
+                if session.get('description'):
+                    print(f"   Description: {session['description']}")
+                if session.get('summary'):
+                    print(f"   Summary: {session['summary']}")
+                print()
+        else:
+            print_warning("No session history")
+            print_info("Start tracking with: ./py2to3 session start")
+        
+        return 0
+    
+    elif args.session_action == 'stats':
+        print_header("Session Statistics")
+        
+        stats = manager.get_statistics()
+        
+        print(f"{Colors.BOLD}Overview:{Colors.ENDC}")
+        print(f"  Total Sessions: {Colors.OKGREEN}{stats['total_sessions']}{Colors.ENDC}")
+        print(f"  Total Time: {Colors.OKGREEN}{stats['total_time_formatted']}{Colors.ENDC}")
+        print(f"  Average Session: {Colors.OKCYAN}{stats['average_session_formatted']}{Colors.ENDC}")
+        print(f"  Files Modified: {Colors.OKGREEN}{stats['total_files_modified']}{Colors.ENDC}")
+        print(f"  Tasks Completed: {Colors.OKGREEN}{stats['total_tasks_completed']}{Colors.ENDC}")
+        print(f"  Notes Recorded: {Colors.OKGREEN}{stats['total_notes']}{Colors.ENDC}")
+        
+        if stats['developers']:
+            print(f"\n{Colors.BOLD}By Developer:{Colors.ENDC}")
+            for dev, dev_stats in stats['sessions_by_developer'].items():
+                print(f"  {Colors.OKCYAN}{dev}{Colors.ENDC}:")
+                print(f"    Sessions: {dev_stats['sessions']}")
+                print(f"    Time: {dev_stats['time_formatted']}")
+        
+        return 0
+    
+    elif args.session_action == 'report':
+        print_header("Session Report")
+        
+        report = manager.generate_report(args.output)
+        
+        if args.output:
+            print_success(f"Report written to {args.output}")
+        else:
+            print(report)
+        
+        return 0
+    
+    return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -7468,6 +7650,120 @@ def main():
     
     parser_rules.set_defaults(func=command_rules)
     
+    # Session command
+    parser_session = subparsers.add_parser(
+        'session',
+        help='⏱️  Track migration work sessions and productivity',
+        description='Manage migration work sessions with time tracking, notes, and productivity metrics'
+    )
+    
+    session_subparsers = parser_session.add_subparsers(
+        dest='session_action',
+        help='Session action to perform'
+    )
+    
+    # Session start
+    parser_session_start = session_subparsers.add_parser(
+        'start',
+        help='Start a new migration session'
+    )
+    parser_session_start.add_argument(
+        '--developer',
+        help='Developer name (defaults to system username)'
+    )
+    parser_session_start.add_argument(
+        '--description',
+        help='Description of what will be worked on'
+    )
+    
+    # Session end
+    parser_session_end = session_subparsers.add_parser(
+        'end',
+        help='End the current session'
+    )
+    parser_session_end.add_argument(
+        '--summary',
+        help='Summary of work completed'
+    )
+    
+    # Session pause
+    session_subparsers.add_parser(
+        'pause',
+        help='Pause the current session (start a break)'
+    )
+    
+    # Session resume
+    session_subparsers.add_parser(
+        'resume',
+        help='Resume a paused session (end break)'
+    )
+    
+    # Session note
+    parser_session_note = session_subparsers.add_parser(
+        'note',
+        help='Add a note to the current session'
+    )
+    parser_session_note.add_argument(
+        'note',
+        help='Note text'
+    )
+    
+    # Session file
+    parser_session_file = session_subparsers.add_parser(
+        'file',
+        help='Record a file being worked on'
+    )
+    parser_session_file.add_argument(
+        'filepath',
+        help='Path to the file'
+    )
+    
+    # Session task
+    parser_session_task = session_subparsers.add_parser(
+        'task',
+        help='Record a completed task'
+    )
+    parser_session_task.add_argument(
+        'task',
+        help='Task description'
+    )
+    
+    # Session status
+    session_subparsers.add_parser(
+        'status',
+        help='Show current session status'
+    )
+    
+    # Session history
+    parser_session_history = session_subparsers.add_parser(
+        'history',
+        help='Show session history'
+    )
+    parser_session_history.add_argument(
+        '--limit',
+        type=int,
+        default=10,
+        help='Number of sessions to show (default: 10)'
+    )
+    
+    # Session stats
+    session_subparsers.add_parser(
+        'stats',
+        help='Show session statistics'
+    )
+    
+    # Session report
+    parser_session_report = session_subparsers.add_parser(
+        'report',
+        help='Generate detailed session report'
+    )
+    parser_session_report.add_argument(
+        '-o', '--output',
+        help='Output file (default: print to console)'
+    )
+    
+    parser_session.set_defaults(func=command_session)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -7619,6 +7915,8 @@ def main():
         return command_find(args)
     elif args.command == 'rules':
         return command_rules(args)
+    elif args.command == 'session':
+        return command_session(args)
     else:
         parser.print_help()
         return 1
