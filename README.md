@@ -841,6 +841,29 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Remote access: `./py2to3 api --host 0.0.0.0 --port 8080`
    - **See [API_SERVER_GUIDE.md](API_SERVER_GUIDE.md) for complete API documentation with examples!**
 
+45. **Migration Heatmap** 🗺️✨ **[NEW]**:
+   - Interactive visual treemap showing migration status at a glance
+   - Spatial/structural view of your codebase (complements temporal dashboards)
+   - Files sized proportionally by lines of code
+   - Color-coded by migration status (green=complete, amber=in progress, red=not started)
+   - Alternative risk view (green=low risk, amber=medium, red=high risk)
+   - Interactive tooltips with file details (issues, complexity, status)
+   - Hierarchical layout organized by directory structure
+   - Two visualization modes: Status View and Risk View
+   - Summary statistics: files analyzed, completion rates, risk distribution
+   - Identifies hotspots and problem areas instantly
+   - Perfect for team standups and stakeholder presentations
+   - Beautiful HTML visualization using D3.js treemap layout
+   - Text report mode for actionable file lists
+   - Top 10 files by issues and complexity
+   - Helps prioritize migration work visually
+   - Track progress by comparing heatmaps over time
+   - Self-contained HTML output (works offline)
+   - Great for understanding codebase structure and focus areas
+   - Run `./py2to3 heatmap src/` to generate visual heatmap!
+   - Run `./py2to3 heatmap src/ --report` for detailed text report!
+   - **See [HEATMAP_GUIDE.md](HEATMAP_GUIDE.md) for complete heatmap guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

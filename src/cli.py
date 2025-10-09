@@ -5035,6 +5035,54 @@ def command_readiness(args):
         return 1
 
 
+def command_heatmap(args):
+    """Generate interactive heatmap visualization of migration status."""
+    print_header("Migration Heatmap Generator")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from heatmap_generator import HeatmapGenerator
+        
+        print_info(f"🔍 Scanning directory: {args.directory}")
+        print()
+        
+        generator = HeatmapGenerator(args.directory)
+        generator.scan_directory()
+        
+        if args.report:
+            print(generator.generate_report())
+            print()
+        
+        print_info("🎨 Generating interactive heatmap...")
+        output_file = generator.generate_html(args.output)
+        
+        print_success(f"✅ Heatmap generated successfully!")
+        print()
+        print_info(f"📄 Output file: {output_file}")
+        print_info(f"📊 Analyzed {generator.stats['total_files']} files with {generator.stats['total_lines']:,} lines of code")
+        print()
+        print("💡 Open the HTML file in your browser to view the interactive heatmap.")
+        print("   Files are sized by lines of code and colored by status/risk level.")
+        print("   Use the view toggle to switch between Status and Risk views.")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import heatmap generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error generating heatmap: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6205,6 +6253,29 @@ def main():
         help='Enable debug mode'
     )
     
+    # Heatmap command
+    parser_heatmap = subparsers.add_parser(
+        'heatmap',
+        help='🗺️  Generate interactive visual heatmap of migration status',
+        description='Create an interactive treemap showing migration status, risk levels, and complexity across all files'
+    )
+    parser_heatmap.add_argument(
+        'directory',
+        nargs='?',
+        default='.',
+        help='Directory to analyze (default: current directory)'
+    )
+    parser_heatmap.add_argument(
+        '-o', '--output',
+        default='migration_heatmap.html',
+        help='Output HTML file (default: migration_heatmap.html)'
+    )
+    parser_heatmap.add_argument(
+        '--report',
+        action='store_true',
+        help='Print text report to console'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6338,6 +6409,8 @@ def main():
         return command_readiness(args)
     elif args.command == 'api':
         return command_api(args)
+    elif args.command == 'heatmap':
+        return command_heatmap(args)
     else:
         parser.print_help()
         return 1
