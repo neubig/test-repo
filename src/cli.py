@@ -6798,6 +6798,69 @@ def command_notify(args):
         return 1
 
 
+def command_duplication(args):
+    """Detect code duplication in the codebase."""
+    print_header("Code Duplication Analysis")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from duplication_detector import DuplicationDetector
+        
+        print_info(f"Analyzing: {args.path}")
+        print_info(f"Minimum lines per block: {args.min_lines}")
+        print_info(f"Output format: {args.format}")
+        
+        if args.exclude:
+            print_info(f"Excluding patterns: {', '.join(args.exclude)}")
+        
+        print()
+        
+        # Create detector and analyze
+        detector = DuplicationDetector(min_lines=args.min_lines)
+        
+        if os.path.isdir(args.path):
+            detector.analyze_directory(args.path, exclude_patterns=args.exclude)
+        else:
+            detector.analyze_file(args.path)
+        
+        # Generate report
+        report = detector.generate_report(format=args.format)
+        
+        # Save or display report
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+            
+            # Also show summary in console
+            if args.format != 'text':
+                print()
+                print_info("Summary:")
+                print(f"  Files analyzed: {detector.stats['files_analyzed']}")
+                print(f"  Total lines: {detector.stats['total_lines']}")
+                print(f"  Duplicate blocks: {detector.stats['duplicate_blocks']}")
+                if detector.stats['total_lines'] > 0:
+                    rate = (detector.stats['duplicate_lines'] / detector.stats['total_lines']) * 100
+                    print(f"  Duplication rate: {rate:.2f}%")
+        else:
+            print(report)
+        
+        return 0
+    
+    except ImportError as e:
+        print_error(f"Failed to import duplication detector: {e}")
+        return 1
+    except FileNotFoundError:
+        print_error(f"Path not found: {args.path}")
+        return 1
+    except Exception as e:
+        print_error(f"Error analyzing duplication: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_demo(args):
     """Run an interactive demonstration of the migration toolkit."""
     print_header("py2to3 Interactive Demo Showcase")
@@ -7266,6 +7329,23 @@ def main():
                                help='Output format (default: text)')
     parser_quality.add_argument('-d', '--detailed', action='store_true',
                                help='Include detailed per-file metrics in report')
+    
+    # Duplication command
+    parser_duplication = subparsers.add_parser(
+        'duplication',
+        aliases=['dedup', 'dup'],
+        help='Detect code duplication and similarity',
+        description='Identify duplicated code blocks to reduce migration work and improve code quality'
+    )
+    parser_duplication.add_argument('path', nargs='?', default='src',
+                                   help='File or directory to analyze (default: src)')
+    parser_duplication.add_argument('-m', '--min-lines', type=int, default=5,
+                                   help='Minimum lines per code block (default: 5)')
+    parser_duplication.add_argument('-o', '--output', help='Save report to file')
+    parser_duplication.add_argument('-f', '--format', choices=['text', 'json', 'html'], default='text',
+                                   help='Output format (default: text)')
+    parser_duplication.add_argument('-e', '--exclude', action='append',
+                                   help='Patterns to exclude (can be used multiple times)')
     
     # Bench command
     parser_bench = subparsers.add_parser(
@@ -9047,6 +9127,8 @@ def main():
         return command_watch(args)
     elif args.command == 'quality':
         return command_quality(args)
+    elif args.command in ['duplication', 'dedup', 'dup']:
+        return command_duplication(args)
     elif args.command == 'bench':
         return command_bench(args)
     elif args.command == 'docs':

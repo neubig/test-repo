@@ -196,7 +196,18 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rules init` to get started!
    - **See [CUSTOM_RULES_GUIDE.md](CUSTOM_RULES_GUIDE.md) for complete guide!**
 
-8. **Migration Progress Badges** 🎖️ ✨ **[NEW]**:
+8. **Code Duplication Detector** 🔍 ✨ **[NEW]**:
+   - Identify duplicated code blocks to reduce migration work
+   - Find refactoring opportunities before migrating
+   - Configurable sensitivity with minimum line thresholds
+   - Multiple output formats: text, JSON, and beautiful HTML reports
+   - Excludable patterns for tests and generated code
+   - Duplication rate metrics and savings estimates
+   - Perfect for improving code quality during migration
+   - Run `./py2to3 duplication src/` to analyze your code!
+   - **See [DUPLICATION_GUIDE.md](DUPLICATION_GUIDE.md) for complete guide!**
+
+9. **Migration Progress Badges** 🎖️ ✨ **[NEW]**:
    - Generate beautiful SVG badges showing migration progress
    - Perfect for README files and project dashboards
    - 5 badge types: status, progress %, files migrated, issues remaining, Python version
@@ -206,7 +217,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 badges` to generate badges!
    - **See [BADGES_GUIDE.md](BADGES_GUIDE.md) for complete guide!**
 
-9. **Migration Session Manager** ⏱️ ✨ **[NEW]**:
+10. **Migration Session Manager** ⏱️ ✨ **[NEW]**:
    - Track migration work sessions with precise time tracking
    - Monitor developer productivity and velocity
    - Record files modified, tasks completed, and observations
@@ -217,7 +228,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 session start` to begin tracking!
    - **See [SESSION_GUIDE.md](SESSION_GUIDE.md) for complete guide!**
 
-10. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
+11. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
    - Get instant answers to common Python 2 to 3 migration questions
    - Context-aware tips based on your codebase scan
    - 15+ curated tips covering all major migration issues
@@ -228,7 +239,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 tips list` to see all available tips!
    - **See [TIPS_GUIDE.md](TIPS_GUIDE.md) for complete guide!**
 
-10. **Smart Cache Manager** ⚡ ✨ **[NEW]**:
+12. **Smart Cache Manager** ⚡ ✨ **[NEW]**:
    - Dramatically speeds up repeated operations with intelligent caching
    - Caches AST parsing, pattern matching, and file analysis results
    - Automatic invalidation when files change (MD5 hash-based)
