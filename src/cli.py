@@ -5083,6 +5083,87 @@ def command_heatmap(args):
         return 1
 
 
+def command_checklist(args):
+    """Generate personalized migration checklist."""
+    print_header("Migration Checklist Generator")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from checklist_generator import ChecklistGenerator
+        
+        if not os.path.exists(args.path):
+            print_error(f"Path does not exist: {args.path}")
+            return 1
+        
+        print_info(f"📂 Analyzing project: {args.path}")
+        print_info("⏳ This may take a moment for large projects...")
+        print()
+        
+        generator = ChecklistGenerator(args.path)
+        checklist = generator.generate_checklist(format=args.format)
+        
+        if args.output:
+            # Auto-detect format from file extension if not specified
+            output_format = args.format
+            if args.output.endswith('.md'):
+                output_format = 'markdown'
+            elif args.output.endswith('.json'):
+                output_format = 'json'
+            
+            # Regenerate with correct format if needed
+            if output_format != args.format:
+                checklist = generator.generate_checklist(format=output_format)
+            
+            with open(args.output, 'w') as f:
+                f.write(checklist)
+            
+            print_success(f"✅ Checklist saved to {args.output}")
+            print()
+            print_info("💡 Tips:")
+            print("   - Use this checklist to track your migration progress")
+            print("   - Start with Quick Wins to build momentum")
+            print("   - Address Blockers early to unblock dependent files")
+            print("   - Re-run 'py2to3 checklist' after fixes to update progress")
+        else:
+            print(checklist)
+        
+        # Print summary statistics
+        files_with_issues = sum(
+            1 for d in generator.files_data.values() 
+            if len(d.get('issues', [])) > 0
+        )
+        
+        if files_with_issues > 0:
+            print()
+            print_info("🚀 Next Steps:")
+            print("   1. Review the checklist above")
+            print("   2. Start with the first Quick Win file")
+            print("   3. Run: ./py2to3 fix <file> --backup-dir backups")
+            print("   4. Run: ./py2to3 check <file> to verify")
+            print("   5. Test your changes")
+            print("   6. Move to the next file")
+        else:
+            print()
+            print_success("🎉 No Python 2 issues found! Your code is ready!")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import checklist generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error generating checklist: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6276,6 +6357,29 @@ def main():
         help='Print text report to console'
     )
     
+    # Checklist command
+    parser_checklist = subparsers.add_parser(
+        'checklist',
+        help='📝 Generate personalized migration checklist',
+        description='Create a prioritized, actionable migration roadmap based on your codebase'
+    )
+    parser_checklist.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='Path to the project to analyze (default: current directory)'
+    )
+    parser_checklist.add_argument(
+        '-f', '--format',
+        choices=['text', 'markdown', 'json'],
+        default='text',
+        help='Output format: text (console), markdown (save to file), json (machine readable)'
+    )
+    parser_checklist.add_argument(
+        '-o', '--output',
+        help='Save checklist to file (auto-detects format from extension)'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6411,6 +6515,8 @@ def main():
         return command_api(args)
     elif args.command == 'heatmap':
         return command_heatmap(args)
+    elif args.command == 'checklist':
+        return command_checklist(args)
     else:
         parser.print_help()
         return 1

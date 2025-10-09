@@ -131,7 +131,18 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
-3. **Code Snippet Converter** ✨ **[NEW]**:
+3. **Migration Checklist Generator** 📝 ✨ **[NEW]**:
+   - Generates personalized, prioritized migration roadmaps
+   - Analyzes your codebase and creates actionable step-by-step plans
+   - Identifies "Quick Wins" (easy files to start with)
+   - Detects "Blockers" (files that other files depend on)
+   - Smart prioritization based on complexity and effort
+   - Multiple formats: text (console), markdown (tracking), JSON (automation)
+   - Perfect for staying organized and tracking progress
+   - Run `./py2to3 checklist` to get your migration roadmap!
+   - **See [CHECKLIST_GUIDE.md](CHECKLIST_GUIDE.md) for complete guide!**
+
+4. **Code Snippet Converter** ✨ **[NEW]**:
    - Lightning-fast interactive tool for converting Python 2 snippets to Python 3
    - Perfect for learning, quick testing, and educational purposes
    - Multiple output formats: side-by-side comparison, unified diff, or plain text
@@ -141,17 +152,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 convert --help` to explore!
    - **See [SNIPPET_CONVERTER_GUIDE.md](SNIPPET_CONVERTER_GUIDE.md) for complete guide!**
 
-4. **Fixer Tool (`src/fixer.py`)**:
+5. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-5. **Verifier Tool (`src/verifier.py`)**:
+6. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-6. **Report Generator (`src/report_generator.py`)** 🆕:
+7. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -160,7 +171,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-7. **Configuration Management** ✨ **[NEW]**:
+8. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -168,7 +179,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-8. **Backup Management** 🔄 **[NEW]**:
+9. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
@@ -178,7 +189,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-9. **Rollback Manager** ⏪ **[NEW]**:
+10. **Rollback Manager** ⏪ **[NEW]**:
    - Quick and safe rollback of migration operations
    - Automatically track all migration operations in history
    - Undo the last operation with a single command
@@ -190,7 +201,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rollback --help` to explore rollback features!
    - **See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete rollback guide!**
 
-10. **Comprehensive Test Suite** ✅ **[NEW]**:
+11. **Comprehensive Test Suite** ✅ **[NEW]**:
    - Full pytest-based test suite for all migration tools
    - Unit tests for fixer, verifier, backup manager, and config manager
    - Integration tests for complete workflows
