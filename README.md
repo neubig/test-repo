@@ -216,17 +216,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 cache stats` to view performance metrics!
    - **See [CACHE_GUIDE.md](CACHE_GUIDE.md) for complete guide!**
 
-11. **Fixer Tool (`src/fixer.py`)**:
+11. **Code Complexity Analyzer** 📊 ✨ **[NEW]**:
+   - Measure code complexity before and after migration
+   - Track cyclomatic complexity, maintainability index, and Halstead metrics
+   - Compare backup vs current state to identify complexity increases
+   - Find files that need manual refactoring after automated migration
+   - Detailed reports showing which files became more complex
+   - Multiple output formats: text reports and JSON for automation
+   - Helps ensure migration doesn't reduce code quality
+   - Run `./py2to3 complexity src/ --backup-dir backups/ --compare`
+   - **See [COMPLEXITY_GUIDE.md](COMPLEXITY_GUIDE.md) for complete guide!**
+
+12. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-12. **Verifier Tool (`src/verifier.py`)**:
+13. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-13. **Report Generator (`src/report_generator.py`)** 🆕:
+14. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes

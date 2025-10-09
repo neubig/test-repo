@@ -6273,6 +6273,78 @@ def command_cache(args):
     return 1
 
 
+def command_complexity(args):
+    """Analyze code complexity before and after migration."""
+    print_header("Code Complexity Analysis")
+    
+    validate_path(args.directory)
+    
+    try:
+        from complexity_analyzer import ComplexityAnalyzer
+        
+        # Setup analyzer
+        analyzer = ComplexityAnalyzer(backup_dir=args.backup_dir)
+        
+        # Determine if we should compare
+        compare = args.compare or (args.backup_dir is not None)
+        
+        if compare and not args.backup_dir:
+            print_error("--backup-dir is required when using --compare")
+            return 1
+        
+        if compare and not os.path.exists(args.backup_dir):
+            print_error(f"Backup directory does not exist: {args.backup_dir}")
+            return 1
+        
+        # Run analysis
+        mode = "Comparison" if compare else "Basic"
+        print_info(f"Running {mode} analysis on: {args.directory}")
+        if compare:
+            print_info(f"Comparing with backups in: {args.backup_dir}")
+        print()
+        
+        results = analyzer.analyze_directory(args.directory, compare_backups=compare)
+        
+        # Generate report
+        print_info(f"Generating {args.format} report...")
+        report = analyzer.generate_report(
+            results,
+            output_file=args.output,
+            format=args.format
+        )
+        
+        if args.output:
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        # Summary
+        summary = results.get('summary', {})
+        print()
+        print_info(f"Analyzed {summary.get('analyzed', 0)} of {summary.get('total_files', 0)} files")
+        
+        if compare and 'trends' in summary:
+            trends = summary['trends']
+            worse = trends.get('significantly_worse', 0) + trends.get('worse', 0)
+            if worse > 0:
+                print_warning(f"{worse} files increased in complexity")
+                print_info("Consider manual refactoring for complex files")
+            else:
+                print_success("No significant complexity increases detected")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import complexity analyzer: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Analysis failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -8164,6 +8236,37 @@ def main():
     
     parser_cache.set_defaults(func=command_cache)
     
+    # Complexity command
+    parser_complexity = subparsers.add_parser(
+        'complexity',
+        help='📊 Analyze code complexity before and after migration',
+        description='Measure code complexity metrics and compare before/after migration to identify files needing refactoring'
+    )
+    parser_complexity.add_argument(
+        'directory',
+        help='Directory to analyze'
+    )
+    parser_complexity.add_argument(
+        '--backup-dir',
+        help='Backup directory for comparison (required with --compare)'
+    )
+    parser_complexity.add_argument(
+        '--compare',
+        action='store_true',
+        help='Compare current code with backup versions'
+    )
+    parser_complexity.add_argument(
+        '--output', '-o',
+        help='Save report to file'
+    )
+    parser_complexity.add_argument(
+        '--format',
+        choices=['text', 'json'],
+        default='text',
+        help='Output format (default: text)'
+    )
+    parser_complexity.set_defaults(func=command_complexity)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8321,6 +8424,8 @@ def main():
         return command_session(args)
     elif args.command == 'cache':
         return command_cache(args)
+    elif args.command == 'complexity':
+        return command_complexity(args)
     else:
         parser.print_help()
         return 1
