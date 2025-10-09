@@ -194,17 +194,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 session start` to begin tracking!
    - **See [SESSION_GUIDE.md](SESSION_GUIDE.md) for complete guide!**
 
-9. **Fixer Tool (`src/fixer.py`)**:
+9. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
+   - Get instant answers to common Python 2 to 3 migration questions
+   - Context-aware tips based on your codebase scan
+   - 15+ curated tips covering all major migration issues
+   - Search by keyword, browse by category, or scan your code
+   - Perfect for learning, quick reference, and problem-solving
+   - Clear before/after examples with common pitfalls
+   - Links to comprehensive guides for deeper learning
+   - Run `./py2to3 tips list` to see all available tips!
+   - **See [TIPS_GUIDE.md](TIPS_GUIDE.md) for complete guide!**
+
+10. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-10. **Verifier Tool (`src/verifier.py`)**:
+11. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-11. **Report Generator (`src/report_generator.py`)** 🆕:
+12. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -213,7 +224,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-11. **Configuration Management** ✨ **[NEW]**:
+13. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -221,7 +232,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-11. **Backup Management** 🔄 **[NEW]**:
+14. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
@@ -231,7 +242,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-11. **Rollback Manager** ⏪ **[NEW]**:
+15. **Rollback Manager** ⏪ **[NEW]**:
    - Quick and safe rollback of migration operations
    - Automatically track all migration operations in history
    - Undo the last operation with a single command
@@ -243,7 +254,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rollback --help` to explore rollback features!
    - **See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete rollback guide!**
 
-11. **Interactive Diff Viewer** 🔍 ✨ **[NEW]**:
+16. **Interactive Diff Viewer** 🔍 ✨ **[NEW]**:
    - Generate beautiful, interactive HTML pages with side-by-side code comparisons
    - Perfect for code review, training, and understanding migration changes
    - Visual side-by-side and unified diff views with syntax highlighting
@@ -256,7 +267,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 diff-viewer` to create your interactive review page!
    - **See [DIFF_VIEWER_GUIDE.md](DIFF_VIEWER_GUIDE.md) for complete diff viewer guide!**
 
-12. **Comprehensive Test Suite** ✅ **[NEW]**:
+17. **Comprehensive Test Suite** ✅ **[NEW]**:
    - Full pytest-based test suite for all migration tools
    - Unit tests for fixer, verifier, backup manager, and config manager
    - Integration tests for complete workflows
@@ -264,7 +275,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-13. **Security Auditor** 🔒 ✨ **[NEW]**:
+18. **Security Auditor** 🔒 ✨ **[NEW]**:
    - Scan code for security vulnerabilities introduced during migration
    - Detects SQL injection, command injection, and code injection risks
    - Identifies weak cryptographic functions (MD5, SHA-1) and unsafe deserialization
@@ -277,7 +288,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 security --help` to explore security auditing!
    - **See [SECURITY_AUDIT_GUIDE.md](SECURITY_AUDIT_GUIDE.md) for complete security audit guide!**
 
-14. **Coverage Tracker** 📊 ✨ **[NEW]**:
+19. **Coverage Tracker** 📊 ✨ **[NEW]**:
    - Monitor test coverage during Python 2 to 3 migration
    - Identify risky migrations (files with low/no test coverage)
    - Track coverage trends over time with timestamped snapshots
@@ -289,7 +300,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 coverage --help` to explore coverage tracking!
    - **See [COVERAGE_GUIDE.md](COVERAGE_GUIDE.md) for complete coverage tracking guide!**
 
-15. **Code Formatter** ✨ **[NEW]**:
+20. **Code Formatter** ✨ **[NEW]**:
    - Automatically format migrated code with modern Python formatters
    - Integrates with black for consistent, beautiful code style
    - Uses isort for organized, clean import statements
@@ -301,7 +312,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 format --help` to explore formatting options!
    - **See [FORMAT_GUIDE.md](FORMAT_GUIDE.md) for complete formatting guide!**
 
-16. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+21. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -311,7 +322,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-17. **Migration Readiness & Safety Score** 🎯 ✨ **[NEW]**:
+22. **Migration Readiness & Safety Score** 🎯 ✨ **[NEW]**:
    - Comprehensive assessment tool for migration readiness and production safety
    - Pre-migration readiness score: Are you prepared to start migration?
    - Post-migration safety score: Is your code ready for production?
@@ -324,7 +335,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 readiness post` before production deployment!
    - **See [READINESS_GUIDE.md](READINESS_GUIDE.md) for complete guide!**
 
-16. **Git Integration** 🔧 **[NEW]**:
+23. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -335,7 +346,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-17. **Pre-commit Hooks** 🛡️ **[NEW]**:
+24. **Pre-commit Hooks** 🛡️ **[NEW]**:
    - Prevent Python 2 code regression with automated pre-commit validation
    - Generate and manage git pre-commit hooks for Python 3 compatibility
    - Three strictness modes: strict, normal, and lenient

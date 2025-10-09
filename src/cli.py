@@ -5470,6 +5470,157 @@ def command_story(args):
         return 1
 
 
+def command_tips(args):
+    """Show quick tips and solutions for common migration issues."""
+    print_header("Python 2 to 3 Migration Tips")
+
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from tips_engine import TipsEngine
+
+        engine = TipsEngine(args.path if hasattr(args, 'path') and args.path else None)
+
+        if hasattr(args, 'tips_action') and args.tips_action:
+            action = args.tips_action
+
+            if action == 'list':
+                print_info("Available tip topics:\n")
+                topics = engine.list_all_topics()
+                for topic in topics:
+                    tip = engine.get_tip(topic)
+                    print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}{topic}{Colors.ENDC} - {tip['title']}")
+                print(f"\n{Colors.OKCYAN}Use 'py2to3 tips show <topic>' to see details{Colors.ENDC}")
+                return 0
+
+            elif action == 'show':
+                if not hasattr(args, 'topic') or not args.topic:
+                    print_error("Please specify a topic to show")
+                    print_info("Use 'py2to3 tips list' to see available topics")
+                    return 1
+
+                tip = engine.get_tip(args.topic)
+                if not tip:
+                    print_error(f"Topic not found: {args.topic}")
+                    print_info("\nSearching for similar topics...")
+                    results = engine.search_tips(args.topic)
+                    if results:
+                        print_info("Did you mean one of these?")
+                        for tid in results:
+                            print(f"  • {tid}")
+                    else:
+                        print_info("No similar topics found. Use 'py2to3 tips list' to see all topics")
+                    return 1
+
+                print(engine.format_tip(args.topic, tip, color=not args.no_color))
+                return 0
+
+            elif action == 'search':
+                if not hasattr(args, 'query') or not args.query:
+                    print_error("Please specify a search query")
+                    return 1
+
+                results = engine.search_tips(args.query)
+                if not results:
+                    print_warning(f"No tips found matching: {args.query}")
+                    return 0
+
+                print_info(f"Found {len(results)} tip(s) matching '{args.query}':\n")
+                for topic_id, tip in results.items():
+                    if args.detail:
+                        print(engine.format_tip(topic_id, tip, color=not args.no_color))
+                    else:
+                        print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}{topic_id}{Colors.ENDC} - {tip['title']}")
+                
+                if not args.detail:
+                    print(f"\n{Colors.OKCYAN}Use --detail to see full information{Colors.ENDC}")
+                return 0
+
+            elif action == 'categories':
+                print_info("Available categories:\n")
+                categories = engine.list_categories()
+                for category in categories:
+                    tips = engine.get_tips_by_category(category)
+                    print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}{category}{Colors.ENDC} ({len(tips)} tips)")
+                print(f"\n{Colors.OKCYAN}Use 'py2to3 tips category <name>' to see tips in a category{Colors.ENDC}")
+                return 0
+
+            elif action == 'category':
+                if not hasattr(args, 'category_name') or not args.category_name:
+                    print_error("Please specify a category name")
+                    print_info("Use 'py2to3 tips categories' to see available categories")
+                    return 1
+
+                tips = engine.get_tips_by_category(args.category_name)
+                if not tips:
+                    print_error(f"Category not found: {args.category_name}")
+                    print_info("Use 'py2to3 tips categories' to see available categories")
+                    return 1
+
+                print_info(f"Tips in category '{args.category_name}':\n")
+                for topic_id, tip in tips.items():
+                    if args.detail:
+                        print(engine.format_tip(topic_id, tip, color=not args.no_color))
+                    else:
+                        print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}{topic_id}{Colors.ENDC} - {tip['title']}")
+                
+                if not args.detail:
+                    print(f"\n{Colors.OKCYAN}Use --detail to see full information{Colors.ENDC}")
+                return 0
+
+            elif action == 'scan':
+                if not args.path:
+                    print_error("Please specify a path to scan")
+                    return 1
+
+                validate_path(args.path)
+                print_info(f"Scanning: {args.path}\n")
+
+                issue_counts = engine.scan_codebase(args.path)
+                if not issue_counts:
+                    print_success("No Python 2 patterns detected!")
+                    print_info("Your code appears to be Python 3 compatible")
+                    return 0
+
+                print_info(f"Detected {len(issue_counts)} types of issues:")
+                for issue_type, count in sorted(issue_counts.items(), key=lambda x: x[1], reverse=True):
+                    print(f"  • {issue_type}: {count} occurrence(s)")
+
+                print_info("\nMost relevant tips:\n")
+                relevant = engine.get_relevant_tips(args.max_tips if hasattr(args, 'max_tips') else 5)
+                for topic_id, tip in relevant.items():
+                    print(engine.format_tip(topic_id, tip, show_examples=args.detail, color=not args.no_color))
+
+                return 0
+
+        else:
+            print_info("Quick Tips & FAQ System\n")
+            print_info("Get instant answers to common migration questions.\n")
+            print_info("Available actions:")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}list{Colors.ENDC} - List all available tip topics")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}show <topic>{Colors.ENDC} - Show detailed tip for a topic")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}search <query>{Colors.ENDC} - Search for tips")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}categories{Colors.ENDC} - List all categories")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}category <name>{Colors.ENDC} - Show tips in a category")
+            print(f"  {Colors.OKGREEN}•{Colors.ENDC} {Colors.BOLD}scan <path>{Colors.ENDC} - Scan code and show relevant tips")
+            print(f"\n{Colors.OKCYAN}Use 'py2to3 tips <action> --help' for more information{Colors.ENDC}")
+            return 0
+
+    except ImportError as e:
+        print_error(f"Failed to import tips engine: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error in tips command: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_find(args):
     """Search and navigate project documentation."""
     from doc_navigator import DocNavigator, format_search_results, format_category_list
@@ -7388,6 +7539,121 @@ def main():
         help='Output HTML file (default: migration_story.html)'
     )
     
+    # Tips command - Quick migration tips and FAQ
+    parser_tips = subparsers.add_parser(
+        'tips',
+        help='💡 Quick migration tips and FAQ',
+        description='Get instant answers to common Python 2 to 3 migration questions'
+    )
+    tips_subparsers = parser_tips.add_subparsers(
+        dest='tips_action',
+        help='Tips action to perform'
+    )
+
+    # Tips list subcommand
+    parser_tips_list = tips_subparsers.add_parser(
+        'list',
+        help='List all available tip topics'
+    )
+
+    # Tips show subcommand
+    parser_tips_show = tips_subparsers.add_parser(
+        'show',
+        help='Show detailed tip for a specific topic'
+    )
+    parser_tips_show.add_argument(
+        'topic',
+        help='Topic ID (use "list" to see available topics)'
+    )
+    parser_tips_show.add_argument(
+        '--no-color',
+        action='store_true',
+        help='Disable colored output'
+    )
+
+    # Tips search subcommand
+    parser_tips_search = tips_subparsers.add_parser(
+        'search',
+        help='Search for tips by keyword'
+    )
+    parser_tips_search.add_argument(
+        'query',
+        help='Search query'
+    )
+    parser_tips_search.add_argument(
+        '--detail',
+        action='store_true',
+        help='Show full tip details instead of just titles'
+    )
+    parser_tips_search.add_argument(
+        '--no-color',
+        action='store_true',
+        help='Disable colored output'
+    )
+
+    # Tips categories subcommand
+    parser_tips_categories = tips_subparsers.add_parser(
+        'categories',
+        help='List all tip categories'
+    )
+
+    # Tips category subcommand
+    parser_tips_category = tips_subparsers.add_parser(
+        'category',
+        help='Show tips in a specific category'
+    )
+    parser_tips_category.add_argument(
+        'category_name',
+        help='Category name (use "categories" to see available)'
+    )
+    parser_tips_category.add_argument(
+        '--detail',
+        action='store_true',
+        help='Show full tip details'
+    )
+    parser_tips_category.add_argument(
+        '--no-color',
+        action='store_true',
+        help='Disable colored output'
+    )
+
+    # Tips scan subcommand
+    parser_tips_scan = tips_subparsers.add_parser(
+        'scan',
+        help='Scan code and show relevant tips'
+    )
+    parser_tips_scan.add_argument(
+        'path',
+        help='Path to scan for Python 2 patterns'
+    )
+    parser_tips_scan.add_argument(
+        '--max-tips',
+        type=int,
+        default=5,
+        help='Maximum number of tips to show (default: 5)'
+    )
+    parser_tips_scan.add_argument(
+        '--detail',
+        action='store_true',
+        help='Show code examples in tips'
+    )
+    parser_tips_scan.add_argument(
+        '--no-color',
+        action='store_true',
+        help='Disable colored output'
+    )
+
+    # Tips command accepts optional path for general usage
+    parser_tips.add_argument(
+        '--path',
+        help='Optional path for context-aware tips'
+    )
+    parser_tips.add_argument(
+        '--no-color',
+        action='store_true',
+        help='Disable colored output'
+    )
+    
     # Find command - Documentation search and navigation
     parser_find = subparsers.add_parser(
         'find',
@@ -7911,6 +8177,8 @@ def main():
         return command_badges(args)
     elif args.command == 'story':
         return command_story(args)
+    elif args.command == 'tips':
+        return command_tips(args)
     elif args.command == 'find':
         return command_find(args)
     elif args.command == 'rules':
