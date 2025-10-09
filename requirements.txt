@@ -18,3 +18,9 @@ tqdm>=4.65.0
 
 # Rich terminal UI - Required for live migration monitor
 rich>=13.0.0
+
+# Flask web framework - Required for REST API server
+flask>=2.3.0
+
+# CORS support for Flask - Required for API cross-origin requests
+flask-cors>=4.0.0

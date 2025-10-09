@@ -825,6 +825,22 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 graph src/ --summary` for text overview!
    - **See [DEPENDENCY_GRAPH_GUIDE.md](DEPENDENCY_GRAPH_GUIDE.md) for complete visualization guide!**
 
+44. **REST API Server** 🌐✨ **[NEW]**:
+   - Full REST API for programmatic access to all migration features
+   - HTTP endpoints for check, fix, report, stats, backup, and more
+   - Enable CI/CD pipeline integration with automated migration checks
+   - Build custom web dashboards and monitoring tools
+   - Third-party tool integration via standardized JSON API
+   - CORS enabled for browser-based clients
+   - Comprehensive error handling and validation
+   - Health check and API info endpoints
+   - Support for all toolkit operations: dependency analysis, security audits, quality checks
+   - Perfect for automation, remote access, and custom integrations
+   - Start server: `./py2to3 api`
+   - Custom port: `./py2to3 api --port 8080`
+   - Remote access: `./py2to3 api --host 0.0.0.0 --port 8080`
+   - **See [API_SERVER_GUIDE.md](API_SERVER_GUIDE.md) for complete API documentation with examples!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

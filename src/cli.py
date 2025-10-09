@@ -4932,6 +4932,53 @@ def command_completion(args):
         return 1
 
 
+def command_api(args):
+    """Start the REST API server."""
+    print_header("Starting REST API Server")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        
+        # Check if Flask is installed
+        try:
+            import flask
+            import flask_cors
+        except ImportError:
+            print_error("Flask and Flask-CORS are required to run the API server.")
+            print_info("Install them with: pip install flask flask-cors")
+            return 1
+        
+        from api_server import main as api_main
+        
+        # Pass arguments and start server
+        sys.argv = ['api_server.py']
+        if args.host:
+            sys.argv.extend(['--host', args.host])
+        if args.port:
+            sys.argv.extend(['--port', str(args.port)])
+        if args.debug:
+            sys.argv.append('--debug')
+        
+        api_main()
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import API server: {e}")
+        print_info("Make sure Flask and Flask-CORS are installed")
+        print_info("Install with: pip install flask flask-cors")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Server stopped by user")
+        return 0
+    except Exception as e:
+        print_error(f"Error starting API server: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_readiness(args):
     """Assess migration readiness and safety score."""
     assessment_type = args.readiness_type
@@ -6135,6 +6182,29 @@ def main():
         help='Save report to JSON file'
     )
     
+    # API Server command
+    parser_api = subparsers.add_parser(
+        'api',
+        help='🌐 Start REST API server for programmatic access',
+        description='Starts a REST API server that exposes all migration toolkit features via HTTP endpoints'
+    )
+    parser_api.add_argument(
+        '--host',
+        default='127.0.0.1',
+        help='Host to bind to (default: 127.0.0.1)'
+    )
+    parser_api.add_argument(
+        '--port',
+        type=int,
+        default=5000,
+        help='Port to listen on (default: 5000)'
+    )
+    parser_api.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug mode'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6266,6 +6336,8 @@ def main():
         return command_coverage(args)
     elif args.command == 'readiness':
         return command_readiness(args)
+    elif args.command == 'api':
+        return command_api(args)
     else:
         parser.print_help()
         return 1
