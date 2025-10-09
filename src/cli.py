@@ -4177,6 +4177,210 @@ def command_changelog(args):
         return 1
 
 
+def command_coverage(args):
+    """Track test coverage during migration."""
+    print_header("Coverage Tracker")
+    
+    if not hasattr(args, 'coverage_action') or not args.coverage_action:
+        print_error("No coverage action specified")
+        print_info("Available actions: collect, report, trend, risky, clear")
+        print_info("Run: py2to3 coverage --help")
+        return 1
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from coverage_tracker import CoverageTracker
+        
+        tracker = CoverageTracker(args.path)
+        
+        if args.coverage_action == 'collect':
+            print_info(f"Project directory: {args.path}")
+            if args.test_command:
+                print_info(f"Test command: {args.test_command}")
+            else:
+                print_info("Test command: auto-detect")
+            print()
+            
+            print_info("Running tests with coverage...")
+            success, message = tracker.run_coverage(args.test_command)
+            
+            if success:
+                print_success(message)
+                print()
+                
+                print_info("Parsing coverage data...")
+                coverage_data = tracker.parse_coverage_json()
+                
+                if coverage_data:
+                    analysis = tracker.analyze_coverage(coverage_data)
+                    snapshot = tracker.save_snapshot(
+                        analysis,
+                        args.description or f"Coverage snapshot"
+                    )
+                    
+                    print_success("Coverage snapshot saved")
+                    print()
+                    print_info(f"Overall Coverage: {analysis['overall_coverage']:.2f}%")
+                    print_info(f"Total Files: {analysis['total_files']}")
+                    print_info(f"Total Statements: {analysis['total_statements']}")
+                    print_info(f"Covered: {analysis['covered_statements']}")
+                    print_info(f"Missing: {analysis['missing_statements']}")
+                    
+                    if analysis.get('uncovered_files'):
+                        print_warning(f"Uncovered files: {len(analysis['uncovered_files'])}")
+                    if analysis.get('low_coverage_files'):
+                        print_warning(f"Low coverage files: {len(analysis['low_coverage_files'])}")
+                    
+                    return 0
+                else:
+                    print_error("Could not parse coverage data")
+                    print_info("Make sure coverage.json was generated")
+                    return 1
+            else:
+                print_error(message)
+                print_info("Try installing: pip install pytest pytest-cov")
+                return 1
+        
+        elif args.coverage_action == 'report':
+            print_info(f"Project directory: {args.path}")
+            if args.output:
+                print_info(f"Output file: {args.output}")
+            print()
+            
+            report = tracker.generate_report(args.output)
+            
+            if "No coverage data" in report:
+                print_warning(report.strip())
+                print_info("Run 'py2to3 coverage collect' first")
+                return 1
+            
+            print(report)
+            
+            if args.output:
+                print_success(f"Report saved to: {args.output}")
+            
+            return 0
+        
+        elif args.coverage_action == 'trend':
+            print_info(f"Project directory: {args.path}")
+            print()
+            
+            trend = tracker.get_coverage_trend()
+            
+            if not trend:
+                print_warning("No coverage snapshots available")
+                print_info("Run 'py2to3 coverage collect' first")
+                return 1
+            
+            print_info("Coverage Trend:")
+            print("-" * 70)
+            
+            for entry in trend:
+                timestamp = entry["timestamp"][:19]
+                coverage = entry["coverage"]
+                files = entry["files"]
+                description = entry.get("description", "")
+                
+                # Color code based on coverage
+                if coverage >= 80:
+                    color = Colors.OKGREEN
+                elif coverage >= 50:
+                    color = Colors.WARNING
+                else:
+                    color = Colors.FAIL
+                
+                print(
+                    f"{timestamp}  {color}{coverage:5.1f}%{Colors.ENDC}  "
+                    f"({files} files)  {description}"
+                )
+            
+            # Show trend direction
+            if len(trend) >= 2:
+                recent = trend[-1]["coverage"]
+                previous = trend[-2]["coverage"]
+                change = recent - previous
+                
+                print()
+                if change > 0:
+                    print_success(f"Coverage improved by {change:.2f}%")
+                elif change < 0:
+                    print_warning(f"Coverage decreased by {abs(change):.2f}%")
+                else:
+                    print_info("Coverage unchanged")
+            
+            return 0
+        
+        elif args.coverage_action == 'risky':
+            print_info(f"Project directory: {args.path}")
+            print_info(f"Coverage threshold: {args.threshold}%")
+            print()
+            
+            risky = tracker.identify_risky_migrations()
+            
+            if not risky:
+                print_success("No risky migrations identified!")
+                print_info("All files have adequate test coverage")
+                return 0
+            
+            # Filter by threshold
+            risky_filtered = [f for f in risky if f["coverage"] < args.threshold]
+            
+            if not risky_filtered:
+                print_success(f"No files below {args.threshold}% coverage threshold")
+                return 0
+            
+            print_warning(f"Found {len(risky_filtered)} files with coverage below {args.threshold}%:")
+            print()
+            print("-" * 70)
+            
+            for file_info in risky_filtered[:20]:
+                coverage = file_info["coverage"]
+                path = file_info["path"]
+                
+                # Color code based on severity
+                if coverage == 0:
+                    color = Colors.FAIL
+                elif coverage < 25:
+                    color = Colors.WARNING
+                else:
+                    color = Colors.OKCYAN
+                
+                print(f"  {color}{coverage:5.1f}%{Colors.ENDC}  {path}")
+            
+            if len(risky_filtered) > 20:
+                print(f"  ... and {len(risky_filtered) - 20} more")
+            
+            print()
+            print_info("Consider adding tests to these files before migration")
+            print_info("Run 'py2to3 test-gen' to auto-generate test templates")
+            
+            return 0
+        
+        elif args.coverage_action == 'clear':
+            print_info(f"Project directory: {args.path}")
+            print()
+            
+            tracker.clear_snapshots()
+            print_success("Coverage snapshots cleared")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown coverage action: {args.coverage_action}")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import coverage tracker: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except Exception as e:
+        print_error(f"Error running coverage tracker: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_wizard(args):
     """Launch the interactive Smart Migration Wizard."""
     print_header("Smart Migration Wizard")
@@ -5557,6 +5761,33 @@ def main():
     parser_changelog.add_argument('--format', choices=['keepachangelog', 'simple'], default='keepachangelog', help='Changelog format style (default: keepachangelog)')
     parser_changelog.add_argument('--append', action='store_true', help='Append to existing changelog file')
     
+    # Coverage command
+    parser_coverage = subparsers.add_parser(
+        'coverage',
+        help='Track test coverage during migration',
+        description='Monitor test coverage for migrated code to identify risky changes and track coverage trends'
+    )
+    coverage_subparsers = parser_coverage.add_subparsers(dest='coverage_action', help='Coverage actions')
+    
+    parser_coverage_collect = coverage_subparsers.add_parser('collect', help='Collect coverage data by running tests')
+    parser_coverage_collect.add_argument('--path', default='.', help='Project directory (default: current directory)')
+    parser_coverage_collect.add_argument('--description', help='Description for this coverage snapshot')
+    parser_coverage_collect.add_argument('--test-command', help='Custom test command (default: auto-detect)')
+    
+    parser_coverage_report = coverage_subparsers.add_parser('report', help='Generate coverage report')
+    parser_coverage_report.add_argument('--path', default='.', help='Project directory (default: current directory)')
+    parser_coverage_report.add_argument('-o', '--output', help='Output file (default: stdout)')
+    
+    parser_coverage_trend = coverage_subparsers.add_parser('trend', help='Show coverage trends over time')
+    parser_coverage_trend.add_argument('--path', default='.', help='Project directory (default: current directory)')
+    
+    parser_coverage_risky = coverage_subparsers.add_parser('risky', help='Identify risky migrations (low coverage)')
+    parser_coverage_risky.add_argument('--path', default='.', help='Project directory (default: current directory)')
+    parser_coverage_risky.add_argument('--threshold', type=float, default=50.0, help='Coverage threshold for risk (default: 50%%)')
+    
+    parser_coverage_clear = coverage_subparsers.add_parser('clear', help='Clear coverage snapshots')
+    parser_coverage_clear.add_argument('--path', default='.', help='Project directory (default: current directory)')
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -5678,6 +5909,8 @@ def main():
         return command_metadata(args)
     elif args.command == 'changelog':
         return command_changelog(args)
+    elif args.command == 'coverage':
+        return command_coverage(args)
     else:
         parser.print_help()
         return 1

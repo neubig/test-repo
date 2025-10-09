@@ -135,7 +135,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-11. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+11. **Coverage Tracker** 📊 ✨ **[NEW]**:
+   - Monitor test coverage during Python 2 to 3 migration
+   - Identify risky migrations (files with low/no test coverage)
+   - Track coverage trends over time with timestamped snapshots
+   - Integrates seamlessly with pytest-cov and coverage.py
+   - Generate detailed coverage reports with migration context
+   - Color-coded visual indicators for coverage health
+   - Find untested code before migration to reduce risk
+   - Perfect safety metric alongside the migration workflow!
+   - Run `./py2to3 coverage --help` to explore coverage tracking!
+   - **See [COVERAGE_GUIDE.md](COVERAGE_GUIDE.md) for complete coverage tracking guide!**
+
+12. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -145,7 +157,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-12. **Git Integration** 🔧 **[NEW]**:
+13. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -156,7 +168,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-13. **Pre-commit Hooks** 🛡️ **[NEW]**:
+14. **Pre-commit Hooks** 🛡️ **[NEW]**:
    - Prevent Python 2 code regression with automated pre-commit validation
    - Generate and manage git pre-commit hooks for Python 3 compatibility
    - Three strictness modes: strict, normal, and lenient
