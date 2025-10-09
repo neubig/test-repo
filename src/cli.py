@@ -6345,6 +6345,91 @@ def command_complexity(args):
         return 1
 
 
+def command_smell(args):
+    """Detect code smells in Python code."""
+    print_header("Code Smell Detection")
+    
+    validate_path(args.path)
+    
+    try:
+        from smell_detector import CodeSmellDetector
+        
+        # Setup detector
+        detector = CodeSmellDetector(
+            max_function_length=args.max_function_length,
+            max_parameters=args.max_parameters,
+            max_nesting=args.max_nesting
+        )
+        
+        # Run analysis
+        print_info(f"Analyzing: {args.path}")
+        if args.severity:
+            print_info(f"Filter: {args.severity}+ severity")
+        if args.category:
+            print_info(f"Category: {args.category}")
+        print()
+        
+        if os.path.isfile(args.path):
+            smells = detector.analyze_file(args.path)
+        else:
+            smells = detector.analyze_directory(args.path)
+        
+        # Apply filters
+        if args.severity:
+            severity_order = {'low': 1, 'medium': 2, 'high': 3}
+            min_severity = severity_order.get(args.severity, 1)
+            smells = [s for s in smells if severity_order.get(s.severity, 1) >= min_severity]
+        
+        if args.category:
+            smells = [s for s in smells if s.category == args.category]
+        
+        # Update detector's smells for report generation
+        detector.smells = smells
+        
+        # Generate report
+        report = detector.generate_report(args.format)
+        
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(report)
+            print_success(f"Report saved to: {args.output}")
+        else:
+            print(report)
+        
+        # Summary
+        stats = detector.get_statistics()
+        print()
+        if stats['total_smells'] > 0:
+            print_warning(f"Found {stats['total_smells']} code smell(s)")
+            by_severity = stats['by_severity']
+            if by_severity.get('high', 0) > 0:
+                print_error(f"  ⚠️  High severity: {by_severity['high']}")
+            if by_severity.get('medium', 0) > 0:
+                print_warning(f"  ⚠️  Medium severity: {by_severity['medium']}")
+            if by_severity.get('low', 0) > 0:
+                print_info(f"  ℹ️  Low severity: {by_severity['low']}")
+            
+            print()
+            print_info("💡 Tip: Start with high-severity issues first")
+            print_info("📖 See SMELL_DETECTOR_GUIDE.md for help fixing these issues")
+        else:
+            print_success("✨ No code smells detected! Your code looks great!")
+        
+        # Return exit code based on high severity issues
+        high_severity = stats['by_severity'].get('high', 0)
+        return 1 if high_severity > 0 else 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import smell detector: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Analysis failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -8267,6 +8352,55 @@ def main():
     )
     parser_complexity.set_defaults(func=command_complexity)
     
+    # Smell command
+    parser_smell = subparsers.add_parser(
+        'smell',
+        help='🔍 Detect code smells and anti-patterns',
+        description='Identify code smells and anti-patterns to improve code quality during migration'
+    )
+    parser_smell.add_argument(
+        'path',
+        help='File or directory to analyze'
+    )
+    parser_smell.add_argument(
+        '-o', '--output',
+        help='Save report to file'
+    )
+    parser_smell.add_argument(
+        '-f', '--format',
+        choices=['text', 'json', 'html'],
+        default='text',
+        help='Report format (default: text)'
+    )
+    parser_smell.add_argument(
+        '--max-function-length',
+        type=int,
+        default=50,
+        help='Maximum function length (default: 50)'
+    )
+    parser_smell.add_argument(
+        '--max-parameters',
+        type=int,
+        default=5,
+        help='Maximum function parameters (default: 5)'
+    )
+    parser_smell.add_argument(
+        '--max-nesting',
+        type=int,
+        default=4,
+        help='Maximum nesting depth (default: 4)'
+    )
+    parser_smell.add_argument(
+        '--severity',
+        choices=['low', 'medium', 'high'],
+        help='Only show issues of this severity or higher'
+    )
+    parser_smell.add_argument(
+        '--category',
+        help='Only show issues in this category (bugs, complexity, maintainability, etc.)'
+    )
+    parser_smell.set_defaults(func=command_smell)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8426,6 +8560,8 @@ def main():
         return command_cache(args)
     elif args.command == 'complexity':
         return command_complexity(args)
+    elif args.command == 'smell':
+        return command_smell(args)
     else:
         parser.print_help()
         return 1

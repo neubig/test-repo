@@ -227,17 +227,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 complexity src/ --backup-dir backups/ --compare`
    - **See [COMPLEXITY_GUIDE.md](COMPLEXITY_GUIDE.md) for complete guide!**
 
-12. **Fixer Tool (`src/fixer.py`)**:
+12. **Code Smell Detector** 🔍 ✨ **[NEW]**:
+   - Detect code smells and anti-patterns in your Python code
+   - Perfect for improving code quality during migration
+   - Identifies 10+ types of smells: long functions, deep nesting, mutable defaults, bare excepts, etc.
+   - Severity-based classification: high (bugs), medium (complexity), low (style)
+   - Actionable suggestions for every smell detected
+   - Multiple output formats: text, HTML, JSON
+   - Filter by severity or category for focused refactoring
+   - Run `./py2to3 smell src/` to analyze your codebase
+   - **See [SMELL_DETECTOR_GUIDE.md](SMELL_DETECTOR_GUIDE.md) for complete guide!**
+
+13. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-13. **Verifier Tool (`src/verifier.py`)**:
+14. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-14. **Report Generator (`src/report_generator.py`)** 🆕:
+15. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -246,7 +257,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-14. **Configuration Management** ✨ **[NEW]**:
+16. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -254,7 +265,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-15. **Backup Management** 🔄 **[NEW]**:
+17. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
