@@ -238,7 +238,31 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 session start` to begin tracking!
    - **See [SESSION_GUIDE.md](SESSION_GUIDE.md) for complete guide!**
 
-11. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
+11. **Parallel Migration Runner** ⚡ ✨ **[NEW]**:
+   - Process multiple files concurrently for faster migrations
+   - Up to 2x faster on multi-core systems
+   - Automatic worker count optimization based on CPU cores
+   - Works with both check and fix operations
+   - Safe concurrent processing with isolated file operations
+   - Backup support for parallel fixes
+   - JSON export for results aggregation
+   - Perfect for large codebases with hundreds of files
+   - Run `./py2to3 parallel check src/ --workers 4` to speed up analysis!
+   - **See [PARALLEL_RUNNER_GUIDE.md](PARALLEL_RUNNER_GUIDE.md) for complete guide!**
+
+12. **Pull Request Generator** 🔀 ✨ **[NEW]**:
+   - Automatically generate comprehensive pull requests for migration changes
+   - Rich PR descriptions with migration statistics and code comparisons
+   - Smart reviewer suggestions based on code ownership (git blame)
+   - Module-level grouping of changes for better organization
+   - Testing checklists and migration best practices included
+   - Draft mode for review before publishing
+   - Custom labels for migration tracking
+   - Direct GitHub integration via API or manual draft generation
+   - Run `./py2to3 pr --output MY_PR.md` to generate a PR draft!
+   - **See [PR_GENERATOR_GUIDE.md](PR_GENERATOR_GUIDE.md) for complete guide!**
+
+13. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
    - Get instant answers to common Python 2 to 3 migration questions
    - Context-aware tips based on your codebase scan
    - 15+ curated tips covering all major migration issues
@@ -249,7 +273,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 tips list` to see all available tips!
    - **See [TIPS_GUIDE.md](TIPS_GUIDE.md) for complete guide!**
 
-12. **Smart Cache Manager** ⚡ ✨ **[NEW]**:
+14. **Smart Cache Manager** ⚡ ✨ **[NEW]**:
    - Dramatically speeds up repeated operations with intelligent caching
    - Caches AST parsing, pattern matching, and file analysis results
    - Automatic invalidation when files change (MD5 hash-based)
@@ -260,7 +284,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 cache stats` to view performance metrics!
    - **See [CACHE_GUIDE.md](CACHE_GUIDE.md) for complete guide!**
 
-11. **Package Upgrade Recommender** 📦 ✨ **[NEW]**:
+15. **Package Upgrade Recommender** 📦 ✨ **[NEW]**:
    - Automatically analyze package dependencies for Python 3 compatibility
    - Check every package in requirements.txt against PyPI
    - Find latest Python 3 compatible versions for all packages

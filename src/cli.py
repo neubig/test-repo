@@ -1894,6 +1894,105 @@ def command_git(args):
         return 1
 
 
+def command_pr(args):
+    """Handle pull request generation commands."""
+    print_header("Pull Request Generator 🔀")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from pr_generator import PRGenerator, PRGeneratorError
+        
+        # Initialize generator
+        github_token = os.environ.get('GITHUB_TOKEN')
+        generator = PRGenerator(repo_path=args.repo_path, github_token=github_token)
+        
+        if args.create:
+            # Create PR on GitHub
+            print_info("Creating pull request on GitHub...")
+            print_info(f"Base branch: {args.base_branch}")
+            
+            if not github_token:
+                print_error("GITHUB_TOKEN not found in environment")
+                print_info("\nTo create PRs on GitHub, you need a personal access token:")
+                print_info("1. Go to GitHub Settings → Developer settings → Personal access tokens")
+                print_info("2. Generate a new token with 'repo' scope")
+                print_info("3. Export it: export GITHUB_TOKEN='your_token_here'")
+                print_info("\nOr generate a draft instead: ./py2to3 pr --output MY_PR.md")
+                return 1
+            
+            try:
+                result = generator.create_github_pr(
+                    base_branch=args.base_branch,
+                    title=args.title,
+                    draft=args.draft,
+                    labels=args.labels,
+                )
+                
+                print_success("\n✅ Pull request created successfully!")
+                print_info(f"   PR #{result['pr_number']}: {result['title']}")
+                print_info(f"   URL: {result['pr_url']}")
+                
+                if args.draft:
+                    print_info("\n💡 This PR is a draft. Mark it as ready for review when you're done.")
+                
+                return 0
+                
+            except Exception as e:
+                if 'requests' in str(e) and 'not found' in str(e):
+                    print_error("The 'requests' library is required for GitHub API calls")
+                    print_info("Install it with: pip install requests")
+                else:
+                    raise
+                return 1
+        else:
+            # Generate PR draft
+            print_info("Generating pull request draft...")
+            print_info(f"Base branch: {args.base_branch}")
+            print_info(f"Output file: {args.output}\n")
+            
+            output_path = generator.create_pr_draft(
+                output_file=args.output,
+                base_branch=args.base_branch,
+                title=args.title,
+            )
+            
+            print_success(f"\n✅ PR draft generated: {output_path}")
+            print_info("\n📝 Next steps:")
+            print_info("   1. Review the draft: cat " + args.output)
+            print_info("   2. Edit if needed: vim " + args.output)
+            print_info("   3. Create PR manually on GitHub, or")
+            print_info("   4. Use --create flag to create automatically")
+            print_info("\n💡 Tip: Set GITHUB_TOKEN to create PRs automatically")
+            
+            return 0
+    
+    except PRGeneratorError as e:
+        print_error(f"Error: {e}")
+        
+        # Provide helpful hints based on error
+        error_str = str(e).lower()
+        if 'no changed' in error_str:
+            print_info("\n💡 Make sure you:")
+            print_info("   - Have committed changes to your branch")
+            print_info("   - Are on a feature branch (not main/master)")
+            print_info("   - Have Python files in your changes")
+        elif 'feature branch' in error_str:
+            print_info("\n💡 Create a feature branch first:")
+            print_info("   git checkout -b migration/my-changes")
+        elif 'token' in error_str:
+            print_info("\n💡 Set your GitHub token:")
+            print_info("   export GITHUB_TOKEN='your_token_here'")
+        
+        return 1
+    
+    except Exception as e:
+        print_error(f"Unexpected error: {e}")
+        if args.verbose if hasattr(args, 'verbose') else False:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_deps(args):
     """Analyze dependencies for Python 3 compatibility."""
     print_header("Python 3 Dependency Compatibility Analysis")
@@ -6861,6 +6960,77 @@ def command_duplication(args):
         return 1
 
 
+def command_parallel(args):
+    """Run migration operations in parallel for faster processing."""
+    print_header("Parallel Migration Runner")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from parallel_runner import ParallelMigrationRunner, collect_python_files
+        
+        # Collect files to process
+        if os.path.isfile(args.path):
+            files = [args.path]
+            print_info(f"Processing single file: {args.path}")
+        elif os.path.isdir(args.path):
+            print_info(f"Collecting Python files from: {args.path}")
+            files = collect_python_files(args.path, recursive=args.recursive)
+            if not files:
+                print_error(f"No Python files found in {args.path}")
+                return 1
+            print_info(f"Found {len(files)} Python files")
+        else:
+            print_error(f"Path not found: {args.path}")
+            return 1
+        
+        print()
+        
+        # Create runner
+        runner = ParallelMigrationRunner(
+            workers=args.workers,
+            verbose=args.verbose if hasattr(args, 'verbose') else False
+        )
+        
+        # Execute operation
+        if args.operation == 'check':
+            summary = runner.check_files(files)
+            runner.print_summary(summary, operation='check')
+            
+            if args.json:
+                with open(args.json, 'w') as f:
+                    json.dump(summary, f, indent=2)
+                print_success(f"Results exported to {args.json}")
+            
+            return 0 if summary['total_issues'] == 0 else 1
+            
+        elif args.operation == 'fix':
+            summary = runner.fix_files(files, backup=args.backup, dry_run=args.dry_run)
+            runner.print_summary(summary, operation='fix')
+            
+            if args.json:
+                with open(args.json, 'w') as f:
+                    json.dump(summary, f, indent=2)
+                print_success(f"Results exported to {args.json}")
+            
+            return 0 if summary['failed'] == 0 else 1
+        
+        return 0
+    
+    except ImportError as e:
+        print_error(f"Failed to import parallel runner: {e}")
+        print_info("Hint: Make sure parallel_runner.py is in the src/ directory")
+        return 1
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Operation interrupted by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error running parallel operation: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_demo(args):
     """Run an interactive demonstration of the migration toolkit."""
     print_header("py2to3 Interactive Demo Showcase")
@@ -7390,6 +7560,47 @@ def main():
     # Git info
     parser_git_info = git_subparsers.add_parser('info', help='Show repository information')
     
+    # PR (Pull Request) generator command
+    parser_pr = subparsers.add_parser(
+        'pr',
+        help='🔀 Generate pull requests for migration changes',
+        description='Automatically generate comprehensive pull requests with migration statistics, code analysis, and reviewer suggestions'
+    )
+    parser_pr.add_argument(
+        '--base-branch',
+        default='main',
+        help='Base branch for PR (default: main)'
+    )
+    parser_pr.add_argument(
+        '--title',
+        help='Custom PR title (auto-generated if not provided)'
+    )
+    parser_pr.add_argument(
+        '--draft',
+        action='store_true',
+        help='Create as draft PR on GitHub'
+    )
+    parser_pr.add_argument(
+        '--labels',
+        nargs='+',
+        help='Labels to add to PR (e.g., migration python3)'
+    )
+    parser_pr.add_argument(
+        '--create',
+        action='store_true',
+        help='Create PR on GitHub (requires GITHUB_TOKEN)'
+    )
+    parser_pr.add_argument(
+        '--output',
+        default='PR_DRAFT.md',
+        help='Output file for PR draft (default: PR_DRAFT.md)'
+    )
+    parser_pr.add_argument(
+        '--repo-path',
+        default='.',
+        help='Repository path (default: current directory)'
+    )
+    
     # Compare command
     parser_compare = subparsers.add_parser(
         'compare',
@@ -7539,6 +7750,30 @@ def main():
                                    help='Output format (default: text)')
     parser_duplication.add_argument('-e', '--exclude', action='append',
                                    help='Patterns to exclude (can be used multiple times)')
+    
+    # Parallel command
+    parser_parallel = subparsers.add_parser(
+        'parallel',
+        help='🚀 Run migration operations in parallel for faster processing',
+        description='Speed up large migrations by processing multiple files concurrently'
+    )
+    parser_parallel.add_argument('operation', choices=['check', 'fix'],
+                                help='Operation to perform in parallel')
+    parser_parallel.add_argument('path',
+                                help='File or directory to process')
+    parser_parallel.add_argument('-w', '--workers', type=int,
+                                help='Number of worker processes (default: CPU count)')
+    parser_parallel.add_argument('-r', '--recursive', action='store_true', default=True,
+                                help='Recursively process subdirectories (default: True)')
+    parser_parallel.add_argument('--no-recursive', dest='recursive', action='store_false',
+                                help='Do not recursively process subdirectories')
+    parser_parallel.add_argument('-b', '--backup', action='store_true', default=False,
+                                help='Create backups before fixing (for fix operation)')
+    parser_parallel.add_argument('--dry-run', action='store_true', default=False,
+                                help='Preview changes without applying them (for fix operation)')
+    parser_parallel.add_argument('-j', '--json', metavar='FILE',
+                                help='Export results as JSON to specified file')
+    parser_parallel.set_defaults(func=command_parallel)
     
     # Bench command
     parser_bench = subparsers.add_parser(
@@ -9427,6 +9662,8 @@ def main():
         return command_deps(args)
     elif args.command == 'git':
         return command_git(args)
+    elif args.command == 'pr':
+        return command_pr(args)
     elif args.command == 'compare':
         return command_compare(args)
     elif args.command == 'diff-viewer':
@@ -9445,6 +9682,8 @@ def main():
         return command_quality(args)
     elif args.command in ['duplication', 'dedup', 'dup']:
         return command_duplication(args)
+    elif args.command == 'parallel':
+        return command_parallel(args)
     elif args.command == 'bench':
         return command_bench(args)
     elif args.command == 'docs':
