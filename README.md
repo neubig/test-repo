@@ -3,6 +3,23 @@
 
 This repository contains a comprehensive example of refactoring Python 2 code to Python 3, demonstrating the use of programmatic fixer and verifier tools for automated code migration.
 
+## 🚀 Quick Start
+
+Get up and running in 2 minutes:
+
+```bash
+# Automated setup (recommended)
+./setup.sh
+
+# Or use Make
+make setup
+
+# Start migrating with the wizard
+./py2to3 wizard
+```
+
+That's it! The setup script will install everything you need. See [QUICK_START.md](QUICK_START.md) for detailed instructions.
+
 ## Overview
 
 This project showcases a realistic Python 2 web scraping application with complex interdependencies that needs to be upgraded to Python 3. The repository includes:
@@ -11,6 +28,7 @@ This project showcases a realistic Python 2 web scraping application with comple
 2. **A programmatic fixer tool** that automatically converts Python 2 patterns to Python 3
 3. **A programmatic verifier tool** that validates Python 3 compatibility and identifies remaining issues
 4. **A modern web application** using React, TypeScript, and Vite (in `/my-vite-app`)
+5. **Automated setup tools** for easy installation and getting started
 
 ## Directory Structure
 
@@ -33,6 +51,51 @@ test-repo/
 │   ├── utils/               # Utility functions and validators
 │   └── tests/               # Test functionality
 └── ...                      # Other configuration files
+```
+
+## Installation
+
+### Quick Installation (Recommended)
+
+The easiest way to get started:
+
+```bash
+# Run the automated setup script
+./setup.sh
+
+# Or if you prefer Make
+make setup
+```
+
+The setup script will:
+- ✅ Check your Python version
+- ✅ Create a virtual environment
+- ✅ Install all dependencies
+- ✅ Validate the installation
+- ✅ Show you next steps
+
+### Manual Installation
+
+```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Make py2to3 executable
+chmod +x py2to3
+```
+
+### Development Installation
+
+For development with testing and linting tools:
+
+```bash
+./setup.sh --dev
+# Or manually:
+pip install -r requirements-dev.txt
 ```
 
 ## Key Features

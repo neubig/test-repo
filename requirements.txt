@@ -1,0 +1,17 @@
+# Python 2 to 3 Migration Toolkit - Core Dependencies
+# This file lists all required packages for the migration toolkit
+
+# Encoding detection - Required for analyzing file encodings
+chardet>=4.0.0
+
+# Async HTTP client - Required for web scraping and async operations
+aiohttp>=3.8.0
+
+# YAML support - Used for configuration files
+PyYAML>=6.0
+
+# Terminal colors and formatting - Enhanced CLI output
+colorama>=0.4.6
+
+# Progress bars for long-running operations
+tqdm>=4.65.0
