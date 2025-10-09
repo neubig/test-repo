@@ -3039,6 +3039,126 @@ def command_modernize(args):
         return 1
 
 
+def command_format(args):
+    """Format Python code with black and isort."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from code_formatter import CodeFormatter
+        
+        print_header("Code Formatter")
+        
+        path = args.path
+        
+        if not os.path.exists(path):
+            print_error(f"Path does not exist: {path}")
+            return 1
+        
+        print_info(f"Target: {path}")
+        print_info(f"Line length: {args.line_length}")
+        print_info(f"Check only: {args.check}")
+        print_info(f"Use isort: {not args.no_isort}")
+        
+        if args.check:
+            print_warning("Running in check mode - no files will be modified")
+        print()
+        
+        formatter = CodeFormatter(
+            line_length=args.line_length,
+            check_only=args.check
+        )
+        
+        if os.path.isfile(path):
+            print_info(f"Formatting file: {path}\n")
+            result = formatter.format_file(path, use_isort=not args.no_isort)
+            
+            if result['success']:
+                if result['changed']:
+                    if args.check:
+                        print_warning(f"Would reformat: {result['file']}")
+                    else:
+                        print_success(f"Formatted: {result['file']}")
+                else:
+                    print_success(f"Already formatted: {result['file']}")
+                
+                if result['black_status']:
+                    print(f"  • Black: {result['black_status']}")
+                if result['isort_status']:
+                    print(f"  • isort: {result['isort_status']}")
+            else:
+                print_error(f"Failed: {result['file']}")
+                if 'error' in result:
+                    print_error(f"  {result['error']}")
+                return 1
+        
+        elif os.path.isdir(path):
+            print_info(f"Formatting directory: {path}")
+            if not args.no_recursive:
+                print_info("Recursively processing subdirectories")
+            if args.exclude:
+                print_info(f"Excluding patterns: {', '.join(args.exclude)}")
+            print()
+            
+            results = formatter.format_directory(
+                path,
+                recursive=not args.no_recursive,
+                use_isort=not args.no_isort,
+                exclude_patterns=args.exclude
+            )
+            
+            print()
+            
+            # Print results
+            changed_files = []
+            unchanged_files = []
+            failed_files = []
+            
+            for result in results:
+                if result['success']:
+                    if result['changed']:
+                        changed_files.append(result['file'])
+                        if args.check:
+                            print_warning(f"Would reformat: {result['file']}")
+                        else:
+                            print_success(f"Formatted: {result['file']}")
+                    else:
+                        unchanged_files.append(result['file'])
+                        if args.verbose:
+                            print_success(f"Already formatted: {result['file']}")
+                else:
+                    failed_files.append(result['file'])
+                    print_error(f"Failed: {result['file']}")
+                    if 'error' in result:
+                        print_error(f"  {result['error']}")
+            
+            # Print summary
+            formatter.print_summary()
+            
+            if args.check and changed_files:
+                print_warning(f"\n{len(changed_files)} file(s) would be reformatted")
+                return 1
+            elif failed_files:
+                print_error(f"\n{len(failed_files)} file(s) failed to format")
+                return 1
+            else:
+                if not args.check:
+                    print_success(f"\nAll files formatted successfully!")
+                return 0
+        
+        else:
+            print_error(f"Path is neither a file nor a directory: {path}")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import formatter: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error formatting code: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_convert(args):
     """Convert Python 2 code snippets to Python 3."""
     print_header("Code Snippet Converter")
@@ -5376,6 +5496,25 @@ def main():
                                          'dataclass', 'context-manager', 'comprehension'],
                                  help='Only analyze specific categories')
     
+    # Format command
+    parser_format = subparsers.add_parser(
+        'format',
+        help='✨ Format Python code with black and isort',
+        description='Automatically format Python code using modern formatters (black for code style, isort for import sorting)'
+    )
+    parser_format.add_argument('path', help='File or directory to format')
+    parser_format.add_argument('-l', '--line-length', type=int, default=88,
+                              help='Maximum line length (default: 88, black\'s default)')
+    parser_format.add_argument('--check', action='store_true',
+                              help='Check formatting without making changes')
+    parser_format.add_argument('--no-isort', action='store_true',
+                              help='Skip import sorting with isort')
+    parser_format.add_argument('--no-recursive', action='store_true',
+                              help='Do not process subdirectories')
+    parser_format.add_argument('--exclude', nargs='+',
+                              help='Patterns to exclude (e.g., test_* *_backup.py)')
+    parser_format.set_defaults(func=command_format)
+    
     # Type Hints command
     parser_typehints = subparsers.add_parser(
         'typehints',
@@ -6037,6 +6176,8 @@ def main():
         return command_imports(args)
     elif args.command == 'modernize':
         return command_modernize(args)
+    elif args.command == 'format':
+        return command_format(args)
     elif args.command == 'typehints':
         return command_typehints(args)
     elif args.command == 'validate':

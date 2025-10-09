@@ -223,7 +223,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 coverage --help` to explore coverage tracking!
    - **See [COVERAGE_GUIDE.md](COVERAGE_GUIDE.md) for complete coverage tracking guide!**
 
-13. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+13. **Code Formatter** ✨ **[NEW]**:
+   - Automatically format migrated code with modern Python formatters
+   - Integrates with black for consistent, beautiful code style
+   - Uses isort for organized, clean import statements
+   - Configurable line length and formatting options
+   - Check mode to preview changes before applying
+   - Batch processing for directories with exclusion patterns
+   - Detailed statistics and per-file status reporting
+   - Perfect final step after migration to ensure professional code!
+   - Run `./py2to3 format --help` to explore formatting options!
+   - **See [FORMAT_GUIDE.md](FORMAT_GUIDE.md) for complete formatting guide!**
+
+14. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -233,7 +245,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-13. **Migration Readiness & Safety Score** 🎯 ✨ **[NEW]**:
+15. **Migration Readiness & Safety Score** 🎯 ✨ **[NEW]**:
    - Comprehensive assessment tool for migration readiness and production safety
    - Pre-migration readiness score: Are you prepared to start migration?
    - Post-migration safety score: Is your code ready for production?
@@ -246,7 +258,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 readiness post` before production deployment!
    - **See [READINESS_GUIDE.md](READINESS_GUIDE.md) for complete guide!**
 
-14. **Git Integration** 🔧 **[NEW]**:
+16. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -257,7 +269,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-14. **Pre-commit Hooks** 🛡️ **[NEW]**:
+17. **Pre-commit Hooks** 🛡️ **[NEW]**:
    - Prevent Python 2 code regression with automated pre-commit validation
    - Generate and manage git pre-commit hooks for Python 3 compatibility
    - Three strictness modes: strict, normal, and lenient
