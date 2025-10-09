@@ -198,7 +198,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-11. **Coverage Tracker** 📊 ✨ **[NEW]**:
+11. **Security Auditor** 🔒 ✨ **[NEW]**:
+   - Scan code for security vulnerabilities introduced during migration
+   - Detects SQL injection, command injection, and code injection risks
+   - Identifies weak cryptographic functions (MD5, SHA-1) and unsafe deserialization
+   - Checks for encoding vulnerabilities and path traversal issues
+   - Finds hardcoded secrets, API keys, and passwords in code
+   - Severity-based reporting (CRITICAL, HIGH, MEDIUM, LOW, INFO)
+   - CI/CD integration with `--fail-on-high` option
+   - JSON and text report formats for automation
+   - Perfect for ensuring migration doesn't introduce security holes!
+   - Run `./py2to3 security --help` to explore security auditing!
+   - **See [SECURITY_AUDIT_GUIDE.md](SECURITY_AUDIT_GUIDE.md) for complete security audit guide!**
+
+12. **Coverage Tracker** 📊 ✨ **[NEW]**:
    - Monitor test coverage during Python 2 to 3 migration
    - Identify risky migrations (files with low/no test coverage)
    - Track coverage trends over time with timestamped snapshots
@@ -210,7 +223,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 coverage --help` to explore coverage tracking!
    - **See [COVERAGE_GUIDE.md](COVERAGE_GUIDE.md) for complete coverage tracking guide!**
 
-12. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+13. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures

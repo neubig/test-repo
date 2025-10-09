@@ -2662,6 +2662,77 @@ def command_search(args):
         return 1
 
 
+def command_security(args):
+    """Audit code for security vulnerabilities."""
+    print_header("Security Audit")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from security_auditor import SecurityAuditor
+        
+        path = args.path if hasattr(args, 'path') and args.path else '.'
+        validate_path(path)
+        
+        print_info(f"Auditing path: {path}")
+        if args.exclude:
+            print_info(f"Excluding: {', '.join(args.exclude)}")
+        print()
+        
+        # Create auditor
+        auditor = SecurityAuditor(verbose=args.verbose if hasattr(args, 'verbose') else False)
+        
+        # Run audit
+        from pathlib import Path
+        if Path(path).is_file():
+            issues = auditor.audit_file(path)
+            auditor.issues = issues
+        else:
+            auditor.audit_directory(path, exclude_patterns=args.exclude)
+        
+        # Generate report
+        print_info("Generating security report...\n")
+        report = auditor.generate_report(args.format)
+        
+        # Display report
+        if args.format == 'text':
+            print(report)
+        elif args.format == 'json' and not args.output:
+            print(report)
+        
+        # Save to file if requested
+        if args.output:
+            auditor.save_report(args.output, args.format)
+            print_success(f"Report saved to: {args.output}")
+        
+        # Summary
+        total_issues = len(auditor.issues)
+        critical_high = (auditor.stats.get('severity_CRITICAL', 0) + 
+                        auditor.stats.get('severity_HIGH', 0))
+        
+        print()
+        if total_issues == 0:
+            print_success("✓ No security issues found!")
+            return 0
+        elif critical_high > 0:
+            print_error(f"⚠ Found {critical_high} CRITICAL/HIGH severity security issues!")
+            if args.fail_on_high:
+                return 1
+        else:
+            print_warning(f"Found {total_issues} security issues (no critical/high)")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import security auditor: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during security audit: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_venv(args):
     """Manage virtual environments for Python 3 testing."""
     print_header("Virtual Environment Manager")
@@ -5247,6 +5318,24 @@ def main():
     parser_search.add_argument('--json', action='store_true',
                               help='Output in JSON format')
     
+    # Security command
+    parser_security = subparsers.add_parser(
+        'security',
+        help='🔒 Audit code for security vulnerabilities',
+        description='Security Auditor - Scan for security issues introduced during Python 2->3 migration'
+    )
+    parser_security.add_argument('path', nargs='?', default='.',
+                                help='File or directory to audit (default: current directory)')
+    parser_security.add_argument('-o', '--output',
+                                help='Save report to file')
+    parser_security.add_argument('-f', '--format', choices=['text', 'json'], default='text',
+                                help='Report format (default: text)')
+    parser_security.add_argument('--exclude', nargs='+',
+                                default=['venv', '__pycache__', '.git', 'node_modules', 'tests'],
+                                help='Patterns to exclude from scanning')
+    parser_security.add_argument('--fail-on-high', action='store_true',
+                                help='Exit with error if high/critical issues found')
+    
     # Imports command
     parser_imports = subparsers.add_parser(
         'imports',
@@ -5942,6 +6031,8 @@ def main():
         return command_status(args)
     elif args.command == 'search':
         return command_search(args)
+    elif args.command == 'security':
+        return command_security(args)
     elif args.command == 'imports':
         return command_imports(args)
     elif args.command == 'modernize':
