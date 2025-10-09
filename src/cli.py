@@ -4072,6 +4072,38 @@ def command_metadata(args):
         return 1
 
 
+def command_wizard(args):
+    """Launch the interactive Smart Migration Wizard."""
+    print_header("Smart Migration Wizard")
+    
+    print_info(f"Starting wizard for: {args.path}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from migration_wizard import MigrationWizard
+        
+        wizard = MigrationWizard(args.path)
+        wizard.run()
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import migration wizard: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Wizard cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error running wizard: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -4099,6 +4131,19 @@ def main():
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Wizard command (featured first as it's the beginner-friendly entry point)
+    parser_wizard = subparsers.add_parser(
+        'wizard',
+        help='🚀 Interactive migration wizard (recommended for beginners)',
+        description='Smart Migration Wizard - Interactive guided workflow for Python 2 to 3 migration'
+    )
+    parser_wizard.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='Path to the project to migrate (default: current directory)'
+    )
     
     # Check command
     parser_check = subparsers.add_parser(
@@ -5048,7 +5093,9 @@ def main():
             pass
     
     # Route to appropriate command handler
-    if args.command == 'check':
+    if args.command == 'wizard':
+        return command_wizard(args)
+    elif args.command == 'check':
         return command_check(args)
     elif args.command == 'version-check':
         return command_version_check(args)

@@ -51,13 +51,24 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
 
 ### Automated Tools
 
-1. **Unified CLI Tool (`py2to3`)** **[NEW]**:
+1. **Smart Migration Wizard** 🧙 ✨ **[NEW]**:
+   - Interactive guided workflow for Python 2 to 3 migration
+   - Perfect for beginners - no need to learn all the commands!
+   - Analyzes your project and recommends personalized migration strategies
+   - Asks questions to understand your needs and experience level
+   - Automatically orchestrates the entire migration workflow
+   - Creates backups, runs checks, applies fixes, and generates reports
+   - Provides helpful tips and best practices at every step
+   - One command does everything: `./py2to3 wizard`
+   - **See [WIZARD_GUIDE.md](WIZARD_GUIDE.md) for complete guide!**
+
+2. **Unified CLI Tool (`py2to3`)** **[NEW]**:
    - Single command-line interface for the entire migration workflow
    - Beautiful colored output with progress indicators
    - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
-2. **Code Snippet Converter** ✨ **[NEW]**:
+3. **Code Snippet Converter** ✨ **[NEW]**:
    - Lightning-fast interactive tool for converting Python 2 snippets to Python 3
    - Perfect for learning, quick testing, and educational purposes
    - Multiple output formats: side-by-side comparison, unified diff, or plain text
@@ -67,17 +78,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 convert --help` to explore!
    - **See [SNIPPET_CONVERTER_GUIDE.md](SNIPPET_CONVERTER_GUIDE.md) for complete guide!**
 
-3. **Fixer Tool (`src/fixer.py`)**:
+4. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-4. **Verifier Tool (`src/verifier.py`)**:
+5. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-5. **Report Generator (`src/report_generator.py`)** 🆕:
+6. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -86,7 +97,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-6. **Configuration Management** ✨ **[NEW]**:
+7. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -94,7 +105,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-7. **Backup Management** 🔄 **[NEW]**:
+8. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
@@ -104,7 +115,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-8. **Rollback Manager** ⏪ **[NEW]**:
+9. **Rollback Manager** ⏪ **[NEW]**:
    - Quick and safe rollback of migration operations
    - Automatically track all migration operations in history
    - Undo the last operation with a single command
@@ -116,7 +127,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rollback --help` to explore rollback features!
    - **See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete rollback guide!**
 
-9. **Comprehensive Test Suite** ✅ **[NEW]**:
+10. **Comprehensive Test Suite** ✅ **[NEW]**:
    - Full pytest-based test suite for all migration tools
    - Unit tests for fixer, verifier, backup manager, and config manager
    - Integration tests for complete workflows
@@ -124,7 +135,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Ensures reliability and correctness of migration tools
    - **See [tests/README.md](tests/README.md) for complete testing guide!**
 
-10. **Pre-Migration Safety Checker** ✅ **[NEW]**:
+11. **Pre-Migration Safety Checker** ✅ **[NEW]**:
    - Comprehensive environment validation before migration
    - Checks git status, disk space, file permissions, and more
    - Identifies potential issues early to prevent migration failures
@@ -134,7 +145,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-11. **Git Integration** 🔧 **[NEW]**:
+12. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
@@ -145,7 +156,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-12. **Code Review Assistant** 🔍 **[NEW]**:
+13. **Code Review Assistant** 🔍 **[NEW]**:
    - Intelligent code review assistance for migration changes
    - Automatically analyzes changes and identifies what needs review
    - Generates comprehensive review checklists tailored to your code
@@ -153,7 +164,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Creates PR descriptions with migration statistics and recommendations
    - Estimates review time based on change complexity
 
-13. **Migration Health Monitor** 🏥 **[NEW]**:
+14. **Migration Health Monitor** 🏥 **[NEW]**:
    - Comprehensive health scoring system for migration tracking (0-100)
    - Single metric to communicate status to stakeholders
    - Analyzes 6 key dimensions: compatibility, quality, tests, risk, progress, safety
@@ -165,7 +176,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 health` to check your migration health!
    - **See [HEALTH_GUIDE.md](HEALTH_GUIDE.md) for complete health monitoring guide!**
 
-14. **Runtime Validator** ✨ **[NEW]**:
+15. **Runtime Validator** ✨ **[NEW]**:
    - Validate migrated code by attempting to import all modules
    - Catch runtime errors that static analysis can't detect
    - Quick smoke test to verify code actually works after migration
@@ -176,7 +187,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 validate src/` after applying fixes!
    - **See [VALIDATION_GUIDE.md](VALIDATION_GUIDE.md) for complete validation guide!**
 
-15. **CI/CD Integration** 🚀 **[NEW]**:
+16. **CI/CD Integration** 🚀 **[NEW]**:
    - GitHub Actions workflow for automated compatibility checking
    - Runs on every push and pull request automatically
    - Generates and uploads comprehensive reports as artifacts
@@ -641,9 +652,30 @@ Open `http://localhost:5173` to view your migration progress dashboard!
 
 ### Python 2 to Python 3 Refactoring
 
-#### Quick Start (Recommended - Using the CLI Tool)
+#### Absolute Easiest Way: Smart Migration Wizard 🧙 ✨ **[NEW]**
 
-The easiest way to get started is using the unified CLI tool:
+The **absolute easiest** way to get started is using the Smart Migration Wizard - perfect for beginners!
+
+```bash
+# One command does everything - just answer a few questions!
+./py2to3 wizard
+
+# Or specify your project path
+./py2to3 wizard /path/to/your/project
+```
+
+The wizard will:
+- Analyze your project automatically
+- Ask you questions to understand your needs
+- Recommend a personalized migration strategy
+- Execute the entire migration workflow for you
+- Provide helpful tips and guidance at every step
+
+**See [WIZARD_GUIDE.md](WIZARD_GUIDE.md) for complete documentation!**
+
+#### Quick Start (Using the CLI Tool)
+
+If you prefer more control, use the unified CLI tool:
 
 ```bash
 # STEP 1: Run preflight checks before starting (recommended!)
