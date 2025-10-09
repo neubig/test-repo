@@ -6209,6 +6209,70 @@ def command_session(args):
     return 1
 
 
+def command_cache(args):
+    """Manage smart cache for faster operations."""
+    import json
+    from cache_manager import CacheManager
+    
+    cache = CacheManager()
+    
+    if args.cache_action == 'stats':
+        print_header("Cache Statistics")
+        
+        if args.json:
+            stats = cache.get_statistics()
+            print(json.dumps(stats, indent=2))
+        else:
+            cache.print_statistics()
+        
+        return 0
+    
+    elif args.cache_action == 'clear':
+        if not args.confirm:
+            cache_type = args.type if args.type != 'all' else 'entire'
+            response = input(f"{Colors.WARNING}Clear {cache_type} cache? [y/N]:{Colors.ENDC} ")
+            if response.lower() != 'y':
+                print_warning("Cancelled.")
+                return 0
+        
+        print_info(f"Clearing {args.type} cache...")
+        removed = cache.clear_cache(None if args.type == 'all' else args.type)
+        print_success(f"Cleared {removed} cache entries")
+        
+        return 0
+    
+    elif args.cache_action == 'list':
+        print_header("Cached Files")
+        
+        cached_files = cache.list_cached_files()
+        if cached_files:
+            print(f"\n{Colors.BOLD}📁 Cached Files ({len(cached_files)}):{Colors.ENDC}\n")
+            for filepath, file_hash in cached_files:
+                print(f"  {Colors.OKCYAN}{filepath}{Colors.ENDC} [{file_hash[:8]}]")
+            print()
+        else:
+            print_warning("No files in cache")
+            print_info("Cache will be populated automatically as you use commands")
+        
+        return 0
+    
+    elif args.cache_action == 'invalidate':
+        print_info(f"Invalidating cache for {args.filepath}...")
+        removed = cache.invalidate_file(args.filepath)
+        print_success(f"Invalidated {removed} cache entries for {args.filepath}")
+        
+        return 0
+    
+    elif args.cache_action == 'optimize':
+        print_info(f"Removing cache entries older than {args.max_age} days...")
+        removed = cache.optimize_cache(args.max_age)
+        print_success(f"Removed {removed} old cache entries")
+        
+        return 0
+    
+    return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -8030,6 +8094,76 @@ def main():
     
     parser_session.set_defaults(func=command_session)
     
+    # Cache command
+    parser_cache = subparsers.add_parser(
+        'cache',
+        help='⚡ Manage smart cache for faster operations',
+        description='Smart cache manager that speeds up repeated operations by caching AST, patterns, and analysis'
+    )
+    
+    cache_subparsers = parser_cache.add_subparsers(
+        dest='cache_action',
+        help='Cache action to perform'
+    )
+    
+    # Cache stats
+    parser_cache_stats = cache_subparsers.add_parser(
+        'stats',
+        help='Show cache statistics'
+    )
+    parser_cache_stats.add_argument(
+        '--json',
+        action='store_true',
+        help='Output as JSON'
+    )
+    
+    # Cache clear
+    parser_cache_clear = cache_subparsers.add_parser(
+        'clear',
+        help='Clear cache entries'
+    )
+    parser_cache_clear.add_argument(
+        '--type',
+        choices=['ast', 'patterns', 'analysis', 'all'],
+        default='all',
+        help='Type of cache to clear (default: all)'
+    )
+    parser_cache_clear.add_argument(
+        '--confirm',
+        action='store_true',
+        help='Skip confirmation prompt'
+    )
+    
+    # Cache list
+    cache_subparsers.add_parser(
+        'list',
+        help='List all cached files'
+    )
+    
+    # Cache invalidate
+    parser_cache_invalidate = cache_subparsers.add_parser(
+        'invalidate',
+        help='Invalidate cache for specific file'
+    )
+    parser_cache_invalidate.add_argument(
+        'filepath',
+        help='Path to file to invalidate'
+    )
+    
+    # Cache optimize
+    parser_cache_optimize = cache_subparsers.add_parser(
+        'optimize',
+        help='Remove old cache entries'
+    )
+    parser_cache_optimize.add_argument(
+        '--max-age',
+        type=int,
+        default=7,
+        help='Remove entries older than N days (default: 7)'
+    )
+    
+    parser_cache.set_defaults(func=command_cache)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8185,6 +8319,8 @@ def main():
         return command_rules(args)
     elif args.command == 'session':
         return command_session(args)
+    elif args.command == 'cache':
+        return command_cache(args)
     else:
         parser.print_help()
         return 1
