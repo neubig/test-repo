@@ -4104,6 +4104,156 @@ def command_wizard(args):
         return 1
 
 
+def command_precommit(args):
+    """Manage pre-commit hooks for Python 3 compatibility."""
+    action = args.precommit_action
+    
+    print_header(f"Pre-commit Hook Management: {action.title()}")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from precommit_generator import PreCommitGenerator
+        
+        generator = PreCommitGenerator(args.repo_root)
+        
+        if action == 'install':
+            print_info(f"Installing pre-commit hooks in {generator.repo_root}")
+            print_info(f"Mode: {args.mode}")
+            print_info(f"Files pattern: {args.files_pattern}")
+            if args.exclude_pattern:
+                print_info(f"Exclude pattern: {args.exclude_pattern}")
+            print()
+            
+            results = generator.install_hooks(
+                mode=args.mode,
+                files_pattern=args.files_pattern,
+                exclude_pattern=args.exclude_pattern,
+                force=args.force
+            )
+            
+            if results['config_created']:
+                print_success("Created .pre-commit-config.yaml")
+            
+            if results['hook_created']:
+                print_success("Created custom validator hook")
+            
+            if results['precommit_installed']:
+                print_success("Installed pre-commit hooks")
+            else:
+                print_warning("Pre-commit framework not installed")
+                print_info("Install it with: pip install pre-commit")
+                print_info("Then run: pre-commit install")
+            
+            if results['errors']:
+                print()
+                for error in results['errors']:
+                    print_warning(error)
+                return 1
+            
+            print()
+            print_success("Pre-commit hooks installed successfully!")
+            print_info("Hooks will run automatically before each commit")
+            print_info(f"To test: git commit --dry-run or use './py2to3 precommit test'")
+            return 0
+        
+        elif action == 'uninstall':
+            print_info(f"Uninstalling pre-commit hooks from {generator.repo_root}")
+            print()
+            
+            results = generator.uninstall_hooks()
+            
+            if results['config_removed']:
+                print_success("Removed .pre-commit-config.yaml")
+            
+            if results['hook_removed']:
+                print_success("Removed custom validator hook")
+            
+            if results['precommit_uninstalled']:
+                print_success("Uninstalled pre-commit hooks")
+            
+            print()
+            print_success("Pre-commit hooks uninstalled successfully!")
+            return 0
+        
+        elif action == 'status':
+            print_info(f"Checking pre-commit hook status in {generator.repo_root}")
+            print()
+            
+            status = generator.check_status()
+            
+            print(f"Git repository: {Colors.OKGREEN if status['git_repo'] else Colors.FAIL}{'Yes' if status['git_repo'] else 'No'}{Colors.ENDC}")
+            print(f"Config exists: {Colors.OKGREEN if status['config_exists'] else Colors.FAIL}{'Yes' if status['config_exists'] else 'No'}{Colors.ENDC}")
+            print(f"Custom hook exists: {Colors.OKGREEN if status['hook_exists'] else Colors.FAIL}{'Yes' if status['hook_exists'] else 'No'}{Colors.ENDC}")
+            print(f"Pre-commit available: {Colors.OKGREEN if status['precommit_available'] else Colors.FAIL}{'Yes' if status['precommit_available'] else 'No'}{Colors.ENDC}")
+            
+            if status.get('precommit_version'):
+                print(f"Pre-commit version: {status['precommit_version']}")
+            
+            print(f"Pre-commit installed: {Colors.OKGREEN if status['precommit_installed'] else Colors.FAIL}{'Yes' if status['precommit_installed'] else 'No'}{Colors.ENDC}")
+            
+            if status.get('mode'):
+                print(f"Configuration mode: {status['mode']}")
+            
+            print()
+            if status['config_exists'] and status['hook_exists'] and status['precommit_installed']:
+                print_success("Pre-commit hooks are fully configured and active")
+            elif status['config_exists'] and status['hook_exists']:
+                print_warning("Hooks configured but pre-commit not installed")
+                print_info("Run: pre-commit install")
+            else:
+                print_warning("Pre-commit hooks not configured")
+                print_info("Run: ./py2to3 precommit install")
+            
+            return 0
+        
+        elif action == 'test':
+            print_info(f"Testing pre-commit hooks in {generator.repo_root}")
+            if args.test_file:
+                print_info(f"Testing file: {args.test_file}")
+            else:
+                print_info("Testing all staged files")
+            print()
+            
+            results = generator.test_hooks(args.test_file)
+            
+            if results['output']:
+                print(results['output'])
+            
+            if results['errors']:
+                print()
+                for error in results['errors']:
+                    print_error(error)
+                return 1
+            
+            if results['success']:
+                print()
+                print_success("All pre-commit hooks passed!")
+                return 0
+            else:
+                print()
+                print_warning("Some pre-commit hooks failed")
+                return 1
+        
+        else:
+            print_error(f"Unknown action: {action}")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import precommit generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error managing pre-commit hooks: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -4953,6 +5103,37 @@ def main():
     # Freeze install-hook
     parser_freeze_hook = freeze_subparsers.add_parser('install-hook', help='Install git pre-commit hook')
     
+    # Pre-commit hooks command
+    parser_precommit = subparsers.add_parser(
+        'precommit',
+        help='Manage pre-commit hooks for Python 3 validation',
+        description='Install and manage pre-commit hooks that prevent Python 2 code from being committed'
+    )
+    parser_precommit.add_argument('--repo-root', help='Repository root directory (default: current directory)')
+    
+    precommit_subparsers = parser_precommit.add_subparsers(dest='precommit_action', help='Pre-commit actions')
+    
+    # Precommit install
+    parser_precommit_install = precommit_subparsers.add_parser('install', help='Install pre-commit hooks')
+    parser_precommit_install.add_argument('--mode', choices=['strict', 'normal', 'lenient'], default='normal',
+                                         help='Validation strictness (default: normal)')
+    parser_precommit_install.add_argument('--files-pattern', default='\\.py$',
+                                         help='Regex pattern for files to check (default: \\.py$)')
+    parser_precommit_install.add_argument('--exclude-pattern', default='',
+                                         help='Regex pattern for files to exclude')
+    parser_precommit_install.add_argument('--force', action='store_true',
+                                         help='Overwrite existing configuration')
+    
+    # Precommit uninstall
+    parser_precommit_uninstall = precommit_subparsers.add_parser('uninstall', help='Uninstall pre-commit hooks')
+    
+    # Precommit status
+    parser_precommit_status = precommit_subparsers.add_parser('status', help='Check pre-commit hook status')
+    
+    # Precommit test
+    parser_precommit_test = precommit_subparsers.add_parser('test', help='Test pre-commit hooks')
+    parser_precommit_test.add_argument('--test-file', help='Specific file to test')
+    
     # Rollback command
     parser_rollback = subparsers.add_parser(
         'rollback',
@@ -5171,6 +5352,8 @@ def main():
         return command_venv(args)
     elif args.command == 'freeze':
         return command_freeze(args)
+    elif args.command == 'precommit':
+        return command_precommit(args)
     elif args.command == 'rollback':
         return command_rollback(args)
     elif args.command == 'export':

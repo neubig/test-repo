@@ -156,7 +156,19 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 git --help` to explore git integration features!
    - **See [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete git integration guide!**
 
-13. **Code Review Assistant** 🔍 **[NEW]**:
+13. **Pre-commit Hooks** 🛡️ **[NEW]**:
+   - Prevent Python 2 code regression with automated pre-commit validation
+   - Generate and manage git pre-commit hooks for Python 3 compatibility
+   - Three strictness modes: strict, normal, and lenient
+   - Integrates with popular pre-commit framework
+   - Catches Python 2 patterns before they enter the repository
+   - Provides instant feedback to developers during commits
+   - Easy installation, configuration, and team sharing
+   - Test hooks without committing with `./py2to3 precommit test`
+   - Run `./py2to3 precommit install` to start preventing regressions!
+   - **See [PRECOMMIT_GUIDE.md](PRECOMMIT_GUIDE.md) for complete pre-commit hooks guide!**
+
+14. **Code Review Assistant** 🔍 **[NEW]**:
    - Intelligent code review assistance for migration changes
    - Automatically analyzes changes and identifies what needs review
    - Generates comprehensive review checklists tailored to your code
@@ -1238,6 +1250,56 @@ Track your migration progress with automatic git integration:
 ```
 
 See [CLI_GUIDE.md](CLI_GUIDE.md), [CONFIG.md](CONFIG.md), [BACKUP_GUIDE.md](BACKUP_GUIDE.md), and [GIT_INTEGRATION.md](GIT_INTEGRATION.md) for complete documentation.
+
+**Pre-commit Hooks for Preventing Regression**
+
+Prevent Python 2 code from being committed with automated pre-commit hooks:
+
+```bash
+# Install pre-commit hooks (normal strictness)
+./py2to3 precommit install
+
+# Install with strict mode (maximum protection)
+./py2to3 precommit install --mode strict
+
+# Install with lenient mode (gradual adoption)
+./py2to3 precommit install --mode lenient
+
+# Check hook status
+./py2to3 precommit status
+
+# Test hooks without committing
+./py2to3 precommit test
+
+# Uninstall hooks if needed
+./py2to3 precommit uninstall
+```
+
+**Use Cases:**
+- Prevent Python 2 code regression during migration
+- Enforce Python 3 compatibility across the team
+- Catch issues before code review
+- Reduce CI/CD failures from Python 2 code
+
+Perfect for:
+- Teams working on migration together
+- Preventing accidental Python 2 commits
+- Enforcing migration standards
+- Providing instant developer feedback
+
+**How it works:**
+1. Generates `.pre-commit-config.yaml` configuration
+2. Creates custom Python 3 validator hook
+3. Integrates with popular pre-commit framework
+4. Runs automatically before each commit
+5. Blocks commits with Python 2 code
+
+**Three Strictness Modes:**
+- **Strict**: Catches any Python 2 patterns (post-migration)
+- **Normal**: Catches common Python 2 issues (during migration)
+- **Lenient**: Catches only critical issues (starting migration)
+
+See [PRECOMMIT_GUIDE.md](PRECOMMIT_GUIDE.md) for complete documentation.
 
 **Interactive Progress Dashboard for Visual Tracking**
 
