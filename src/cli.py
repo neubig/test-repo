@@ -5203,6 +5203,90 @@ def command_timeline(args):
         return 1
 
 
+def command_badges(args):
+    """Generate migration progress badges."""
+    print_header("Migration Progress Badge Generator")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from badge_generator import BadgeGenerator
+        
+        print_info(f"📂 Output directory: {args.output}")
+        print_info("🎨 Generating badges...")
+        print()
+        
+        generator = BadgeGenerator(output_dir=args.output)
+        
+        # Generate badges
+        if args.types:
+            badge_types = [t.strip() for t in args.types.split(',')]
+            badges = {}
+            
+            type_map = {
+                'status': ('Migration Status', generator.generate_status_badge),
+                'progress': ('Progress Percentage', generator.generate_progress_badge),
+                'files': ('Files Migrated', generator.generate_files_badge),
+                'issues': ('Issues Remaining', generator.generate_issues_badge),
+                'python': ('Python Version', generator.generate_python_version_badge),
+            }
+            
+            for badge_type in badge_types:
+                if badge_type in type_map:
+                    name, gen_func = type_map[badge_type]
+                    try:
+                        filepath, markdown = gen_func()
+                        badges[badge_type] = (filepath, markdown)
+                        print_success(f"Generated {name} badge: {filepath}")
+                    except Exception as e:
+                        print_error(f"Failed to generate {name} badge: {e}")
+                else:
+                    print_error(f"Unknown badge type: {badge_type}")
+        else:
+            badges = generator.generate_all_badges(verbose=False)
+            for badge_type, (filepath, _) in badges.items():
+                print_success(f"Generated badge: {filepath}")
+        
+        # Generate markdown snippet unless disabled
+        if not args.no_snippet and badges:
+            snippet_file = generator.save_markdown_snippet(
+                badges,
+                output_file=f"{args.output}/README_SNIPPET.md"
+            )
+            print()
+            print_success(f"Markdown snippet saved to: {snippet_file}")
+            
+            if not args.quiet:
+                print()
+                print_info("📋 Add these badges to your README.md:")
+                print("─" * 70)
+                with open(snippet_file, 'r') as f:
+                    snippet = f.read()
+                    for line in snippet.split('\n'):
+                        print(f"  {line}")
+                print("─" * 70)
+        
+        print()
+        print_success("✨ Badge generation completed successfully!")
+        print_info("💡 Tip: Regenerate badges after each migration milestone to track progress")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import badge generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error generating badges: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_checklist(args):
     """Generate personalized migration checklist."""
     print_header("Migration Checklist Generator")
@@ -6634,6 +6718,32 @@ def main():
         help='Also export timeline data as JSON to specified file'
     )
     
+    # Badges command
+    parser_badges = subparsers.add_parser(
+        'badges',
+        help='🎖️  Generate migration progress badges for README',
+        description='Create beautiful SVG badges showing migration progress'
+    )
+    parser_badges.add_argument(
+        '-o', '--output',
+        default='badges',
+        help='Output directory for badges (default: badges/)'
+    )
+    parser_badges.add_argument(
+        '--types',
+        help='Comma-separated list of badge types: status,progress,files,issues,python'
+    )
+    parser_badges.add_argument(
+        '--no-snippet',
+        action='store_true',
+        help='Do not generate markdown snippet file'
+    )
+    parser_badges.add_argument(
+        '-q', '--quiet',
+        action='store_true',
+        help='Suppress markdown snippet preview'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6777,6 +6887,8 @@ def main():
         return command_patterns(args)
     elif args.command == 'timeline':
         return command_timeline(args)
+    elif args.command == 'badges':
+        return command_badges(args)
     else:
         parser.print_help()
         return 1
