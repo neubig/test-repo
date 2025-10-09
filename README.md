@@ -601,7 +601,21 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 timeline` to generate your migration timeline!
    - **See [TIMELINE_GUIDE.md](TIMELINE_GUIDE.md) for complete timeline guide!**
 
-29. **Live Migration Monitor** 🔴✨ **[NEW]**:
+29. **Migration Story Generator** 📚✨ **[NEW]**:
+   - Create beautiful narrative-style HTML reports documenting your migration journey
+   - Unlike technical reports, focuses on storytelling and the human side of migration
+   - Perfect for stakeholder presentations, team celebrations, and knowledge sharing
+   - Automatically collects data from git history, journal, stats, and backups
+   - Includes overview, key statistics, journey timeline, team contributions, and lessons learned
+   - Beautiful gradient design with modern UI, cards, and visual elements
+   - Highlights individual team member contributions and commits
+   - Documents challenges faced, victories achieved, and best practices discovered
+   - Ideal for executive updates, documentation, and sharing with other teams
+   - Complements technical reports: story for communication, reports for analysis
+   - Run `./py2to3 story` to generate your migration narrative!
+   - **See [STORY_GUIDE.md](STORY_GUIDE.md) for complete story generator guide!**
+
+30. **Live Migration Monitor** 🔴✨ **[NEW]**:
    - Real-time terminal dashboard for monitoring migration progress live
    - Beautiful, auto-refreshing interface built with Rich library
    - Live statistics showing files migrated, issues found/fixed, and completion percentage

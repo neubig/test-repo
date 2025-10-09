@@ -5432,6 +5432,44 @@ def command_patterns(args):
         return 1
 
 
+def command_story(args):
+    """Generate a narrative-style migration story report."""
+    print_header("Migration Story Generator")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from story_generator import MigrationStoryGenerator
+        
+        print_info(f"Project: {args.path}")
+        print_info(f"Output: {args.output}\n")
+        
+        generator = MigrationStoryGenerator(args.path)
+        generator.collect_data()
+        generator.generate_story(args.output)
+        
+        print()
+        print_success(f"Migration story generated: {args.output}")
+        print_info("Open this file in your browser to read your journey!")
+        print_info("Perfect for team presentations and stakeholder updates")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import story generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error generating story: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6744,6 +6782,24 @@ def main():
         help='Suppress markdown snippet preview'
     )
     
+    # Story command
+    parser_story = subparsers.add_parser(
+        'story',
+        help='📚 Generate narrative-style migration story report',
+        description='Create a beautiful HTML story documenting your migration journey'
+    )
+    parser_story.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='Project directory (default: current directory)'
+    )
+    parser_story.add_argument(
+        '-o', '--output',
+        default='migration_story.html',
+        help='Output HTML file (default: migration_story.html)'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -6889,6 +6945,8 @@ def main():
         return command_timeline(args)
     elif args.command == 'badges':
         return command_badges(args)
+    elif args.command == 'story':
+        return command_story(args)
     else:
         parser.print_help()
         return 1
