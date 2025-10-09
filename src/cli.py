@@ -2082,6 +2082,62 @@ def command_plan(args):
         return 1
 
 
+def command_graph(args):
+    """Generate visual dependency graph."""
+    print_header("Dependency Graph Generation")
+    
+    validate_path(args.path)
+    
+    if not os.path.isdir(args.path):
+        print_error("Graph generation requires a directory path")
+        return 1
+    
+    print_info(f"Analyzing codebase: {args.path}")
+    print()
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from dependency_graph import DependencyGraphGenerator
+        
+        generator = DependencyGraphGenerator(args.path)
+        generator.analyze()
+        
+        if args.summary:
+            print()
+            print(generator.generate_summary())
+        else:
+            print()
+            generator.generate_html(args.output)
+            print()
+            print_success("Dependency graph generated successfully!")
+            print()
+            print_info("💡 Tips:")
+            print_info("  • Open the graph in your web browser")
+            print_info("  • Drag nodes to rearrange the layout")
+            print_info("  • Hover over nodes to see details")
+            print_info("  • Scroll to zoom in/out")
+            print_info("  • Colors indicate risk levels (red=high, yellow=medium, green=low)")
+            print()
+            print_info("💡 Use the graph to:")
+            print_info("  • Understand module relationships")
+            print_info("  • Identify which modules to migrate first")
+            print_info("  • Spot circular dependencies")
+            print_info("  • Present migration strategy to your team")
+        
+        return 0
+    
+    except ImportError as e:
+        print_error(f"Could not import dependency graph generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except Exception as e:
+        print_error(f"Graph generation failed: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_quality(args):
     """Analyze code quality and complexity metrics."""
     print_header("Code Quality and Complexity Analysis")
@@ -4825,6 +4881,18 @@ def main():
     parser_plan.add_argument('-f', '--format', choices=['text', 'json', 'markdown'],
                             default='text', help='Output format (default: text)')
     
+    # Graph command
+    parser_graph = subparsers.add_parser(
+        'graph',
+        help='Generate visual dependency graph',
+        description='Create interactive visualization of module dependencies for migration planning'
+    )
+    parser_graph.add_argument('path', help='Directory to analyze')
+    parser_graph.add_argument('-o', '--output', default='dependency_graph.html',
+                             help='Output HTML file (default: dependency_graph.html)')
+    parser_graph.add_argument('--summary', action='store_true',
+                             help='Print text summary instead of generating graph')
+    
     # Watch command
     parser_watch = subparsers.add_parser(
         'watch',
@@ -5552,6 +5620,8 @@ def main():
         return command_test_gen(args)
     elif args.command == 'plan':
         return command_plan(args)
+    elif args.command == 'graph':
+        return command_graph(args)
     elif args.command == 'watch':
         return command_watch(args)
     elif args.command == 'quality':

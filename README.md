@@ -674,6 +674,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 completion generate bash` to view script!
    - **See [COMPLETION_GUIDE.md](COMPLETION_GUIDE.md) for complete shell completion guide!**
 
+42. **Visual Dependency Graph** 🕸️✨ **[NEW]**:
+   - Interactive visualization of module dependencies
+   - Understand complex codebases at a glance
+   - Plan migration order based on dependency relationships
+   - Color-coded risk levels (red=high, yellow=medium, green=low)
+   - Node size represents lines of code
+   - Drag-and-drop interface for exploring relationships
+   - Hover tooltips with detailed module information
+   - Automatic circular dependency detection with warnings
+   - Statistics dashboard showing total modules and risk distribution
+   - Identifies modules with no dependencies (migrate first!)
+   - Shows most-depended-upon modules (migrate last!)
+   - Force-directed layout for optimal visualization
+   - Zoom and pan controls for large codebases
+   - Self-contained HTML output (no external dependencies)
+   - Perfect for team presentations and stakeholder communication
+   - Track progress by regenerating graphs over time
+   - Text summary mode for quick command-line insights
+   - Run `./py2to3 graph src/` to generate interactive visualization!
+   - Run `./py2to3 graph src/ --summary` for text overview!
+   - **See [DEPENDENCY_GRAPH_GUIDE.md](DEPENDENCY_GRAPH_GUIDE.md) for complete visualization guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:
