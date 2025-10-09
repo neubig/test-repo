@@ -650,6 +650,76 @@ def command_compare(args):
         return 1
 
 
+def command_diff_viewer(args):
+    """Generate interactive HTML diff viewer for migration changes."""
+    print_header("Interactive Diff Viewer")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from diff_viewer import DiffViewer
+        
+        # Validate path
+        if not os.path.exists(args.path):
+            print_error(f"Path does not exist: {args.path}")
+            return 1
+        
+        # Validate backup directory
+        if not os.path.exists(args.backup_dir):
+            print_warning(f"Backup directory not found: {args.backup_dir}")
+            print_info("Have you run the fixer with backups enabled?")
+            return 1
+        
+        print_info(f"Analyzing: {args.path}")
+        print_info(f"Backup directory: {args.backup_dir}\n")
+        
+        # Create viewer and scan
+        viewer = DiffViewer(backup_dir=args.backup_dir)
+        
+        if os.path.isfile(args.path):
+            # Single file
+            result = viewer.compare_with_backup(args.path)
+            if 'error' in result:
+                print_error(result['error'])
+                return 1
+            comparisons = [result]
+        else:
+            # Directory
+            print_info("Scanning directory for Python files...")
+            comparisons = viewer.scan_directory(args.path)
+        
+        if not comparisons:
+            print_warning("No Python files found to compare.")
+            return 1
+        
+        # Generate HTML
+        print_info(f"Generating interactive HTML viewer...")
+        output_file = viewer.generate_html(comparisons, args.output)
+        
+        # Print summary
+        files_with_changes = sum(1 for c in comparisons if c.get('has_changes'))
+        total_additions = sum(c.get('additions', 0) for c in comparisons)
+        total_deletions = sum(c.get('deletions', 0) for c in comparisons)
+        
+        print()
+        print_success(f"Generated interactive diff viewer: {output_file}")
+        print()
+        print(f"  📁 Total files analyzed: {len(comparisons)}")
+        print(f"  📝 Files with changes: {files_with_changes}")
+        print(f"  {Colors.OKGREEN}+ {total_additions} additions{Colors.ENDC}")
+        print(f"  {Colors.FAIL}- {total_deletions} deletions{Colors.ENDC}")
+        print()
+        print_info(f"Open {output_file} in your browser to view the interactive diff")
+        
+        return 0
+        
+    except Exception as e:
+        print_error(f"Failed to generate diff viewer: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_stats(args):
     """Track and display migration statistics."""
     print_header("Migration Statistics")
@@ -5502,6 +5572,29 @@ def main():
     parser_compare_commits.add_argument('-f', '--format', choices=['text', 'json'], default='text', help='Output format (default: text)')
     parser_compare_commits.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompts')
     
+    # Diff-viewer command
+    parser_diff_viewer = subparsers.add_parser(
+        'diff-viewer',
+        help='Generate interactive HTML diff viewer',
+        description='Create a beautiful, interactive HTML page showing side-by-side comparisons of migration changes'
+    )
+    parser_diff_viewer.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='File or directory to analyze (default: current directory)'
+    )
+    parser_diff_viewer.add_argument(
+        '-b', '--backup-dir',
+        default='.migration_backups',
+        help='Backup directory to compare against (default: .migration_backups)'
+    )
+    parser_diff_viewer.add_argument(
+        '-o', '--output',
+        default='diff_viewer.html',
+        help='Output HTML file (default: diff_viewer.html)'
+    )
+    
     # Risk command
     parser_risk = subparsers.add_parser(
         'risk',
@@ -6437,6 +6530,8 @@ def main():
         return command_git(args)
     elif args.command == 'compare':
         return command_compare(args)
+    elif args.command == 'diff-viewer':
+        return command_diff_viewer(args)
     elif args.command == 'risk':
         return command_risk(args)
     elif args.command == 'test-gen':
