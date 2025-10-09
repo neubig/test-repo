@@ -14,7 +14,10 @@ Get up and running in 2 minutes:
 # Or use Make
 make setup
 
-# Start migrating with the wizard
+# Try the interactive demo (first-time users!)
+./py2to3 demo
+
+# Or start migrating with the wizard
 ./py2to3 wizard
 ```
 
@@ -114,7 +117,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
 
 ### Automated Tools
 
-1. **Smart Migration Wizard** 🧙 ✨ **[NEW]**:
+1. **Interactive Demo Showcase** 🎬 ✨ **[NEW]**:
+   - Quick, hands-on demonstration of the migration toolkit
+   - Perfect for first-time users and presentations
+   - Shows the complete workflow: check → fix → verify
+   - Uses realistic Python 2 code samples
+   - Safe isolated environment (doesn't touch your code)
+   - Runs in 2-3 minutes with beautiful, colored output
+   - Try it: `./py2to3 demo`
+   - **See [DEMO_GUIDE.md](DEMO_GUIDE.md) for complete guide!**
+
+2. **Smart Migration Wizard** 🧙 ✨ **[NEW]**:
    - Interactive guided workflow for Python 2 to 3 migration
    - Perfect for beginners - no need to learn all the commands!
    - Analyzes your project and recommends personalized migration strategies
@@ -125,7 +138,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - One command does everything: `./py2to3 wizard`
    - **See [WIZARD_GUIDE.md](WIZARD_GUIDE.md) for complete guide!**
 
-2. **Unified CLI Tool (`py2to3`)** **[NEW]**:
+3. **Unified CLI Tool (`py2to3`)** **[NEW]**:
    - Single command-line interface for the entire migration workflow
    - Beautiful colored output with progress indicators
    - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`

@@ -6798,6 +6798,40 @@ def command_notify(args):
         return 1
 
 
+def command_demo(args):
+    """Run an interactive demonstration of the migration toolkit."""
+    print_header("py2to3 Interactive Demo Showcase")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from demo_showcase import run_demo
+        
+        # Run the demo with specified options
+        success = run_demo(
+            interactive=not args.auto,
+            verbose=not args.quiet
+        )
+        
+        if success:
+            return 0
+        else:
+            print_error("Demo did not complete successfully")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import demo module: {e}")
+        return 1
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Demo interrupted by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error running demo: {e}")
+        if args.verbose if hasattr(args, 'verbose') else False:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -8924,6 +8958,24 @@ def main():
     )
     parser_notify.set_defaults(func=command_notify)
     
+    # Demo command
+    parser_demo = subparsers.add_parser(
+        'demo',
+        help='🎬 Run interactive demonstration of the toolkit',
+        description='Experience a quick, hands-on demo of the py2to3 migration workflow. Perfect for new users, presentations, and validating installation.'
+    )
+    parser_demo.add_argument(
+        '--auto',
+        action='store_true',
+        help='Run in automatic mode without pausing for user input'
+    )
+    parser_demo.add_argument(
+        '--quiet',
+        action='store_true',
+        help='Minimal output (less verbose)'
+    )
+    parser_demo.set_defaults(func=command_demo)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -9097,6 +9149,8 @@ def main():
         return command_simulate(args)
     elif args.command == 'notify':
         return command_notify(args)
+    elif args.command == 'demo':
+        return command_demo(args)
     else:
         parser.print_help()
         return 1
