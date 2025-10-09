@@ -5284,6 +5284,70 @@ def command_checklist(args):
         return 1
 
 
+def command_patterns(args):
+    """Browse Python 2 to 3 migration patterns."""
+    print_header("Python 2 to 3 Pattern Library")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from pattern_library import PatternLibrary
+        
+        library = PatternLibrary()
+        
+        # If no specific options, show summary
+        if not any([args.list, args.category, args.search, args.difficulty]):
+            library.display_summary()
+            return 0
+        
+        # Collect patterns based on filters
+        patterns = library.patterns
+        
+        if args.category:
+            patterns = library.get_patterns_by_category(args.category)
+            if not patterns:
+                print_error(f"Category '{args.category}' not found.")
+                print_info(f"Available categories: {', '.join(library.get_categories())}")
+                return 1
+        
+        if args.search:
+            patterns = library.search_patterns(args.search)
+        
+        if args.difficulty:
+            patterns = [p for p in patterns if p.difficulty == args.difficulty]
+        
+        # Display results
+        if not patterns:
+            print_warning("No patterns found matching your criteria.")
+            return 0
+        
+        library.display_pattern_list(patterns)
+        
+        # Show detailed view of each pattern
+        for pattern in patterns:
+            print(pattern.format_display(show_details=True))
+        
+        print_info(f"📚 Showing {len(patterns)} of {len(library.patterns)} total patterns")
+        print_info("💡 Use --category, --search, or --difficulty to filter patterns")
+        print()
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import pattern library: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error browsing patterns: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6523,6 +6587,31 @@ def main():
         help='Save checklist to file (auto-detects format from extension)'
     )
     
+    # Patterns command
+    parser_patterns = subparsers.add_parser(
+        'patterns',
+        help='📚 Browse Python 2 to 3 migration patterns',
+        description='Interactive reference library of common Python 2 patterns and their Python 3 equivalents'
+    )
+    parser_patterns.add_argument(
+        '--list',
+        action='store_true',
+        help='List all available patterns'
+    )
+    parser_patterns.add_argument(
+        '--category',
+        help='Show patterns in a specific category (e.g., Strings, Iterators, Imports)'
+    )
+    parser_patterns.add_argument(
+        '--search',
+        help='Search patterns by keyword'
+    )
+    parser_patterns.add_argument(
+        '--difficulty',
+        choices=['easy', 'medium', 'hard'],
+        help='Filter patterns by difficulty level'
+    )
+    
     # Timeline command
     parser_timeline = subparsers.add_parser(
         'timeline',
@@ -6684,6 +6773,8 @@ def main():
         return command_heatmap(args)
     elif args.command == 'checklist':
         return command_checklist(args)
+    elif args.command == 'patterns':
+        return command_patterns(args)
     elif args.command == 'timeline':
         return command_timeline(args)
     else:
