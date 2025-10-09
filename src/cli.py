@@ -5575,6 +5575,307 @@ def command_find(args):
     return 1
 
 
+def command_rules(args):
+    """Manage custom migration rules."""
+    from custom_rules import CustomRulesManager, CustomRule, apply_custom_rules_to_file
+    
+    if args.rules_action == 'init':
+        print_header("Initialize Custom Rules")
+        
+        manager = CustomRulesManager(args.rules_file)
+        print_success(f"Custom rules file initialized: {manager.rules_file}")
+        print_info(f"Created {len(manager.rules)} example rules")
+        print_info("Edit .py2to3_custom_rules.json to add your own rules")
+        print_info("Run './py2to3 rules list' to see all rules")
+        return 0
+    
+    elif args.rules_action == 'list':
+        print_header("Custom Migration Rules")
+        
+        manager = CustomRulesManager(args.rules_file)
+        rules = manager.list_rules(
+            category=args.category,
+            enabled_only=args.enabled_only
+        )
+        
+        if not rules:
+            print_warning("No custom rules found")
+            print_info("Run './py2to3 rules init' to create example rules")
+            return 1
+        
+        print(f"{Colors.BOLD}Found {len(rules)} rule(s):{Colors.ENDC}\n")
+        
+        for rule in rules:
+            status = f"{Colors.OKGREEN}✓" if rule.enabled else f"{Colors.FAIL}✗"
+            print(f"{status} {Colors.BOLD}[{rule.rule_id}]{Colors.ENDC} {rule.name}")
+            print(f"   {Colors.OKCYAN}Category:{Colors.ENDC} {rule.category}")
+            print(f"   {Colors.OKCYAN}Description:{Colors.ENDC} {rule.description}")
+            
+            if args.verbose:
+                print(f"   {Colors.OKCYAN}Pattern:{Colors.ENDC} {rule.pattern}")
+                print(f"   {Colors.OKCYAN}Replacement:{Colors.ENDC} {rule.replacement}")
+                print(f"   {Colors.OKCYAN}Applied:{Colors.ENDC} {rule.applied_count} times")
+                print(f"   {Colors.OKCYAN}Regex:{Colors.ENDC} {rule.regex}")
+            print()
+        
+        return 0
+    
+    elif args.rules_action == 'add':
+        print_header("Add Custom Rule")
+        
+        if args.interactive:
+            # Interactive mode
+            print_info("Let's create a new custom rule!\n")
+            
+            rule_id = input(f"{Colors.OKCYAN}Rule ID (unique identifier, no spaces):{Colors.ENDC} ").strip()
+            name = input(f"{Colors.OKCYAN}Rule Name:{Colors.ENDC} ").strip()
+            description = input(f"{Colors.OKCYAN}Description:{Colors.ENDC} ").strip()
+            pattern = input(f"{Colors.OKCYAN}Pattern to match:{Colors.ENDC} ").strip()
+            replacement = input(f"{Colors.OKCYAN}Replacement text:{Colors.ENDC} ").strip()
+            category = input(f"{Colors.OKCYAN}Category (default: custom):{Colors.ENDC} ").strip() or "custom"
+            
+            regex_input = input(f"{Colors.OKCYAN}Use regex matching? (y/n, default: y):{Colors.ENDC} ").strip().lower()
+            regex = regex_input != 'n'
+            
+            rule = CustomRule(
+                rule_id=rule_id,
+                name=name,
+                description=description,
+                pattern=pattern,
+                replacement=replacement,
+                category=category,
+                regex=regex
+            )
+        else:
+            # Command-line mode
+            if not all([args.rule_id, args.name, args.pattern, args.replacement]):
+                print_error("Missing required arguments for non-interactive mode")
+                print_info("Use --interactive for interactive mode, or provide:")
+                print_info("  --rule-id, --name, --pattern, --replacement")
+                return 1
+            
+            rule = CustomRule(
+                rule_id=args.rule_id,
+                name=args.name,
+                description=args.description or "",
+                pattern=args.pattern,
+                replacement=args.replacement,
+                category=args.category or "custom",
+                regex=args.regex
+            )
+        
+        manager = CustomRulesManager(args.rules_file)
+        
+        if manager.add_rule(rule):
+            print_success(f"Rule '{rule.rule_id}' added successfully!")
+            print_info(f"Test it with: ./py2to3 rules test {rule.rule_id} 'sample code'")
+        else:
+            print_error(f"Rule with ID '{rule.rule_id}' already exists")
+            return 1
+        
+        return 0
+    
+    elif args.rules_action == 'remove':
+        print_header("Remove Custom Rule")
+        
+        manager = CustomRulesManager(args.rules_file)
+        
+        if not args.confirm:
+            response = input(f"{Colors.WARNING}Remove rule '{args.rule_id}'? (y/n):{Colors.ENDC} ")
+            if response.lower() != 'y':
+                print_info("Operation cancelled")
+                return 0
+        
+        if manager.remove_rule(args.rule_id):
+            print_success(f"Rule '{args.rule_id}' removed successfully")
+        else:
+            print_error(f"Rule '{args.rule_id}' not found")
+            return 1
+        
+        return 0
+    
+    elif args.rules_action == 'enable':
+        manager = CustomRulesManager(args.rules_file)
+        
+        if manager.enable_rule(args.rule_id):
+            print_success(f"Rule '{args.rule_id}' enabled")
+        else:
+            print_error(f"Rule '{args.rule_id}' not found")
+            return 1
+        
+        return 0
+    
+    elif args.rules_action == 'disable':
+        manager = CustomRulesManager(args.rules_file)
+        
+        if manager.disable_rule(args.rule_id):
+            print_success(f"Rule '{args.rule_id}' disabled")
+        else:
+            print_error(f"Rule '{args.rule_id}' not found")
+            return 1
+        
+        return 0
+    
+    elif args.rules_action == 'test':
+        print_header("Test Custom Rule")
+        
+        manager = CustomRulesManager(args.rules_file)
+        rule = manager.get_rule(args.rule_id)
+        
+        if not rule:
+            print_error(f"Rule '{args.rule_id}' not found")
+            return 1
+        
+        # Get test content
+        if args.file:
+            with open(args.file, 'r') as f:
+                test_content = f.read()
+        else:
+            test_content = args.content
+        
+        # Apply rule
+        modified_content, change_count = manager.test_rule(args.rule_id, test_content)
+        
+        print(f"{Colors.BOLD}Rule:{Colors.ENDC} {rule.name}")
+        print(f"{Colors.BOLD}Pattern:{Colors.ENDC} {rule.pattern}")
+        print(f"{Colors.BOLD}Replacement:{Colors.ENDC} {rule.replacement}\n")
+        
+        if change_count > 0:
+            print_success(f"Made {change_count} change(s)\n")
+            
+            if args.diff:
+                # Show diff
+                import difflib
+                diff = difflib.unified_diff(
+                    test_content.splitlines(keepends=True),
+                    modified_content.splitlines(keepends=True),
+                    fromfile='before',
+                    tofile='after'
+                )
+                print(f"{Colors.BOLD}Diff:{Colors.ENDC}")
+                for line in diff:
+                    if line.startswith('+'):
+                        print(f"{Colors.OKGREEN}{line}{Colors.ENDC}", end='')
+                    elif line.startswith('-'):
+                        print(f"{Colors.FAIL}{line}{Colors.ENDC}", end='')
+                    else:
+                        print(line, end='')
+            else:
+                print(f"{Colors.BOLD}Result:{Colors.ENDC}")
+                print(modified_content)
+        else:
+            print_warning("No changes made - pattern didn't match")
+        
+        return 0
+    
+    elif args.rules_action == 'apply':
+        print_header("Apply Custom Rules")
+        
+        manager = CustomRulesManager(args.rules_file)
+        
+        if args.dry_run:
+            print_info("DRY RUN - No files will be modified\n")
+        
+        target_path = Path(args.path)
+        
+        if target_path.is_file():
+            files = [target_path]
+        elif target_path.is_dir():
+            if args.recursive:
+                files = list(target_path.rglob('*.py'))
+            else:
+                files = list(target_path.glob('*.py'))
+        else:
+            print_error(f"Path not found: {args.path}")
+            return 1
+        
+        print_info(f"Found {len(files)} file(s) to process\n")
+        
+        total_changes = 0
+        modified_files = 0
+        
+        for file_path in files:
+            if not args.dry_run:
+                result = apply_custom_rules_to_file(
+                    str(file_path),
+                    manager,
+                    backup=not args.no_backup
+                )
+                
+                if 'error' in result:
+                    print_error(f"{file_path}: {result['error']}")
+                elif result['total_changes'] > 0:
+                    print_success(f"{file_path}: {result['total_changes']} change(s)")
+                    total_changes += result['total_changes']
+                    modified_files += 1
+            else:
+                # Dry run - just check
+                with open(file_path, 'r') as f:
+                    content = f.read()
+                modified, changes = manager.apply_rules(content)
+                if changes:
+                    change_count = sum(changes.values())
+                    print_info(f"{file_path}: Would make {change_count} change(s)")
+                    total_changes += change_count
+                    modified_files += 1
+        
+        print()
+        if total_changes > 0:
+            print_success(f"Total: {total_changes} change(s) in {modified_files} file(s)")
+        else:
+            print_info("No changes made")
+        
+        return 0
+    
+    elif args.rules_action == 'export':
+        print_header("Export Custom Rules")
+        
+        manager = CustomRulesManager(args.rules_file)
+        
+        rule_ids = args.rule_ids.split(',') if args.rule_ids else None
+        manager.export_rules(args.output, rule_ids)
+        
+        print_success(f"Rules exported to: {args.output}")
+        return 0
+    
+    elif args.rules_action == 'import':
+        print_header("Import Custom Rules")
+        
+        manager = CustomRulesManager(args.rules_file)
+        
+        imported, skipped = manager.import_rules(args.input_file, args.overwrite)
+        
+        print_success(f"Imported {imported} rule(s)")
+        if skipped > 0:
+            print_warning(f"Skipped {skipped} existing rule(s)")
+            print_info("Use --overwrite to replace existing rules")
+        
+        return 0
+    
+    elif args.rules_action == 'stats':
+        print_header("Custom Rules Statistics")
+        
+        manager = CustomRulesManager(args.rules_file)
+        stats = manager.get_statistics()
+        
+        print(f"{Colors.BOLD}Overview:{Colors.ENDC}")
+        print(f"  Total Rules: {Colors.OKGREEN}{stats['total_rules']}{Colors.ENDC}")
+        print(f"  Enabled: {Colors.OKGREEN}{stats['enabled_rules']}{Colors.ENDC}")
+        print(f"  Disabled: {Colors.FAIL}{stats['disabled_rules']}{Colors.ENDC}")
+        print(f"  Total Applications: {Colors.OKGREEN}{stats['total_applications']}{Colors.ENDC}")
+        
+        print(f"\n{Colors.BOLD}Categories:{Colors.ENDC}")
+        for category, count in sorted(stats['categories'].items()):
+            print(f"  {category}: {count}")
+        
+        print(f"\n{Colors.BOLD}Rules File:{Colors.ENDC}")
+        print(f"  {stats['rules_file']}")
+        
+        return 0
+    
+    return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -6963,6 +7264,210 @@ def main():
         help='Show documentation statistics'
     )
     
+    # Rules command (Custom migration rules)
+    parser_rules = subparsers.add_parser(
+        'rules',
+        help='🎨 Manage custom migration rules',
+        description='Define, test, and apply your own migration patterns'
+    )
+    parser_rules.add_argument(
+        '--rules-file',
+        help='Path to custom rules file (default: .py2to3_custom_rules.json)'
+    )
+    
+    rules_subparsers = parser_rules.add_subparsers(
+        dest='rules_action',
+        help='Rules action to perform'
+    )
+    
+    # Rules init
+    parser_rules_init = rules_subparsers.add_parser(
+        'init',
+        help='Initialize custom rules file with examples'
+    )
+    
+    # Rules list
+    parser_rules_list = rules_subparsers.add_parser(
+        'list',
+        help='List all custom rules'
+    )
+    parser_rules_list.add_argument(
+        '--category',
+        help='Filter by category'
+    )
+    parser_rules_list.add_argument(
+        '--enabled-only',
+        action='store_true',
+        help='Show only enabled rules'
+    )
+    parser_rules_list.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Show detailed information'
+    )
+    
+    # Rules add
+    parser_rules_add = rules_subparsers.add_parser(
+        'add',
+        help='Add a new custom rule'
+    )
+    parser_rules_add.add_argument(
+        '--interactive',
+        action='store_true',
+        help='Interactive mode (recommended)'
+    )
+    parser_rules_add.add_argument(
+        '--rule-id',
+        help='Unique rule identifier'
+    )
+    parser_rules_add.add_argument(
+        '--name',
+        help='Human-readable rule name'
+    )
+    parser_rules_add.add_argument(
+        '--description',
+        help='Rule description'
+    )
+    parser_rules_add.add_argument(
+        '--pattern',
+        help='Pattern to match'
+    )
+    parser_rules_add.add_argument(
+        '--replacement',
+        help='Replacement text'
+    )
+    parser_rules_add.add_argument(
+        '--category',
+        help='Rule category (default: custom)'
+    )
+    parser_rules_add.add_argument(
+        '--regex',
+        action='store_true',
+        default=True,
+        help='Use regex matching (default: True)'
+    )
+    
+    # Rules remove
+    parser_rules_remove = rules_subparsers.add_parser(
+        'remove',
+        help='Remove a custom rule'
+    )
+    parser_rules_remove.add_argument(
+        'rule_id',
+        help='Rule ID to remove'
+    )
+    parser_rules_remove.add_argument(
+        '--confirm',
+        action='store_true',
+        help='Skip confirmation prompt'
+    )
+    
+    # Rules enable
+    parser_rules_enable = rules_subparsers.add_parser(
+        'enable',
+        help='Enable a custom rule'
+    )
+    parser_rules_enable.add_argument(
+        'rule_id',
+        help='Rule ID to enable'
+    )
+    
+    # Rules disable
+    parser_rules_disable = rules_subparsers.add_parser(
+        'disable',
+        help='Disable a custom rule'
+    )
+    parser_rules_disable.add_argument(
+        'rule_id',
+        help='Rule ID to disable'
+    )
+    
+    # Rules test
+    parser_rules_test = rules_subparsers.add_parser(
+        'test',
+        help='Test a rule on sample content'
+    )
+    parser_rules_test.add_argument(
+        'rule_id',
+        help='Rule ID to test'
+    )
+    parser_rules_test.add_argument(
+        'content',
+        nargs='?',
+        help='Content to test (or use --file)'
+    )
+    parser_rules_test.add_argument(
+        '--file',
+        help='File to test rule on'
+    )
+    parser_rules_test.add_argument(
+        '--diff',
+        action='store_true',
+        help='Show diff of changes'
+    )
+    
+    # Rules apply
+    parser_rules_apply = rules_subparsers.add_parser(
+        'apply',
+        help='Apply custom rules to files'
+    )
+    parser_rules_apply.add_argument(
+        'path',
+        help='File or directory to process'
+    )
+    parser_rules_apply.add_argument(
+        '-r', '--recursive',
+        action='store_true',
+        help='Process directories recursively'
+    )
+    parser_rules_apply.add_argument(
+        '--no-backup',
+        action='store_true',
+        help='Do not create backup files'
+    )
+    parser_rules_apply.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Preview changes without modifying files'
+    )
+    
+    # Rules export
+    parser_rules_export = rules_subparsers.add_parser(
+        'export',
+        help='Export rules to a file'
+    )
+    parser_rules_export.add_argument(
+        'output',
+        help='Output file path'
+    )
+    parser_rules_export.add_argument(
+        '--rule-ids',
+        help='Comma-separated list of rule IDs to export (default: all)'
+    )
+    
+    # Rules import
+    parser_rules_import = rules_subparsers.add_parser(
+        'import',
+        help='Import rules from a file'
+    )
+    parser_rules_import.add_argument(
+        'input_file',
+        help='Input file path'
+    )
+    parser_rules_import.add_argument(
+        '--overwrite',
+        action='store_true',
+        help='Overwrite existing rules with same ID'
+    )
+    
+    # Rules stats
+    parser_rules_stats = rules_subparsers.add_parser(
+        'stats',
+        help='Show custom rules statistics'
+    )
+    
+    parser_rules.set_defaults(func=command_rules)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -7112,6 +7617,8 @@ def main():
         return command_story(args)
     elif args.command == 'find':
         return command_find(args)
+    elif args.command == 'rules':
+        return command_rules(args)
     else:
         parser.print_help()
         return 1
