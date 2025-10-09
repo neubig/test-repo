@@ -4195,6 +4195,166 @@ def command_rollback(args):
         return 1
 
 
+def command_redo(args):
+    """Redo rolled back migration operations."""
+    print_header("Redo Manager")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from rollback_manager import RollbackManager
+        
+        manager = RollbackManager()
+        
+        if not hasattr(args, 'redo_action') or not args.redo_action:
+            print_error("Please specify a redo action (apply, list, preview)")
+            print_info("Use 'py2to3 redo --help' for more information")
+            return 1
+        
+        if args.redo_action == 'apply':
+            # Redo a rolled back operation
+            operation_id = args.id if hasattr(args, 'id') and args.id else None
+            
+            if operation_id:
+                print_info(f"Redoing operation: {operation_id}")
+            else:
+                print_info("Redoing last rolled back operation...")
+            
+            # Preview first
+            preview = manager.preview_redo(operation_id)
+            
+            if not preview["success"]:
+                print_error(preview.get("error", "Failed to preview redo"))
+                return 1
+            
+            # Show preview
+            op = preview["operation"]
+            print()
+            print_info(f"Operation ID: {op['id']}")
+            print_info(f"Type: {op['type']}")
+            print_info(f"Original timestamp: {op['timestamp']}")
+            if op.get('rollback_timestamp'):
+                print_info(f"Rolled back at: {op['rollback_timestamp']}")
+            if op.get('description'):
+                print_info(f"Description: {op['description']}")
+            print()
+            print_info(f"Files to reapply: {preview['files_ready']}/{preview['total_files']}")
+            
+            if preview['files_missing_backups']:
+                print_warning(f"Missing backups: {len(preview['files_missing_backups'])}")
+                if args.verbose:
+                    for f in preview['files_missing_backups']:
+                        print(f"  - {f['path']}")
+            
+            # Check if dry run
+            if args.dry_run:
+                print()
+                print_info("Dry run - showing what would be reapplied:")
+                for file_info in preview['files_to_apply']:
+                    print(f"  ✓ {file_info['path']}")
+                return 0
+            
+            # Ask for confirmation unless --yes is specified
+            if not args.yes:
+                print()
+                response = input(f"{Colors.WARNING}Proceed with redo? (y/N): {Colors.ENDC}")
+                if response.lower() != 'y':
+                    print_info("Redo cancelled")
+                    return 0
+            
+            # Perform redo
+            print()
+            result = manager.redo(operation_id, force=args.force)
+            
+            if result["success"]:
+                print_success(f"Successfully reapplied operation {result['operation_id']}")
+                print_info(f"Reapplied {result['total_applied']} file(s)")
+                
+                if result['total_failed'] > 0:
+                    print_warning(f"Failed to reapply {result['total_failed']} file(s)")
+                    if args.verbose:
+                        for f in result['failed_files']:
+                            print(f"  ✗ {f['path']}: {f['error']}")
+                
+                return 0 if result['total_failed'] == 0 else 1
+            else:
+                print_error(f"Redo failed: {result.get('error', 'Unknown error')}")
+                return 1
+        
+        elif args.redo_action == 'list':
+            # List all rolled back operations that can be redone
+            operations = manager.get_rolled_back_operations()
+            
+            if not operations:
+                print_warning("No rolled back operations found")
+                print_info("Use 'py2to3 rollback undo' to rollback an operation first")
+                return 0
+            
+            print_info(f"Found {len(operations)} rolled back operation(s) that can be redone:\n")
+            
+            for op in operations:
+                print(f"{Colors.OKCYAN}↻{Colors.ENDC} {op['id']}")
+                print(f"  Type: {op['type']}")
+                print(f"  Time: {op['timestamp']}")
+                if op.get('description'):
+                    print(f"  Description: {op['description']}")
+                print(f"  Files: {len(op.get('files', []))}")
+                if op.get('rollback_timestamp'):
+                    print(f"  Rolled back: {op['rollback_timestamp']}")
+                print()
+            
+            return 0
+        
+        elif args.redo_action == 'preview':
+            # Preview redo without doing it
+            operation_id = args.id if hasattr(args, 'id') and args.id else None
+            
+            preview = manager.preview_redo(operation_id)
+            
+            if not preview["success"]:
+                print_error(preview.get("error", "Failed to preview redo"))
+                return 1
+            
+            op = preview["operation"]
+            print_info(f"Operation ID: {op['id']}")
+            print_info(f"Type: {op['type']}")
+            print_info(f"Original timestamp: {op['timestamp']}")
+            if op.get('rollback_timestamp'):
+                print_info(f"Rolled back at: {op['rollback_timestamp']}")
+            if op.get('description'):
+                print_info(f"Description: {op['description']}")
+            print()
+            
+            print_success(f"Files that can be reapplied: {preview['files_ready']}")
+            for file_info in preview['files_to_apply'][:10]:  # Show first 10
+                print(f"  ✓ {file_info['path']}")
+            if len(preview['files_to_apply']) > 10:
+                print(f"  ... and {len(preview['files_to_apply']) - 10} more")
+            
+            if preview['files_missing_backups']:
+                print()
+                print_warning(f"Files with missing backups: {len(preview['files_missing_backups'])}")
+                for file_info in preview['files_missing_backups'][:5]:
+                    print(f"  ✗ {file_info['path']}")
+                if len(preview['files_missing_backups']) > 5:
+                    print(f"  ... and {len(preview['files_missing_backups']) - 5} more")
+            
+            return 0
+        
+        else:
+            print_error(f"Unknown redo action: {args.redo_action}")
+            return 1
+        
+    except ImportError as e:
+        print_error(f"Failed to import rollback manager: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error during redo: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_freeze(args):
     """Freeze Guard - Prevent Python 2 code from being re-introduced."""
     print_header("Freeze Guard - Python 2 Prevention")
@@ -8400,6 +8560,31 @@ def main():
     parser_rollback_clear.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
     parser_rollback_clear.add_argument('--keep', type=int, help='Number of recent operations to keep')
     
+    # Redo command
+    parser_redo = subparsers.add_parser(
+        'redo',
+        help='Redo rolled back migration operations',
+        description='Reapply migration operations that were previously rolled back'
+    )
+    
+    redo_subparsers = parser_redo.add_subparsers(dest='redo_action', help='Redo actions')
+    
+    # Redo apply
+    parser_redo_apply = redo_subparsers.add_parser('apply', help='Redo the last rolled back operation or a specific operation')
+    parser_redo_apply.add_argument('--id', help='Specific operation ID to redo (default: last rolled back operation)')
+    parser_redo_apply.add_argument('-n', '--dry-run', action='store_true', help='Preview redo without making changes')
+    parser_redo_apply.add_argument('-y', '--yes', action='store_true', help='Skip confirmation prompt')
+    parser_redo_apply.add_argument('--force', action='store_true', help='Force redo even if some backups are missing')
+    parser_redo_apply.add_argument('-v', '--verbose', action='store_true', help='Show detailed information')
+    
+    # Redo list
+    parser_redo_list = redo_subparsers.add_parser('list', help='List all rolled back operations that can be redone')
+    parser_redo_list.add_argument('-v', '--verbose', action='store_true', help='Show detailed information')
+    
+    # Redo preview
+    parser_redo_preview = redo_subparsers.add_parser('preview', help='Preview what would be redone')
+    parser_redo_preview.add_argument('--id', help='Specific operation ID to preview (default: last rolled back operation)')
+    
     # Export command
     parser_export = subparsers.add_parser(
         'export',
@@ -9736,6 +9921,8 @@ def main():
         return command_completion(args)
     elif args.command == 'rollback':
         return command_rollback(args)
+    elif args.command == 'redo':
+        return command_redo(args)
     elif args.command == 'export':
         return command_export(args)
     elif args.command == 'import':

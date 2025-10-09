@@ -415,6 +415,18 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rollback --help` to explore rollback features!
    - **See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete rollback guide!**
 
+21. **Redo Manager** 🔄 ✨ **[NEW]**:
+   - Reapply migration operations that were previously rolled back
+   - Perfect companion to the Rollback Manager for iterative development
+   - List all rolled back operations that can be redone
+   - Preview what will be reapplied before making changes
+   - Redo specific operations by ID or redo the last rolled back operation
+   - Automatic backups before redoing (for safety)
+   - Dry-run mode to test without applying changes
+   - Ideal for testing, debugging, and iterative migration workflows!
+   - Run `./py2to3 redo --help` to explore redo features!
+   - **See [REDO_GUIDE.md](REDO_GUIDE.md) for complete redo guide!**
+
 16. **Interactive Diff Viewer** 🔍 ✨ **[NEW]**:
    - Generate beautiful, interactive HTML pages with side-by-side code comparisons
    - Perfect for code review, training, and understanding migration changes
@@ -1663,6 +1675,59 @@ Perfect for:
 - Building confidence during migration
 
 See [ROLLBACK_GUIDE.md](ROLLBACK_GUIDE.md) for complete documentation.
+
+**Redo Manager for Iterative Development**
+
+Reapply migration operations that were previously rolled back:
+
+```bash
+# List all rolled back operations that can be redone
+./py2to3 redo list
+
+# Preview what would be reapplied without making changes
+./py2to3 redo preview
+
+# Redo the last rolled back operation
+./py2to3 redo apply
+
+# Redo a specific operation by ID
+./py2to3 redo apply --id 20240115_143022_123456
+
+# Dry run to see what would happen
+./py2to3 redo apply --dry-run
+
+# Skip confirmation prompt
+./py2to3 redo apply --yes
+```
+
+**Use Cases:**
+- Test migrations by rolling back and redoing
+- Iteratively improve migration strategies
+- Toggle between migrated and original code for debugging
+- Maintain different migration states across branches
+
+**Example Workflow:**
+```bash
+# 1. Rollback to test original code
+./py2to3 rollback undo --yes
+
+# 2. Run tests on original code
+pytest tests/
+
+# 3. Redo the migration when satisfied
+./py2to3 redo apply --yes
+
+# 4. Verify migrated code works
+pytest tests/
+```
+
+Perfect for:
+- Iterative development and testing
+- Debugging migration issues
+- Comparing behavior before and after migration
+- Building confidence in migration correctness
+
+See [REDO_GUIDE.md](REDO_GUIDE.md) for complete documentation.
 
 **Migration Package Export/Import for Team Collaboration**
 
