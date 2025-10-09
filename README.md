@@ -250,17 +250,28 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 insights` to get strategic recommendations!
    - **See [INSIGHTS_GUIDE.md](INSIGHTS_GUIDE.md) for complete guide!**
 
-14. **Fixer Tool (`src/fixer.py`)**:
+14. **Migration Simulator** 🔮 ✨ **[NEW]**:
+   - Preview complete migration outcomes without modifying any files
+   - Perfect for planning, stakeholder approval, and demos
+   - Shows exactly what changes would be made to each file
+   - Generates comprehensive before/after statistics and impact analysis
+   - Estimates remaining issues and success rate after migration
+   - Creates detailed JSON reports for analysis and documentation
+   - Test different migration strategies safely
+   - Run `./py2to3 simulate src/` to preview your migration!
+   - **See [SIMULATOR_GUIDE.md](SIMULATOR_GUIDE.md) for complete guide!**
+
+15. **Fixer Tool (`src/fixer.py`)**:
    - Automatically converts Python 2 code to Python 3
    - Handles common patterns, imports, syntax, and more
    - Creates backups and generates detailed reports
 
-14. **Verifier Tool (`src/verifier.py`)**:
+16. **Verifier Tool (`src/verifier.py`)**:
    - Analyzes code for Python 3 compatibility
    - Identifies remaining issues with severity classification
    - Integrates with the official 2to3 tool
 
-15. **Report Generator (`src/report_generator.py`)** 🆕:
+17. **Report Generator (`src/report_generator.py`)** 🆕:
    - Generates comprehensive HTML reports for migration progress
    - Beautiful, interactive visualizations with charts and statistics
    - Side-by-side code comparisons showing before/after changes
@@ -269,7 +280,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect for presenting migration progress to stakeholders
    - **See `demo_report.html` for a live example!**
 
-16. **Configuration Management** ✨ **[NEW]**:
+18. **Configuration Management** ✨ **[NEW]**:
    - Flexible configuration system with user and project-level settings
    - JSON-based configuration files (`.py2to3.config.json`)
    - Customize default behaviors, ignore patterns, and fix rules
@@ -277,7 +288,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Manage config via CLI: `py2to3 config init`, `show`, `get`, `set`
    - **See [CONFIG.md](CONFIG.md) for complete configuration guide!**
 
-17. **Backup Management** 🔄 **[NEW]**:
+19. **Backup Management** 🔄 **[NEW]**:
    - Comprehensive backup management for migration safety
    - List all backups with detailed information and statistics
    - Restore files or entire directories from backups
@@ -287,7 +298,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Perfect safety net for your migration workflow!
    - **See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for complete backup management guide!**
 
-15. **Rollback Manager** ⏪ **[NEW]**:
+20. **Rollback Manager** ⏪ **[NEW]**:
    - Quick and safe rollback of migration operations
    - Automatically track all migration operations in history
    - Undo the last operation with a single command

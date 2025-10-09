@@ -6388,6 +6388,43 @@ def command_insights(args):
         return 1
 
 
+def command_simulate(args):
+    """Simulate migration without making changes."""
+    print_header("Migration Simulator")
+    
+    try:
+        from migration_simulator import MigrationSimulator
+        
+        # Create simulator
+        print_info(f"Target: {args.path}")
+        print()
+        
+        simulator = MigrationSimulator(args.path)
+        
+        # Run simulation
+        results = simulator.simulate(verbose=args.verbose)
+        
+        # Print report
+        simulator.print_report(detailed=args.detailed)
+        
+        # Save detailed JSON report
+        if args.output:
+            simulator.save_report(args.output)
+            print_success(f"Detailed JSON report saved to: {args.output}")
+        
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import migration simulator: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error running simulation: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def command_smell(args):
     """Detect code smells in Python code."""
     print_header("Code Smell Detection")
@@ -8468,6 +8505,34 @@ def main():
     )
     parser_insights.set_defaults(func=command_insights)
     
+    # Simulate command
+    parser_simulate = subparsers.add_parser(
+        'simulate',
+        help='🔮 Simulate migration without making changes',
+        description='Preview complete migration outcomes without modifying any files. Perfect for planning, demos, and stakeholder presentations.'
+    )
+    parser_simulate.add_argument(
+        'path',
+        nargs='?',
+        default='.',
+        help='Path to analyze (default: current directory)'
+    )
+    parser_simulate.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Show detailed progress for each file'
+    )
+    parser_simulate.add_argument(
+        '-d', '--detailed',
+        action='store_true',
+        help='Show detailed breakdown in report'
+    )
+    parser_simulate.add_argument(
+        '-o', '--output',
+        help='Save detailed JSON report to file (default: simulation_report.json)'
+    )
+    parser_simulate.set_defaults(func=command_simulate)
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -8631,6 +8696,8 @@ def main():
         return command_smell(args)
     elif args.command == 'insights':
         return command_insights(args)
+    elif args.command == 'simulate':
+        return command_simulate(args)
     else:
         parser.print_help()
         return 1
