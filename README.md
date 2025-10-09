@@ -655,6 +655,25 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 report-card -f json -o quality.json` for CI/CD!
    - **See [REPORT_CARD_GUIDE.md](REPORT_CARD_GUIDE.md) for complete report card guide!**
 
+41. **Shell Completions** 🎯✨ **[NEW]**:
+   - Powerful Tab completion for bash, zsh, and fish shells
+   - Auto-complete all 47 commands and subcommands instantly
+   - Context-aware suggestions for options and arguments
+   - Dramatically improves productivity and reduces typos
+   - Easy one-command installation and setup
+   - Auto-detects your current shell
+   - Works with both local and globally installed py2to3
+   - Completions for all command options and flags
+   - File path completion for relevant options
+   - Perfect for learning the toolkit interactively
+   - Generate completion scripts for distribution
+   - Check installation status across all shells
+   - Simple uninstall when needed
+   - Run `./py2to3 completion install` to enable completions!
+   - Run `./py2to3 completion status` to check installation!
+   - Run `./py2to3 completion generate bash` to view script!
+   - **See [COMPLETION_GUIDE.md](COMPLETION_GUIDE.md) for complete shell completion guide!**
+
 ### Modern Web Application
 
 The `my-vite-app/` directory contains a modern **Migration Statistics Dashboard** built with:

@@ -4303,6 +4303,155 @@ def command_precommit(args):
         return 1
 
 
+def command_completion(args):
+    """Manage shell completions for py2to3 CLI."""
+    action = args.completion_action
+    
+    print_header(f"Shell Completion Management: {action.title() if action else 'Help'}")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from completion_generator import CompletionGenerator
+        
+        generator = CompletionGenerator()
+        
+        if action == 'generate':
+            shell = args.shell if hasattr(args, 'shell') and args.shell else generator.detect_shell()
+            
+            if not shell:
+                print_error("Could not detect shell. Please specify: bash, zsh, or fish")
+                print_info("Usage: py2to3 completion generate <shell>")
+                return 1
+            
+            if shell not in ['bash', 'zsh', 'fish']:
+                print_error(f"Unsupported shell: {shell}")
+                print_info("Supported shells: bash, zsh, fish")
+                return 1
+            
+            print_info(f"Generating {shell} completion script...")
+            print()
+            
+            # Generate and print the script
+            if shell == 'bash':
+                script = generator.generate_bash_completion()
+            elif shell == 'zsh':
+                script = generator.generate_zsh_completion()
+            else:  # fish
+                script = generator.generate_fish_completion()
+            
+            if hasattr(args, 'output') and args.output:
+                # Write to file
+                try:
+                    with open(args.output, 'w') as f:
+                        f.write(script)
+                    print_success(f"Completion script written to {args.output}")
+                    print_info(f"To use: source {args.output}")
+                except Exception as e:
+                    print_error(f"Failed to write completion script: {e}")
+                    return 1
+            else:
+                # Print to stdout
+                print(script)
+            
+            return 0
+        
+        elif action == 'install':
+            shell = args.shell if hasattr(args, 'shell') and args.shell else generator.detect_shell()
+            
+            if not shell:
+                print_error("Could not detect shell. Please specify: bash, zsh, or fish")
+                print_info("Usage: py2to3 completion install <shell>")
+                return 1
+            
+            print_info(f"Installing {shell} completions...")
+            print()
+            
+            success, message = generator.install_completion(shell)
+            
+            if success:
+                print_success("Installation successful!")
+                print()
+                print(message)
+                return 0
+            else:
+                print_error("Installation failed!")
+                print_error(message)
+                return 1
+        
+        elif action == 'uninstall':
+            shell = args.shell if hasattr(args, 'shell') and args.shell else generator.detect_shell()
+            
+            if not shell:
+                print_error("Could not detect shell. Please specify: bash, zsh, or fish")
+                print_info("Usage: py2to3 completion uninstall <shell>")
+                return 1
+            
+            print_info(f"Uninstalling {shell} completions...")
+            print()
+            
+            success, message = generator.uninstall_completion(shell)
+            
+            if success:
+                print_success("Uninstallation successful!")
+                print()
+                print(message)
+                return 0
+            else:
+                print_error("Uninstallation failed!")
+                print_error(message)
+                return 1
+        
+        elif action == 'status':
+            print_info("Checking completion installation status...")
+            print()
+            
+            status = generator.check_completion_status()
+            current_shell = generator.detect_shell()
+            
+            if current_shell:
+                print(f"Current shell: {Colors.OKCYAN}{current_shell}{Colors.ENDC}")
+                print()
+            
+            print("Installation status:")
+            for shell, installed in status.items():
+                status_str = f"{Colors.OKGREEN}✓ Installed{Colors.ENDC}" if installed else f"{Colors.FAIL}✗ Not installed{Colors.ENDC}"
+                print(f"  {shell:8s}: {status_str}")
+            
+            print()
+            
+            if not any(status.values()):
+                print_warning("No completions are installed")
+                print_info("Run: py2to3 completion install")
+            elif current_shell and status.get(current_shell):
+                print_success(f"Completions are installed for your current shell ({current_shell})")
+            elif current_shell:
+                print_warning(f"Completions are not installed for your current shell ({current_shell})")
+                print_info(f"Run: py2to3 completion install {current_shell}")
+            
+            return 0
+        
+        else:
+            print_error("No action specified")
+            print_info("Available actions: generate, install, uninstall, status")
+            print_info("Example: py2to3 completion install")
+            return 1
+    
+    except ImportError as e:
+        print_error(f"Failed to import completion generator: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error managing completions: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -5183,6 +5332,34 @@ def main():
     parser_precommit_test = precommit_subparsers.add_parser('test', help='Test pre-commit hooks')
     parser_precommit_test.add_argument('--test-file', help='Specific file to test')
     
+    # Completion command
+    parser_completion = subparsers.add_parser(
+        'completion',
+        help='Manage shell completions for py2to3',
+        description='Generate, install, and manage shell completions for bash, zsh, and fish'
+    )
+    
+    completion_subparsers = parser_completion.add_subparsers(dest='completion_action', help='Completion actions')
+    
+    # Completion generate
+    parser_completion_generate = completion_subparsers.add_parser('generate', help='Generate completion script')
+    parser_completion_generate.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish'], 
+                                           help='Shell type (auto-detected if not specified)')
+    parser_completion_generate.add_argument('-o', '--output', help='Output file (default: stdout)')
+    
+    # Completion install
+    parser_completion_install = completion_subparsers.add_parser('install', help='Install completions')
+    parser_completion_install.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish'],
+                                          help='Shell type (auto-detected if not specified)')
+    
+    # Completion uninstall
+    parser_completion_uninstall = completion_subparsers.add_parser('uninstall', help='Uninstall completions')
+    parser_completion_uninstall.add_argument('shell', nargs='?', choices=['bash', 'zsh', 'fish'],
+                                            help='Shell type (auto-detected if not specified)')
+    
+    # Completion status
+    parser_completion_status = completion_subparsers.add_parser('status', help='Check completion status')
+    
     # Rollback command
     parser_rollback = subparsers.add_parser(
         'rollback',
@@ -5417,6 +5594,8 @@ def main():
         return command_freeze(args)
     elif args.command == 'precommit':
         return command_precommit(args)
+    elif args.command == 'completion':
+        return command_completion(args)
     elif args.command == 'rollback':
         return command_rollback(args)
     elif args.command == 'export':
