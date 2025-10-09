@@ -131,7 +131,17 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Six powerful commands: `check`, `preflight`, `fix`, `report`, `migrate`, `config`
    - Run `./py2to3 --help` to get started! See [CLI_GUIDE.md](CLI_GUIDE.md) for details.
 
-3. **Migration Checklist Generator** 📝 ✨ **[NEW]**:
+3. **Migration Doctor** 🏥 ✨ **[NEW]**:
+   - Comprehensive environment and project health diagnostics
+   - Inspired by `brew doctor` and `flutter doctor`
+   - Checks Python versions, Git availability, project structure, and more
+   - Detects Python 2 patterns and imports that need updating
+   - Provides actionable recommendations for every issue found
+   - Perfect for troubleshooting and verifying readiness
+   - Run `./py2to3 doctor` before starting migration!
+   - **See [DOCTOR_GUIDE.md](DOCTOR_GUIDE.md) for complete guide!**
+
+4. **Migration Checklist Generator** 📝 ✨ **[NEW]**:
    - Generates personalized, prioritized migration roadmaps
    - Analyzes your codebase and creates actionable step-by-step plans
    - Identifies "Quick Wins" (easy files to start with)
@@ -142,7 +152,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 checklist` to get your migration roadmap!
    - **See [CHECKLIST_GUIDE.md](CHECKLIST_GUIDE.md) for complete guide!**
 
-4. **Code Snippet Converter** ✨ **[NEW]**:
+5. **Code Snippet Converter** ✨ **[NEW]**:
    - Lightning-fast interactive tool for converting Python 2 snippets to Python 3
    - Perfect for learning, quick testing, and educational purposes
    - Multiple output formats: side-by-side comparison, unified diff, or plain text
@@ -152,7 +162,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 convert --help` to explore!
    - **See [SNIPPET_CONVERTER_GUIDE.md](SNIPPET_CONVERTER_GUIDE.md) for complete guide!**
 
-5. **Pattern Library Browser** 📚 ✨ **[NEW]**:
+6. **Pattern Library Browser** 📚 ✨ **[NEW]**:
    - Interactive reference guide for Python 2 to 3 migration patterns
    - 30+ common patterns with examples, explanations, and gotchas
    - Searchable by keyword, category, or difficulty level
@@ -162,7 +172,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 patterns` to browse!
    - **See [PATTERNS_GUIDE.md](PATTERNS_GUIDE.md) for complete guide!**
 
-6. **Custom Rules Builder** 🎨 ✨ **[NEW]**:
+7. **Custom Rules Builder** 🎨 ✨ **[NEW]**:
    - Define your own migration patterns beyond built-in rules
    - Perfect for organization-specific coding standards and custom libraries
    - JSON-based rule format for easy editing and sharing
@@ -173,7 +183,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 rules init` to get started!
    - **See [CUSTOM_RULES_GUIDE.md](CUSTOM_RULES_GUIDE.md) for complete guide!**
 
-7. **Migration Progress Badges** 🎖️ ✨ **[NEW]**:
+8. **Migration Progress Badges** 🎖️ ✨ **[NEW]**:
    - Generate beautiful SVG badges showing migration progress
    - Perfect for README files and project dashboards
    - 5 badge types: status, progress %, files migrated, issues remaining, Python version
@@ -183,7 +193,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 badges` to generate badges!
    - **See [BADGES_GUIDE.md](BADGES_GUIDE.md) for complete guide!**
 
-8. **Migration Session Manager** ⏱️ ✨ **[NEW]**:
+9. **Migration Session Manager** ⏱️ ✨ **[NEW]**:
    - Track migration work sessions with precise time tracking
    - Monitor developer productivity and velocity
    - Record files modified, tasks completed, and observations
@@ -194,7 +204,7 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - Run `./py2to3 session start` to begin tracking!
    - **See [SESSION_GUIDE.md](SESSION_GUIDE.md) for complete guide!**
 
-9. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
+10. **Quick Tips & FAQ System** 💡 ✨ **[NEW]**:
    - Get instant answers to common Python 2 to 3 migration questions
    - Context-aware tips based on your codebase scan
    - 15+ curated tips covering all major migration issues

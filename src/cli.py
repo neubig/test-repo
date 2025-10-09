@@ -2542,6 +2542,52 @@ def command_health(args):
         return 1
 
 
+def command_doctor(args):
+    """Run comprehensive environment and project health checks."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from doctor import MigrationDoctor
+        
+        path = args.path if hasattr(args, 'path') else '.'
+        json_mode = hasattr(args, 'json') and args.json
+        
+        # Create doctor and run checks
+        doctor = MigrationDoctor(path, quiet=json_mode)
+        doctor.run_all_checks()
+        
+        # Print or output results
+        if hasattr(args, 'json') and args.json:
+            import json
+            results = {
+                "checks": [
+                    {
+                        "name": check.name,
+                        "status": check.status,
+                        "message": check.message,
+                        "recommendation": check.recommendation,
+                        "details": check.details
+                    }
+                    for check in doctor.checks
+                ]
+            }
+            print(json.dumps(results, indent=2))
+        else:
+            doctor.print_results()
+        
+        # Determine exit code based on errors
+        error_count = sum(1 for check in doctor.checks if check.status == "ERROR")
+        return 1 if error_count > 0 else 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import migration doctor: {e}")
+        return 1
+    except Exception as e:
+        print_error(f"Error running doctor: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
 def command_lint(args):
     """Run Python linters on migrated code."""
     print_header("Linting Integration")
@@ -7256,6 +7302,17 @@ def main():
     parser_health.add_argument('--trend', type=int, metavar='DAYS',
                               help='Show trend analysis for last N days')
     
+    # Doctor command
+    parser_doctor = subparsers.add_parser(
+        'doctor',
+        help='🏥 Diagnose migration environment and project health',
+        description='Comprehensive health checks for migration toolkit and project (like brew doctor or flutter doctor)'
+    )
+    parser_doctor.add_argument('path', nargs='?', default='.',
+                              help='Project path to check (default: current directory)')
+    parser_doctor.add_argument('--json', action='store_true',
+                              help='Output results in JSON format')
+    
     # Lint command
     parser_lint = subparsers.add_parser(
         'lint',
@@ -8720,6 +8777,8 @@ def main():
         return command_live(args)
     elif args.command == 'health':
         return command_health(args)
+    elif args.command == 'doctor':
+        return command_doctor(args)
     elif args.command == 'lint':
         return command_lint(args)
     elif args.command == 'recipe':
