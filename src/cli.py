@@ -4712,6 +4712,62 @@ def command_completion(args):
         return 1
 
 
+def command_readiness(args):
+    """Assess migration readiness and safety score."""
+    assessment_type = args.readiness_type
+    
+    print_header(f"Migration Readiness Assessment: {assessment_type.upper()}")
+    
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from readiness_checker import ReadinessChecker
+        
+        checker = ReadinessChecker(args.path)
+        
+        if assessment_type in ['pre', 'both']:
+            print_info(f"Analyzing project at: {args.path}")
+            print_info("Running pre-migration readiness assessment...\n")
+            
+            results = checker.assess_pre_migration_readiness()
+            checker.print_report(results)
+            
+            if args.output:
+                output_file = args.output if assessment_type == 'pre' else args.output.replace('.json', '_pre.json')
+                checker.save_report(results, output_file)
+        
+        if assessment_type in ['post', 'both']:
+            if assessment_type == 'both':
+                print("\n\n")
+            
+            print_info(f"Analyzing project at: {args.path}")
+            print_info("Running post-migration production readiness assessment...\n")
+            
+            results = checker.assess_post_migration_readiness()
+            checker.print_report(results)
+            
+            if args.output:
+                output_file = args.output if assessment_type == 'post' else args.output.replace('.json', '_post.json')
+                checker.save_report(results, output_file)
+        
+        print_success("Assessment complete!")
+        return 0
+        
+    except ImportError as e:
+        print_error(f"Failed to import readiness checker: {e}")
+        print_info("Make sure all required dependencies are installed")
+        return 1
+    except KeyboardInterrupt:
+        print()
+        print_warning("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        print_error(f"Error during readiness assessment: {e}")
+        if hasattr(args, 'verbose') and args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
@@ -5788,6 +5844,27 @@ def main():
     parser_coverage_clear = coverage_subparsers.add_parser('clear', help='Clear coverage snapshots')
     parser_coverage_clear.add_argument('--path', default='.', help='Project directory (default: current directory)')
     
+    # Readiness command
+    parser_readiness = subparsers.add_parser(
+        'readiness',
+        help='🎯 Assess migration readiness and safety score',
+        description='Comprehensive assessment tool that evaluates project readiness for migration and production deployment'
+    )
+    parser_readiness.add_argument(
+        'readiness_type',
+        choices=['pre', 'post', 'both'],
+        help='Assessment type: pre-migration readiness, post-migration production readiness, or both'
+    )
+    parser_readiness.add_argument(
+        '--path',
+        default='.',
+        help='Root path of project to assess (default: current directory)'
+    )
+    parser_readiness.add_argument(
+        '-o', '--output',
+        help='Save report to JSON file'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -5911,6 +5988,8 @@ def main():
         return command_changelog(args)
     elif args.command == 'coverage':
         return command_coverage(args)
+    elif args.command == 'readiness':
+        return command_readiness(args)
     else:
         parser.print_help()
         return 1

@@ -157,7 +157,20 @@ The `src/` directory contains a comprehensive example of a Python 2 web scraper 
    - JSON output support for CI/CD integration
    - Run `./py2to3 preflight` before starting your migration!
 
-13. **Git Integration** 🔧 **[NEW]**:
+13. **Migration Readiness & Safety Score** 🎯 ✨ **[NEW]**:
+   - Comprehensive assessment tool for migration readiness and production safety
+   - Pre-migration readiness score: Are you prepared to start migration?
+   - Post-migration safety score: Is your code ready for production?
+   - 100-point scoring system with letter grades (A-F)
+   - Evaluates version control, backups, testing, documentation, and code quality
+   - Actionable recommendations for every failed check
+   - Color-coded progress bars and detailed category breakdowns
+   - JSON export for CI/CD integration and progress tracking
+   - Run `./py2to3 readiness pre` before migration!
+   - Run `./py2to3 readiness post` before production deployment!
+   - **See [READINESS_GUIDE.md](READINESS_GUIDE.md) for complete guide!**
+
+14. **Git Integration** 🔧 **[NEW]**:
    - Seamless git integration for tracking migration progress
    - Create migration branches and checkpoints automatically
    - Generate detailed commit messages with migration statistics
