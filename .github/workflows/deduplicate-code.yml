@@ -20,7 +20,7 @@ jobs:
         env:
             # Configuration (modify these values as needed)
             AGENT_SCRIPT_URL: 
-                https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/main/examples/github_workflows/01_routine_maintenance/agent_script.py
+                https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/af5f062561a84b160926f867a07498346dddc367/examples/github_workflows/01_routine_maintenance/agent_script.py
             # Provide either PROMPT_LOCATION (URL/file) OR PROMPT_STRING (direct text), not both
             # Option 1: Use a URL or file path for the prompt
             PROMPT_LOCATION: ''
