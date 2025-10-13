@@ -33,6 +33,8 @@ except ImportError:
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from error_handlers import handle_api_errors
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for web dashboard integration
 
@@ -96,342 +98,313 @@ def api_info():
 
 
 @app.route('/api/check', methods=['POST'])
+@handle_api_errors
 def check_compatibility():
     """Run Python 3 compatibility check."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from verifier import Python3CompatibilityVerifier
-        
-        verifier = Python3CompatibilityVerifier()
-        if os.path.isdir(path):
-            verifier.verify_directory(path)
-        else:
-            verifier.verify_file(path)
-        
-        issues = [
-            {
-                "file": issue.file_path,
-                "line": issue.line_number,
-                "severity": issue.severity,
-                "category": issue.category,
-                "description": issue.description
-            }
-            for issue in verifier.issues_found
-        ]
-        
-        return create_response({
-            "path": path,
-            "issues_found": len(issues),
-            "issues": issues,
-            "summary": verifier.get_summary()
-        })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from verifier import Python3CompatibilityVerifier
+    
+    verifier = Python3CompatibilityVerifier()
+    if os.path.isdir(path):
+        verifier.verify_directory(path)
+    else:
+        verifier.verify_file(path)
+    
+    issues = [
+        {
+            "file": issue.file_path,
+            "line": issue.line_number,
+            "severity": issue.severity,
+            "category": issue.category,
+            "description": issue.description
+        }
+        for issue in verifier.issues_found
+    ]
+    
+    return create_response({
+        "path": path,
+        "issues_found": len(issues),
+        "issues": issues,
+        "summary": verifier.get_summary()
+    })
 
 
 @app.route('/api/fix', methods=['POST'])
+@handle_api_errors
 def apply_fixes():
     """Apply migration fixes to code."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        backup = data.get('backup', True)
-        dry_run = data.get('dry_run', False)
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from fixer import Python2to3Fixer
-        
-        backup_dir = None
-        if backup:
-            backup_dir = os.path.join(tempfile.gettempdir(), 'py2to3_backups')
-            os.makedirs(backup_dir, exist_ok=True)
-        
-        fixer = Python2to3Fixer(backup_dir=backup_dir)
-        
-        if os.path.isdir(path):
-            results = fixer.fix_directory(path)
-        else:
-            results = fixer.fix_file(path)
-        
-        return create_response({
-            "path": path,
-            "fixes_applied": len(fixer.fixes_applied) if not dry_run else 0,
-            "dry_run": dry_run,
-            "backup_location": backup_dir if backup else None,
-            "results": results
-        })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    backup = data.get('backup', True)
+    dry_run = data.get('dry_run', False)
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from fixer import Python2to3Fixer
+    
+    backup_dir = None
+    if backup:
+        backup_dir = os.path.join(tempfile.gettempdir(), 'py2to3_backups')
+        os.makedirs(backup_dir, exist_ok=True)
+    
+    fixer = Python2to3Fixer(backup_dir=backup_dir)
+    
+    if os.path.isdir(path):
+        results = fixer.fix_directory(path)
+    else:
+        results = fixer.fix_file(path)
+    
+    return create_response({
+        "path": path,
+        "fixes_applied": len(fixer.fixes_applied) if not dry_run else 0,
+        "dry_run": dry_run,
+        "backup_location": backup_dir if backup else None,
+        "results": results
+    })
 
 
 @app.route('/api/report', methods=['POST'])
+@handle_api_errors
 def generate_report():
     """Generate migration report."""
-    try:
-        data = request.get_json() or {}
-        format_type = data.get('format', 'json')  # json, html, text
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from report_generator import ReportGenerator
-        
-        generator = ReportGenerator(path)
-        
-        if format_type == 'html':
-            output_file = os.path.join(tempfile.gettempdir(), 'migration_report.html')
-            generator.generate_html_report(output_file)
-            return send_file(output_file, mimetype='text/html')
-        
-        elif format_type == 'json':
-            report_data = generator.collect_data()
-            return create_response(report_data)
-        
-        else:
-            report_text = generator.generate_text_report()
-            return create_response({"report": report_text})
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    format_type = data.get('format', 'json')  # json, html, text
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from report_generator import ReportGenerator
+    
+    generator = ReportGenerator(path)
+    
+    if format_type == 'html':
+        output_file = os.path.join(tempfile.gettempdir(), 'migration_report.html')
+        generator.generate_html_report(output_file)
+        return send_file(output_file, mimetype='text/html')
+    
+    elif format_type == 'json':
+        report_data = generator.collect_data()
+        return create_response(report_data)
+    
+    else:
+        report_text = generator.generate_text_report()
+        return create_response({"report": report_text})
+    
 
 
 @app.route('/api/stats', methods=['GET'])
+@handle_api_errors
 def get_statistics():
     """Get migration statistics."""
-    try:
-        path = request.args.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from stats_tracker import StatsTracker
-        
-        tracker = StatsTracker(path)
-        stats = tracker.collect_stats()
-        
-        return create_response(stats)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    path = request.args.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from stats_tracker import StatsTracker
+    
+    tracker = StatsTracker(path)
+    stats = tracker.collect_stats()
+    
+    return create_response(stats)
+    
 
 
 @app.route('/api/backup/list', methods=['GET'])
+@handle_api_errors
 def list_backups():
     """List all available backups."""
-    try:
-        from backup_manager import BackupManager
-        
-        manager = BackupManager()
-        backups = manager.list_backups()
-        
-        return create_response({
-            "backups": backups,
-            "total": len(backups)
-        })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    from backup_manager import BackupManager
+    
+    manager = BackupManager()
+    backups = manager.list_backups()
+    
+    return create_response({
+        "backups": backups,
+        "total": len(backups)
+    })
+    
 
 
 @app.route('/api/backup/create', methods=['POST'])
+@handle_api_errors
 def create_backup():
     """Create a new backup."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        description = data.get('description', 'API backup')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from backup_manager import BackupManager
-        
-        manager = BackupManager()
-        backup_id = manager.create_backup(path, description)
-        
-        return create_response({
-            "backup_id": backup_id,
-            "path": path,
-            "description": description,
-            "created_at": datetime.utcnow().isoformat()
-        })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    description = data.get('description', 'API backup')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from backup_manager import BackupManager
+    
+    manager = BackupManager()
+    backup_id = manager.create_backup(path, description)
+    
+    return create_response({
+        "backup_id": backup_id,
+        "path": path,
+        "description": description,
+        "created_at": datetime.utcnow().isoformat()
+    })
+    
 
 
 @app.route('/api/backup/restore', methods=['POST'])
+@handle_api_errors
 def restore_backup():
     """Restore from a backup."""
-    try:
-        data = request.get_json() or {}
-        backup_id = data.get('backup_id')
-        
-        if not backup_id:
-            return create_response(error="backup_id is required", status_code=400)
-        
-        from backup_manager import BackupManager
-        
-        manager = BackupManager()
-        result = manager.restore_backup(backup_id)
-        
-        return create_response(result)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    backup_id = data.get('backup_id')
+    
+    if not backup_id:
+        return create_response(error="backup_id is required", status_code=400)
+    
+    from backup_manager import BackupManager
+    
+    manager = BackupManager()
+    result = manager.restore_backup(backup_id)
+    
+    return create_response(result)
+    
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
+@handle_api_errors
 def manage_config():
     """Get or set configuration."""
-    try:
-        from config_manager import ConfigManager
+    from config_manager import ConfigManager
+    
+    manager = ConfigManager()
+    
+    if request.method == 'GET':
+        config = manager.get_config()
+        return create_response(config)
+    
+    else:  # POST
+        data = request.get_json() or {}
+        for key, value in data.items():
+            manager.set_config(key, value)
         
-        manager = ConfigManager()
-        
-        if request.method == 'GET':
-            config = manager.get_config()
-            return create_response(config)
-        
-        else:  # POST
-            data = request.get_json() or {}
-            for key, value in data.items():
-                manager.set_config(key, value)
-            
-            return create_response({
-                "message": "Configuration updated",
-                "config": manager.get_config()
-            })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+        return create_response({
+            "message": "Configuration updated",
+            "config": manager.get_config()
+        })
 
 
 @app.route('/api/status', methods=['GET'])
+@handle_api_errors
 def get_status():
     """Get overall migration status."""
-    try:
-        path = request.args.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from status_reporter import StatusReporter
-        
-        reporter = StatusReporter(path)
-        status = reporter.get_status()
-        
-        return create_response(status)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    path = request.args.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from status_reporter import StatusReporter
+    
+    reporter = StatusReporter(path)
+    status = reporter.get_status()
+    
+    return create_response(status)
+    
 
 
 @app.route('/api/deps', methods=['POST'])
+@handle_api_errors
 def analyze_dependencies():
     """Analyze dependencies for Python 3 compatibility."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from dependency_analyzer import DependencyAnalyzer
-        
-        analyzer = DependencyAnalyzer(path)
-        analyzer.scan_requirements_txt()
-        analyzer.scan_setup_py()
-        analyzer.scan_imports()
-        
-        results = analyzer.analyze_compatibility()
-        
-        return create_response(results)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from dependency_analyzer import DependencyAnalyzer
+    
+    analyzer = DependencyAnalyzer(path)
+    analyzer.scan_requirements_txt()
+    analyzer.scan_setup_py()
+    analyzer.scan_imports()
+    
+    results = analyzer.analyze_compatibility()
+    
+    return create_response(results)
+    
 
 
 @app.route('/api/security', methods=['POST'])
+@handle_api_errors
 def security_audit():
     """Run security audit on code."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from security_auditor import SecurityAuditor
-        
-        auditor = SecurityAuditor()
-        if os.path.isdir(path):
-            auditor.audit_directory(path)
-        else:
-            auditor.audit_file(path)
-        
-        issues = [issue.to_dict() for issue in auditor.issues]
-        
-        return create_response({
-            "issues_found": len(issues),
-            "issues": issues,
-            "stats": dict(auditor.stats)
-        })
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from security_auditor import SecurityAuditor
+    
+    auditor = SecurityAuditor()
+    if os.path.isdir(path):
+        auditor.audit_directory(path)
+    else:
+        auditor.audit_file(path)
+    
+    issues = [issue.to_dict() for issue in auditor.issues]
+    
+    return create_response({
+        "issues_found": len(issues),
+        "issues": issues,
+        "stats": dict(auditor.stats)
+    })
+    
 
 
 @app.route('/api/quality', methods=['POST'])
+@handle_api_errors
 def check_quality():
     """Check code quality."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from code_quality import CodeQualityChecker
-        
-        checker = CodeQualityChecker(path)
-        results = checker.run_checks()
-        
-        return create_response(results)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from code_quality import CodeQualityChecker
+    
+    checker = CodeQualityChecker(path)
+    results = checker.run_checks()
+    
+    return create_response(results)
+    
 
 
 @app.route('/api/risk', methods=['POST'])
+@handle_api_errors
 def analyze_risks():
     """Analyze migration risks."""
-    try:
-        data = request.get_json() or {}
-        path = data.get('path', '.')
-        
-        if not os.path.exists(path):
-            return create_response(error=f"Path not found: {path}", status_code=404)
-        
-        from risk_analyzer import RiskAnalyzer
-        
-        analyzer = RiskAnalyzer(path)
-        risks = analyzer.analyze()
-        
-        return create_response(risks)
-        
-    except Exception as e:
-        return create_response(error=str(e), status_code=500)
+    data = request.get_json() or {}
+    path = data.get('path', '.')
+    
+    if not os.path.exists(path):
+        return create_response(error=f"Path not found: {path}", status_code=404)
+    
+    from risk_analyzer import RiskAnalyzer
+    
+    analyzer = RiskAnalyzer(path)
+    risks = analyzer.analyze()
+    
+    return create_response(risks)
+    
 
 
 @app.errorhandler(404)

@@ -13,6 +13,8 @@ import os
 import sys
 from pathlib import Path
 
+from error_handlers import print_verbose_error
+
 # Color codes for terminal output
 class Colors:
     HEADER = '\033[95m'
@@ -129,9 +131,7 @@ def command_check(args):
         return 1
     except Exception as e:
         print_error(f"Error during verification: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -207,9 +207,7 @@ def command_fix(args):
         return 1
     except Exception as e:
         print_error(f"Error during fixing: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -314,9 +312,7 @@ def command_preflight(args):
         return 1
     except Exception as e:
         print_error(f"Error during preflight check: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -559,9 +555,7 @@ def command_backup(args):
         return 1
     except Exception as e:
         print_error(f"Error managing backups: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -644,9 +638,7 @@ def command_compare(args):
         return 1
     except Exception as e:
         print_error(f"Unexpected error during comparison: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -714,9 +706,7 @@ def command_diff_viewer(args):
         
     except Exception as e:
         print_error(f"Failed to generate diff viewer: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -835,9 +825,7 @@ def command_stats(args):
         return 1
     except Exception as e:
         print_error(f"Error tracking statistics: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -875,9 +863,7 @@ def command_interactive(args):
             
     except Exception as e:
         print_error(f"Error during interactive fixing: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -916,9 +902,7 @@ def command_report(args):
         return 1
     except Exception as e:
         print_error(f"Error generating report: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -1115,9 +1099,7 @@ def command_recipe(args):
             
     except Exception as e:
         print_error(f"Recipe management failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
     
     return 0
@@ -1336,9 +1318,7 @@ def command_state(args):
             
     except Exception as e:
         print_error(f"State tracking failed: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
     
     return 0
@@ -1496,9 +1476,7 @@ def command_journal(args):
     
     except Exception as e:
         print_error(f"Journal operation failed: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
     
     return 0
@@ -1627,9 +1605,7 @@ def command_config(args):
         return 1
     except Exception as e:
         print_error(f"Error managing config: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -1888,9 +1864,7 @@ def command_git(args):
         return 1
     except Exception as e:
         print_error(f"Error during git operation: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -1987,9 +1961,7 @@ def command_pr(args):
     
     except Exception as e:
         print_error(f"Unexpected error: {e}")
-        if args.verbose if hasattr(args, 'verbose') else False:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2042,9 +2014,7 @@ def command_deps(args):
         return 1
     except Exception as e:
         print_error(f"Error during dependency analysis: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2106,9 +2076,7 @@ def command_test_gen(args):
         return 1
     except Exception as e:
         print_error(f"Error generating tests: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2175,9 +2143,7 @@ def command_risk(args):
         return 1
     except Exception as e:
         print_error(f"Risk analysis failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2245,9 +2211,7 @@ def command_plan(args):
         return 1
     except Exception as e:
         print_error(f"Planning failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2301,9 +2265,7 @@ def command_graph(args):
         return 1
     except Exception as e:
         print_error(f"Graph generation failed: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2361,15 +2323,11 @@ def command_quality(args):
         
     except ImportError as e:
         print_error(f"Could not import code quality analyzer: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
     except Exception as e:
         print_error(f"Quality analysis failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2453,15 +2411,11 @@ def command_bench(args):
         
     except ImportError as e:
         print_error(f"Could not import performance benchmark tool: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
     except Exception as e:
         print_error(f"Benchmark failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2504,9 +2458,7 @@ def command_watch(args):
         return 0
     except Exception as e:
         print_error(f"Watch mode failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2545,9 +2497,7 @@ def command_dashboard(args):
         return 1
     except Exception as e:
         print_error(f"Error generating dashboard: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2574,9 +2524,7 @@ def command_live(args):
         return 1
     except Exception as e:
         print_error(f"Error running live monitor: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2635,9 +2583,7 @@ def command_health(args):
         return 1
     except Exception as e:
         print_error(f"Error analyzing health: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2733,9 +2679,7 @@ def command_lint(args):
         return 1
     except Exception as e:
         print_error(f"Error running linters: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2793,9 +2737,7 @@ def command_docs(args):
         return 1
     except Exception as e:
         print_error(f"Error generating documentation: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2828,9 +2770,7 @@ def command_status(args):
         return 1
     except Exception as e:
         print_error(f"Error generating status report: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2900,9 +2840,7 @@ def command_search(args):
         return 1
     except Exception as e:
         print_error(f"Error searching patterns: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -2971,9 +2909,7 @@ def command_security(args):
         return 1
     except Exception as e:
         print_error(f"Error during security audit: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3088,9 +3024,7 @@ def command_venv(args):
         return 1
     except Exception as e:
         print_error(f"Error managing virtual environment: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3175,9 +3109,7 @@ def command_imports(args):
         return 1
     except Exception as e:
         print_error(f"Error optimizing imports: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3277,9 +3209,7 @@ def command_modernize(args):
         return 1
     except Exception as e:
         print_error(f"Error modernizing code: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3397,9 +3327,7 @@ def command_format(args):
         return 1
     except Exception as e:
         print_error(f"Error formatting code: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3482,9 +3410,7 @@ def command_convert(args):
         return 1
     except Exception as e:
         print_error(f"Error converting code: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3556,9 +3482,7 @@ def command_version_check(args):
         return 1
     except Exception as e:
         print_error(f"Error during version check: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3616,9 +3540,7 @@ def command_review(args):
         return 1
     except Exception as e:
         print_error(f"Error during review analysis: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3679,9 +3601,7 @@ def command_typehints(args):
         return 1
     except Exception as e:
         print_error(f"Error generating type hints: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3733,9 +3653,7 @@ def command_estimate(args):
         return 1
     except Exception as e:
         print_error(f"Error estimating effort: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3797,9 +3715,7 @@ def command_packages(args):
         return 1
     except Exception as e:
         print_error(f"Error analyzing packages: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3904,9 +3820,7 @@ def command_export(args):
         return 1
     except Exception as e:
         print_error(f"Error during export: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -3990,9 +3904,7 @@ def command_import(args):
         return 1
     except Exception as e:
         print_error(f"Error during import: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4189,9 +4101,7 @@ def command_rollback(args):
         return 1
     except Exception as e:
         print_error(f"Error during rollback: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4349,9 +4259,7 @@ def command_redo(args):
         return 1
     except Exception as e:
         print_error(f"Error during redo: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4460,9 +4368,7 @@ def command_freeze(args):
         return 1
     except Exception as e:
         print_error(f"Error in freeze guard: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4510,9 +4416,7 @@ def command_validate(args):
         return 1
     except Exception as e:
         print_error(f"Validation failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4658,9 +4562,7 @@ def command_encoding(args):
         return 1
     except Exception as e:
         print_error(f"Error analyzing encodings: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4706,9 +4608,7 @@ def command_report_card(args):
         return 1
     except Exception as e:
         print_error(f"Error generating report card: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4781,9 +4681,7 @@ def command_metadata(args):
         return 1
     except Exception as e:
         print_error(f"Error updating metadata: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -4830,9 +4728,7 @@ def command_changelog(args):
         return 1
     except Exception as e:
         print_error(f"Error generating changelog: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5034,9 +4930,7 @@ def command_coverage(args):
         return 1
     except Exception as e:
         print_error(f"Error running coverage tracker: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5066,9 +4960,7 @@ def command_wizard(args):
         return 130
     except Exception as e:
         print_error(f"Error running wizard: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5216,9 +5108,7 @@ def command_precommit(args):
         return 130
     except Exception as e:
         print_error(f"Error managing pre-commit hooks: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5365,9 +5255,7 @@ def command_completion(args):
         return 130
     except Exception as e:
         print_error(f"Error managing completions: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5412,9 +5300,7 @@ def command_api(args):
         return 0
     except Exception as e:
         print_error(f"Error starting API server: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5468,9 +5354,7 @@ def command_readiness(args):
         return 130
     except Exception as e:
         print_error(f"Error during readiness assessment: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5516,9 +5400,7 @@ def command_heatmap(args):
         return 130
     except Exception as e:
         print_error(f"Error generating heatmap: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5566,9 +5448,7 @@ def command_timeline(args):
         return 130
     except Exception as e:
         print_error(f"Error generating timeline: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5650,9 +5530,7 @@ def command_badges(args):
         return 130
     except Exception as e:
         print_error(f"Error generating badges: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5731,9 +5609,7 @@ def command_checklist(args):
         return 130
     except Exception as e:
         print_error(f"Error generating checklist: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5795,9 +5671,7 @@ def command_patterns(args):
         return 130
     except Exception as e:
         print_error(f"Error browsing patterns: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5833,9 +5707,7 @@ def command_story(args):
         return 130
     except Exception as e:
         print_error(f"Error generating story: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -5984,9 +5856,7 @@ def command_tips(args):
         return 130
     except Exception as e:
         print_error(f"Error in tips command: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -6708,9 +6578,7 @@ def command_complexity(args):
         return 1
     except Exception as e:
         print_error(f"Analysis failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -6751,9 +6619,7 @@ def command_insights(args):
         return 1
     except Exception as e:
         print_error(f"Error generating insights: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -6848,9 +6714,7 @@ def command_simulate(args):
         return 1
     except Exception as e:
         print_error(f"Error running simulation: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -6933,9 +6797,7 @@ def command_smell(args):
         return 1
     except Exception as e:
         print_error(f"Analysis failed: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -7051,9 +6913,7 @@ def command_notify(args):
         return 1
     except Exception as e:
         print_error(f"Error: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -7114,9 +6974,7 @@ def command_duplication(args):
         return 1
     except Exception as e:
         print_error(f"Error analyzing duplication: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -7185,9 +7043,7 @@ def command_parallel(args):
         return 130
     except Exception as e:
         print_error(f"Error running parallel operation: {e}")
-        if hasattr(args, 'verbose') and args.verbose:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
@@ -7219,9 +7075,7 @@ def command_demo(args):
         return 130
     except Exception as e:
         print_error(f"Error running demo: {e}")
-        if args.verbose if hasattr(args, 'verbose') else False:
-            import traceback
-            traceback.print_exc()
+        print_verbose_error(args)
         return 1
 
 
