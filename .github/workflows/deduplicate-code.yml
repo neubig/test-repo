@@ -48,7 +48,7 @@ jobs:
             # Configuration (used for both scheduled and manual runs)
             # Manual runs can override these via workflow_dispatch inputs
             AGENT_SCRIPT_URL: >-
-                https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/main/examples/github_workflows/01_routine_maintenance/agent_script.py
+                https://raw.githubusercontent.com/All-Hands-AI/agent-sdk/5e61f1b835d5beacb7a4a36f7d7a6dae665299d8/examples/github_workflows/01_routine_maintenance/agent_script.py
             # Provide either PROMPT_LOCATION (URL/file) OR PROMPT_STRING (direct text), not both
             # Option 1: Use a URL or file path for the prompt
             PROMPT_LOCATION: ''
