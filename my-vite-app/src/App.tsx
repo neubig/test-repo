@@ -1,8 +1,11 @@
-import { Dashboard } from './components/Dashboard'
 import './App.css'
 
 function App() {
-  return <Dashboard />
+  return (
+    <div className="App">
+      <h1>Hello World</h1>
+    </div>
+  )
 }
 
 export default App
