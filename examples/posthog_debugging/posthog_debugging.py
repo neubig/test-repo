@@ -128,16 +128,16 @@ def fetch_posthog_events(
             "Authorization": f"Bearer {posthog_api_key}",
         }
 
-        try:
-            response = requests.post(
-                api_url, headers=headers, json=request_body, timeout=30
-            )
-            response.raise_for_status()
-        except requests.exceptions.Timeout:
-            print("❌ Error: Request to PostHog API timed out")
-            sys.exit(1)
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Error fetching from PostHog API: {e}")
+        response = requests.post(
+            api_url, headers=headers, json=request_body, timeout=30
+        )
+        if not response.ok:
+            print(f"❌ Error fetching from PostHog API: {response.status_code}")
+            try:
+                error_detail = response.json()
+                print(f"   Error details: {json.dumps(error_detail, indent=2)}")
+            except Exception:
+                print(f"   Response: {response.text[:500]}")
             sys.exit(1)
 
         try:
@@ -196,18 +196,16 @@ def fetch_posthog_events(
             "Authorization": f"Bearer {posthog_api_key}",
         }
 
-        try:
-            response = requests.post(
-                api_url, headers=headers, json=request_body, timeout=30
-            )
-            response.raise_for_status()
-        except requests.exceptions.Timeout:
-            print("❌ Error: Request to PostHog API timed out")
-            sys.exit(1)
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Error fetching from PostHog API: {e}")
-            if hasattr(e, "response") and e.response:
-                print(f"   Response: {e.response.text[:500]}")
+        response = requests.post(
+            api_url, headers=headers, json=request_body, timeout=30
+        )
+        if not response.ok:
+            print(f"❌ Error fetching from PostHog API: {response.status_code}")
+            try:
+                error_detail = response.json()
+                print(f"   Error details: {json.dumps(error_detail, indent=2)}")
+            except Exception:
+                print(f"   Response: {response.text[:500]}")
             sys.exit(1)
 
         try:
