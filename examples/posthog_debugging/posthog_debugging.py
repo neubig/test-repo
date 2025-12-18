@@ -128,9 +128,17 @@ def fetch_posthog_events(
             "Authorization": f"Bearer {posthog_api_key}",
         }
 
-        response = requests.post(
-            api_url, headers=headers, json=request_body, timeout=30
-        )
+        try:
+            response = requests.post(
+                api_url, headers=headers, json=request_body, timeout=120
+            )
+        except requests.exceptions.Timeout:
+            print("❌ Error: Request to PostHog API timed out (120s)")
+            sys.exit(1)
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error connecting to PostHog API: {e}")
+            sys.exit(1)
+
         if not response.ok:
             print(f"❌ Error fetching from PostHog API: {response.status_code}")
             try:
@@ -196,9 +204,18 @@ def fetch_posthog_events(
             "Authorization": f"Bearer {posthog_api_key}",
         }
 
-        response = requests.post(
-            api_url, headers=headers, json=request_body, timeout=30
-        )
+        try:
+            response = requests.post(
+                api_url, headers=headers, json=request_body, timeout=120
+            )
+        except requests.exceptions.Timeout:
+            print("❌ Error: Request to PostHog API timed out (120s)")
+            print("   Try reducing the number of events or using a more specific query")
+            sys.exit(1)
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error connecting to PostHog API: {e}")
+            sys.exit(1)
+
         if not response.ok:
             print(f"❌ Error fetching from PostHog API: {response.status_code}")
             try:
