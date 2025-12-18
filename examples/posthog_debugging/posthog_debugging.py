@@ -18,7 +18,7 @@ Usage:
 Environment Variables Required:
     - POSTHOG_API_KEY: Your PostHog Personal API key
     - POSTHOG_PROJECT_ID: Your PostHog project ID
-    - POSTHOG_HOST: (optional) PostHog host (e.g., us.i.posthog.com, eu.i.posthog.com)
+    - POSTHOG_HOST: (optional) PostHog host (e.g., us.posthog.com, eu.posthog.com)
     - GITHUB_TOKEN: Your GitHub personal access token
     - LLM_API_KEY: API key for the LLM service
 """
@@ -51,6 +51,14 @@ from openhands.tools.terminal import TerminalTool
 
 
 logger = get_logger(__name__)
+
+DEFAULT_POSTHOG_HOST = "us.posthog.com"
+
+
+def get_posthog_host() -> str:
+    """Get PostHog host from environment, using default if not set or empty."""
+    host = os.getenv("POSTHOG_HOST", "")
+    return host if host else DEFAULT_POSTHOG_HOST
 
 
 def validate_environment():
@@ -95,7 +103,7 @@ def fetch_posthog_events(
     """
     posthog_api_key = os.getenv("POSTHOG_API_KEY")
     posthog_project_id = os.getenv("POSTHOG_PROJECT_ID")
-    posthog_host = os.getenv("POSTHOG_HOST", "us.i.posthog.com")
+    posthog_host = get_posthog_host()
 
     event_examples = []
 
@@ -504,7 +512,7 @@ def create_debugging_prompt(
 ) -> str:
     """Create the debugging prompt for the agent."""
     repos_list = "\n".join(f"- {repo}" for repo in repos)
-    posthog_host = os.getenv("POSTHOG_HOST", "us.i.posthog.com")
+    posthog_host = get_posthog_host()
     posthog_project_id = os.getenv("POSTHOG_PROJECT_ID")
     query_url = f"https://{posthog_host}/api/projects/{posthog_project_id}/query/"
     events_url = f"https://{posthog_host}/api/projects/{posthog_project_id}/events/"
@@ -598,7 +606,7 @@ def main():
     print("🔍 Starting PostHog debugging session")
     print(f"📊 Query: {args.query}")
     print(f"📁 Repositories: {', '.join(repos)}")
-    print(f"🌍 PostHog host: {os.getenv('POSTHOG_HOST', 'us.i.posthog.com')}")
+    print(f"🌍 PostHog host: {get_posthog_host()}")
     print(f"💼 Working directory: {working_dir}")
     print()
 
