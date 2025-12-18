@@ -233,8 +233,8 @@ def fetch_posthog_events(
             print(f"   Response: {response.text[:500]}")
             sys.exit(1)
 
-        # Check for API errors
-        if "error" in response_data:
+        # Check for API errors (PostHog returns "error": null on success)
+        if response_data.get("error"):
             print(f"❌ PostHog API error: {response_data['error']}")
             sys.exit(1)
 
