@@ -58,16 +58,13 @@ jobs:
               with:
                   python-version: '3.12'
 
-            - name: Download debugging script
+            - name: Setup debugging script
               run: |
                   mkdir -p posthog_debug_tools
-                  cd posthog_debug_tools
-
-                  # Download the debugging script and template
-                  curl -O https://raw.githubusercontent.com/OpenHands/software-agent-sdk/main/examples/03_github_workflows/05_posthog_debugging/posthog_debugging.py
-                  curl -O https://raw.githubusercontent.com/OpenHands/software-agent-sdk/main/examples/03_github_workflows/05_posthog_debugging/debug_prompt.jinja
-
-                  chmod +x posthog_debugging.py
+                  # Use local files from the repository
+                  cp examples/posthog_debugging/posthog_debugging.py posthog_debug_tools/
+                  cp examples/posthog_debugging/debug_prompt.jinja posthog_debug_tools/
+                  chmod +x posthog_debug_tools/posthog_debugging.py
 
             - name: Install dependencies
               run: |
