@@ -184,9 +184,10 @@ def fetch_posthog_events(
         api_url = f"https://{posthog_host}/api/projects/{posthog_project_id}/query/"
 
         # Build HogQL query to fetch events
-        # Query for events in the last 30 days
+        # Query for events in the last 7 days to avoid server-side timeouts
         hogql_query = (
             f"SELECT * FROM events WHERE event = '{query}' "
+            f"AND timestamp > now() - INTERVAL 7 DAY "
             f"ORDER BY timestamp DESC LIMIT {limit}"
         )
 
