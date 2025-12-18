@@ -80,11 +80,12 @@ jobs:
                   LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
                   LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
                   LLM_MODEL: ${{ inputs.llm_model }}
+                  POSTHOG_QUERY: ${{ inputs.posthog_query }}
               run: |
                   cd posthog_debug_tools
                   python posthog_debugging.py \
                     --query-type "${{ inputs.query_type }}" \
-                    --query "${{ inputs.posthog_query }}" \
+                    --query "$POSTHOG_QUERY" \
                     --repos "${{ inputs.repo_list }}" \
                     --issue-repo "${{ inputs.issue_repo }}" \
                     ${{ inputs.issue_parent && format('--issue-parent "{0}"', inputs.issue_parent) || '' }} \
