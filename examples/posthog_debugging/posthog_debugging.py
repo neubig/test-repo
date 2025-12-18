@@ -108,21 +108,30 @@ def fetch_posthog_events(
     event_examples = []
 
     if query_type == "event-id":
-        # Fetch specific event by ID
-        api_url = (
-            f"https://{posthog_host}/api/projects/{posthog_project_id}/events/{query}"
-        )
+        # Fetch specific event by ID using HogQL query
+        api_url = f"https://{posthog_host}/api/projects/{posthog_project_id}/query/"
+
+        # Use HogQL to fetch event by UUID
+        hogql_query = f"SELECT * FROM events WHERE uuid = '{query}' LIMIT 1"
+
+        request_body = {
+            "query": {"kind": "HogQLQuery", "query": hogql_query},
+            "refresh": "blocking",
+        }
 
         print("📡 Fetching specific event from PostHog...")
         print(f"   Event ID: {query}")
         print(f"   API: {api_url}")
 
         headers = {
+            "Content-Type": "application/json",
             "Authorization": f"Bearer {posthog_api_key}",
         }
 
         try:
-            response = requests.get(api_url, headers=headers, timeout=30)
+            response = requests.post(
+                api_url, headers=headers, json=request_body, timeout=30
+            )
             response.raise_for_status()
         except requests.exceptions.Timeout:
             print("❌ Error: Request to PostHog API timed out")
@@ -132,16 +141,28 @@ def fetch_posthog_events(
             sys.exit(1)
 
         try:
-            event_data = response.json()
+            response_data = response.json()
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing PostHog API response: {e}")
             print(f"   Response: {response.text[:500]}")
             sys.exit(1)
 
+        # Parse HogQL response
+        results = response_data.get("results", [])
+        columns = response_data.get("columns", [])
+
+        if not results:
+            print(f"⚠️ No event found with ID: {query}")
+            sys.exit(1)
+
+        # Convert row to dict using column names
+        row = results[0]
+        event_data = dict(zip(columns, row))
+
         # Extract event details
         event_example = {
             "example_number": 1,
-            "event_id": event_data.get("id"),
+            "event_id": event_data.get("uuid"),
             "event": event_data.get("event"),
             "distinct_id": event_data.get("distinct_id"),
             "properties": event_data.get("properties", {}),
