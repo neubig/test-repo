@@ -479,7 +479,10 @@ def search_existing_issue(
     issue_repo: str, identifier: str, github_token: str
 ) -> int | None:
     """
-    Search for existing GitHub issues containing the identifier.
+    Search for existing open GitHub issues containing the identifier.
+
+    Only returns open issues. If all matching issues are closed,
+    returns None so a new issue can be created.
 
     Args:
         issue_repo: Repository in format 'owner/repo'
@@ -487,12 +490,12 @@ def search_existing_issue(
         github_token: GitHub API token
 
     Returns:
-        Issue number if found, None otherwise
+        Issue number if found (open), None otherwise
     """
-    print(f"🔍 Searching for existing issue with identifier: {identifier}")
+    print(f"🔍 Searching for existing open issue with identifier: {identifier}")
 
-    # Search issues in the repository
-    search_query = f'repo:{issue_repo} is:issue "{identifier}"'
+    # Search for open issues in the repository
+    search_query = f'repo:{issue_repo} is:issue is:open "{identifier}"'
     url = "https://api.github.com/search/issues"
     headers = {
         "Authorization": f"Bearer {github_token}",
@@ -509,10 +512,12 @@ def search_existing_issue(
             # Sort by created_at to get the oldest issue (first created)
             items_sorted = sorted(items, key=lambda x: x["created_at"])
             issue_number = items_sorted[0]["number"]
-            print(f"✅ Found existing issue #{issue_number} (oldest of {len(items)})")
+            print(
+                f"✅ Found existing open issue #{issue_number} (oldest of {len(items)})"
+            )
             return issue_number
         else:
-            print("❌ No existing issue found")
+            print("📭 No open issue found - will create new one")
             return None
     except (
         requests.exceptions.RequestException,
