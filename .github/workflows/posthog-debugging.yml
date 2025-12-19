@@ -79,7 +79,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
                   LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
-                  LLM_MODEL: ${{ inputs.llm_model }}
+                  LLM_MODEL: ${{ secrets.LLM_MODEL || inputs.llm_model }}
                   POSTHOG_QUERY: ${{ inputs.posthog_query }}
               run: |
                   cd posthog_debug_tools
