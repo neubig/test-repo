@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Migration Fortune** 🍀
+  - New self-contained `migration_fortune` module that returns a random,
+    encouraging fortune to ease the Python 2 -> 3 migration grind
+  - Deterministic output via an optional seed, ideal for testing
+  - Ships with 18 fortunes and a full test suite (`test_migration_fortune.py`)
+
 - **Comprehensive Dry-Run Test Suite** 🧪
   - Added `test_dry_run_mode_file()` to verify files remain unmodified in dry-run mode
   - Added `test_dry_run_vs_normal_mode()` to compare dry-run and normal mode behavior
